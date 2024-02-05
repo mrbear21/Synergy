@@ -1,0 +1,5 @@
+name: archiquestcore
+main: brain.BrainBungee
+version: 1.0
+author: breadmakers
+description: the basic plugin of archi.quest project

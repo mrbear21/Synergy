@@ -1,0 +1,12 @@
+name: Synergy
+main: me.synergy.brain.BrainSpigot
+version: 0.0.1
+api-version: 1.16
+author: breadmakers
+softdepend: [Authme, PlaceholderAPI, ProtocolLib]
+description: Basic tools and server messaging plugin
+commands:
+    synergy:
+        description: Synergy
+        usage: synergy.commanduse /<command>
+        aliaces: [sy]
