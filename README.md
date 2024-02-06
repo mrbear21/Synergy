@@ -1,10 +1,24 @@
 # Synergy [Velocity-Spigot]
 Basic tools and server messaging plugin for minecraft servers. The plugin can be used both in proxy and standalone servers.
 
+> The purpose of the plugin is to create synergy between servers and unite them into a solid and seamless project
+
+# TODO List
+☑️Proxy messaging system
+☑️Localization system
+⏹️Player data manager
+⏹️Editable chat manager
+⏹️Discord integration
+⏹️Patreon integration (maybe)
+⏹️Votifier
+⏹️Convenient web manager
+⏹️Security and caching features
+⏹️Convenient API
+
 # Convenient data synchronization between servers
 ```
 @EventHandler
-    public void getMessage(SynergyPluginMessage e) {
+    public void onMessage(SynergyPluginMessage e) {
         if (!e.getIdentifier().equals("broadcast-message")) {
             return;
         }
@@ -13,8 +27,8 @@ Basic tools and server messaging plugin for minecraft servers. The plugin can be
 
 @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-    	    	SynergyPluginMessage spm = new SynergyPluginMessage(plugin);
-    	    	spm.setArguments(args);
+            SynergyPluginMessage spm = new SynergyPluginMessage(plugin);
+            spm.setArguments(args);
             spm.send("broadcast-message");      
     	}	
         return true;
@@ -25,10 +39,10 @@ Basic tools and server messaging plugin for minecraft servers. The plugin can be
 
 Synergy's locales.yml
 ```
-login_command_usage:
+login-command-usage:
     en: "&cUsage: /login <password>"
     uk: "&cВикористання: /login <пароль>"
-login_wrong_password:
+login-wrong-password:
     en: "&cWrong password!"
     uk: "&cНевірний пароль!"
 localized-unknown-command-message:
@@ -38,15 +52,13 @@ localized-unknown-command-message:
 ```
 Authme's messages_en.yml
 ```
-...
 login:
-  command_usage: 'login_command_usage'
-  wrong_password: 'login_wrong_password'
+  command_usage: 'login-command-usage'
+  wrong_password: 'login-wrong-password'
 ...
 ```
 Spigot.yml
 ```
-...
 messages:
   unknown-command: 'localized-unknown-command-message'
 ...
