@@ -13,7 +13,7 @@ public class BreadMaker {
 	}
 
 	public String getLanguage() {
-		return spigot.getConfig().getString("default-language");
+		return spigot.getConfig().getString("localizations.default-language");
 	}
 
 	public String getName() {

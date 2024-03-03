@@ -27,10 +27,9 @@ Basic tools and server messaging plugin for minecraft servers. The plugin can be
 
 @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-            SynergyPluginMessage spm = new SynergyPluginMessage(plugin);
-            spm.setArguments(args);
-            spm.send("broadcast-message");      
-    	}	
+		SynergyPluginMessage spm = new SynergyPluginMessage(plugin);
+		spm.setArguments(args);
+		spm.send("broadcast-message");      
         return true;
     }
 ```

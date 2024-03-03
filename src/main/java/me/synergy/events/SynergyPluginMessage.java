@@ -51,12 +51,21 @@ public class SynergyPluginMessage extends Event {
 	}
 
 	public void send(Plugin spigot) {
-		ByteArrayDataOutput out = ByteStreams.newDataOutput();
-	    out.writeUTF(getIdentifier());
-        for (String arg : args) {
-    	    out.writeUTF(arg);
-        }
-	    Bukkit.getServer().sendPluginMessage(spigot, "net:synergy", out.toByteArray());
+		if (spigot.getConfig().getBoolean("synergy-plugin-messaging.enabled")) {
+			ByteArrayDataOutput out = ByteStreams.newDataOutput();
+		    out.writeUTF(getIdentifier());
+	        for (String arg : args) {
+	    	    out.writeUTF(arg);
+	        }
+		    Bukkit.getServer().sendPluginMessage(spigot, "net:synergy", out.toByteArray());
+		} else {
+		    Bukkit.getScheduler().runTask(spigot, new Runnable() {
+		    	@Override
+		        public void run() {
+					Bukkit.getServer().getPluginManager().callEvent(new SynergyPluginMessage(identifier, args));
+		        }
+		     });
+		}
 	}
 
 }

@@ -6,19 +6,25 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import javax.security.auth.login.LoginException;
+import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
 
+import com.theokanning.openai.messages.Message.MessageBuilder;
+
+import me.synergy.brain.BrainSpigot;
 import me.synergy.brain.BrainVelocity;
+import me.synergy.events.SynergyPluginMessage;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.IMentionable;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -31,40 +37,66 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 public class Discord extends ListenerAdapter {
 
 	private BrainVelocity bungee;
+	private BrainSpigot spigot;
+
+	private JDA jda;
 	
 	public Discord(BrainVelocity bungee) {
 		this.bungee = bungee;
 	}
 	
-	private final static GatewayIntent[] INTENTS = {GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_VOICE_STATES};
+	public Discord(BrainSpigot spigot) {
+		this.spigot = spigot;
+	}
+	
+	private final static GatewayIntent[] INTENTS = {GatewayIntent.SCHEDULED_EVENTS, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_VOICE_STATES};
     
-	public void initialize() {
+	public void register() {
 
-		if (bungee.getConfig().getBoolean("discord.enabled")) {
+		boolean enabled = false;
+		
+		if (bungee != null && bungee.getConfig().getBoolean("discord.enabled")) {
+			enabled = true;
+		}
+			
+		if (spigot != null && spigot.getConfig().getBoolean("discord.enabled")) {
+			enabled = true;
+		}
+		
+		if (enabled) {
 
-			String token = bungee.getConfig().getString("discord.bot-token");
+			String token = bungee != null ? bungee.getConfig().getString("discord.bot-token") : spigot.getConfig().getString("discord.bot-token");
 	
 			if (token == null || token.equals("token")) {
 				return;
 			}
-	        try {
-	        	bungee.jda = JDABuilder.create(token, Arrays.asList(INTENTS))
-	                    .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
-	                    .disableCache(CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS, CacheFlag.EMOJI, CacheFlag.ONLINE_STATUS, CacheFlag.STICKER)
-	                    .setStatus(OnlineStatus.ONLINE)
-	                    .addEventListeners(new Discord(bungee))
-	                    .setBulkDeleteSplittingEnabled(true)
-	                    .build();
-	        } catch (LoginException e) {
-	            bungee.getLogger().error(e.getMessage());
-	        } 
+	
+	        jda = JDABuilder.create(token, Arrays.asList(INTENTS))
+			.enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
+			.disableCache(CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS, CacheFlag.EMOJI, CacheFlag.ONLINE_STATUS, CacheFlag.STICKER)
+			.setStatus(OnlineStatus.ONLINE)
+	        .setMemberCachePolicy(MemberCachePolicy.ALL)
+			.addEventListeners(bungee != null ? new Discord(bungee) : new Discord(spigot))
+			.setBulkDeleteSplittingEnabled(true)
+			.build();
+			
+			if (spigot != null) {
+				spigot.jda = jda;
+				spigot.getLogger().info(this.getClass().getSimpleName()+" module has been initialized!");
+			}
+			
+			if (bungee != null) {
+				bungee.jda = jda;
+				bungee.getLogger().info(this.getClass().getSimpleName()+" module has been initialized!");
+			} 
 		
-		    CommandListUpdateAction commands = bungee.getJda().updateCommands();
+		    CommandListUpdateAction commands = jda.updateCommands();
 	
 		    commands.addCommands(
 			        Commands.slash("погроза", "Кинути користувачу погрозу в приватні повідомлення.")
@@ -97,11 +129,6 @@ public class Discord extends ListenerAdapter {
 			);
 		    
 		    commands.addCommands(
-			        Commands.slash("ip", "Айпі сервера")
-			            .setGuildOnly(true)
-			);
-		    
-		    commands.addCommands(
 		        Commands.slash("say", "Бот напише те, що ви йому скажете").addOption(OptionType.STRING, "content", "Що бот повинен сказати", true)
 		    );
 	
@@ -113,7 +140,9 @@ public class Discord extends ListenerAdapter {
 		    );
 		
 		    commands.queue();
+
 		}
+		
 	}
 		
 	@Override
@@ -139,15 +168,6 @@ public class Discord extends ListenerAdapter {
 	    case "list":
 	        list(event);
 	        break;
-	    case "ip":
-			EmbedBuilder builder = new EmbedBuilder();
-			String[] images = {"https://cdn.discordapp.com/attachments/994920082927013989/1008322215269388378/1.png", "https://cdn.discordapp.com/attachments/994920082927013989/1008322215655251998/2.png", "https://cdn.discordapp.com/attachments/994920082927013989/1008322215940456528/3.png", "https://cdn.discordapp.com/attachments/994920082927013989/1008322216242450472/4.png"};
-			builder.setImage(images[new Random().nextInt(images.length)]);
-			builder.setColor(Color.decode("#a29bfe"));
-			MessageBuilder message = new MessageBuilder();
-			message.setEmbeds(builder.build());
-			event.reply(message.build()).queue();
-	        break;
 	    default:
 	        event.reply("I can't handle that command right now :(").setEphemeral(true).queue();
 	    }
@@ -156,7 +176,7 @@ public class Discord extends ListenerAdapter {
 
 	String list = "";
 	private void list(SlashCommandInteractionEvent event) {
-		
+		/*
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setTitle("Хлібороби онлайн:");
 		list = "";
@@ -176,10 +196,11 @@ public class Discord extends ListenerAdapter {
 		MessageBuilder message = new MessageBuilder();
 		message.setEmbeds(builder.build());
 		event.reply(message.build()).queue();
+		*/
 	}
 
 	private void post(SlashCommandInteractionEvent event) {
-		
+		/*
 		String title = event.getOption("title").getAsString();
 		String text = event.getOption("text").getAsString().replace("\\n", System.lineSeparator());
 		String author = event.getOption("author") != null ? event.getOption("author").getAsString() : null;
@@ -211,6 +232,7 @@ public class Discord extends ListenerAdapter {
 			channel.retrieveMessageById(edit).complete().editMessage(message.build()).queue();
 		}
     	event.reply("Пост опубліковано!").queue();
+    	*/
 	}
 
 
@@ -253,29 +275,36 @@ public class Discord extends ListenerAdapter {
 	        .queue();
 	}
 
+    @EventHandler
+    public void getMessage(SynergyPluginMessage e) {
+        if (!e.getIdentifier().equals("discord")) {
+            return;
+        }
+        for (String s : e.getArgs()) {
+        	Bukkit.broadcastMessage(s);
+        }
+    }
+	
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event) {
 		Message message = event.getMessage();
-
+		Member memder = event.getMember();
+		
 		if (!event.getAuthor().isBot()) {
 			
-			String chat = null;
 			String channelId = event.getChannel().getId();
 			
-			if (channelId.equals(bungee.getConfig().getString("discord.global-chat-channel"))) {
-				chat = "discord";
+			if (channelId.equals(spigot.getConfig().getString("discord.global-chat-channel"))) {
+				SynergyPluginMessage spm = new SynergyPluginMessage("chat");
+		    	spm.setArguments(new String[] {memder.getNickname(), "@"+message.getContentDisplay()}).send(spigot);
 			}
 			
-			if (channelId.equals(bungee.getConfig().getString("discord.admin-chat-channel"))) {
-				chat = "discord_admin";
+			if (channelId.equals(spigot.getConfig().getString("discord.admin-chat-channel"))) {
+				SynergyPluginMessage spm = new SynergyPluginMessage("chat");
+		    	spm.setArguments(new String[] {memder.getNickname(), "$"+message.getContentDisplay()}).send(spigot);
 			}
 			
-			
-			if (chat != null) {
-			
-			//	new SystemMessages(bungee).newMessage("chat", new String[] {"new", chat, event.getMember().getUser().getAsTag().split("#")[0], message.getContentDisplay(), language});
-			
-			}
+
 			
 			return;
 		}

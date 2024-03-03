@@ -44,21 +44,33 @@ public class Config {
 	    			} catch (Exception c) { c.printStackTrace(); }
 	    		}
 	    		
-		        spigot.getConfig().addDefault("plugin-messaging-token", "Copy plugin-messaging-token from config.yml of Synergy in your Proxy folder");
-		        spigot.getConfig().addDefault("default-language", "en");
+		        spigot.getConfig().addDefault("synergy-plugin-messaging.enabled", false);
+		        spigot.getConfig().addDefault("synergy-plugin-messaging.token", "Copy plugin-messaging-token from config.yml of Synergy in your Proxy folder");
+		        
+
+		        spigot.getConfig().addDefault("localizations.enabled", true);
+		        spigot.getConfig().addDefault("localizations.default-language", "en");
+		        
 		        spigot.getConfig().addDefault("chat-manager.enabled", true);
+		        spigot.getConfig().addDefault("chat-manager.global-chat", true);
+		        spigot.getConfig().addDefault("chat-manager.local-chat-radius", 500);
 		        spigot.getConfig().addDefault("chat-manager.cross-server-global-chat", true);
 		        spigot.getConfig().addDefault("chat-manager.colors.global-chat", "&e");
 		        spigot.getConfig().addDefault("chat-manager.colors.local-chat", "&f");
 		        spigot.getConfig().addDefault("chat-manager.colors.discord-chat", "&b");
 		        spigot.getConfig().addDefault("chat-manager.colors.admin-chat", "&c");
+		        spigot.getConfig().addDefault("chat-manager.colors.discord_admin-chat", "&c");
 		        spigot.getConfig().addDefault("chat-manager.format", "[%CHAT%] %DISPLAYNAME%: %MESSAGE%");
-		        spigot.getConfig().addDefault("localizations", true);
+		        
+		        spigot.getConfig().addDefault("openai.enabled", false);
+		        spigot.getConfig().addDefault("openai.token", "token");
+		        
 		        spigot.getConfig().addDefault("discord.enabled", false);
 		        spigot.getConfig().addDefault("discord.bot-token", "token");
 		        spigot.getConfig().addDefault("discord.global-chat-channel", "00000000000000000");
 		        spigot.getConfig().addDefault("discord.admin-chat-channel", "00000000000000000");
 		        spigot.getConfig().addDefault("discord.console-channel", "00000000000000000");
+		        spigot.getConfig().addDefault("discord.log-channel", "00000000000000000");
 		        spigot.getConfig().addDefault("web-server", false);
 		        spigot.getConfig().addDefault("votifier.enabled", false);
 		        spigot.getConfig().addDefault("votifier.port", "8192");
@@ -68,14 +80,21 @@ public class Config {
 		    } else {
 		    	
 		    	bungee.getConfig().loadConfig();
-	            
-	            bungee.getConfig().addDefault("plugin-messaging-token", new Utils().generateRandomString(50));
+		    	
+		    	bungee.getConfig().addDefault("synergy-plugin-messaging.enabled", true);
+		        bungee.getConfig().addDefault("synergy-plugin-messaging.token", new Utils().generateRandomString(50));
+		        
 		        bungee.getConfig().addDefault("default-language", "en");
+		        
+		        bungee.getConfig().addDefault("openai.enabled", false);
+		        bungee.getConfig().addDefault("openai.token", "token");
+		        
 		        bungee.getConfig().addDefault("discord.enabled", false);
 		        bungee.getConfig().addDefault("discord.bot-token", "token");
 		        bungee.getConfig().addDefault("discord.global-chat-channel", "00000000000000000");
 		        bungee.getConfig().addDefault("discord.admin-chat-channel", "00000000000000000");
 		        bungee.getConfig().addDefault("discord.console-channel", "00000000000000000");
+		        bungee.getConfig().addDefault("discord.log-channel", "00000000000000000");
 		        bungee.getConfig().addDefault("web-server", false);
 		        bungee.getConfig().addDefault("votifier.enabled", false);
 		        bungee.getConfig().addDefault("votifier.port", "8192");

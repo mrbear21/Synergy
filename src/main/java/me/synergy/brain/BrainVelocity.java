@@ -50,7 +50,7 @@ public class BrainVelocity {
         server.getChannelRegistrar().register(IDENTIFIER);
         
         new Config(this).register();
-        new Discord(this).initialize();
+        new Discord(this).register();
     }
 
     @Subscribe

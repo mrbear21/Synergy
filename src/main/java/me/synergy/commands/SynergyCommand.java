@@ -3,6 +3,8 @@ package me.synergy.commands;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -11,9 +13,13 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import com.theokanning.openai.completion.CompletionChoice;
+
 import me.synergy.brain.BrainSpigot;
 import me.synergy.events.SynergyPluginMessage;
 import me.synergy.modules.Localizations;
+import me.synergy.modules.OpenAi;
+import me.synergy.objects.Config;
 
 public class SynergyCommand implements CommandExecutor, Listener {
 
@@ -41,6 +47,7 @@ public class SynergyCommand implements CommandExecutor, Listener {
         for (String s : e.getArgs()) {
         	Bukkit.broadcastMessage(s);
         }
+        spigot.log("тишо йобо");
     }
 
     @Override
@@ -61,6 +68,7 @@ public class SynergyCommand implements CommandExecutor, Listener {
 	                    }
 	                }
 	                new Localizations(spigot).initializeLocalizations();
+	                new Config(spigot).register();
 	                
 	                sender.sendMessage("Translations and configuration files reloaded successfully!");
 	                return true;
@@ -73,6 +81,15 @@ public class SynergyCommand implements CommandExecutor, Listener {
     			
     	    	SynergyPluginMessage spm = new SynergyPluginMessage("hello");
     	    	spm.setArguments(Arrays.copyOfRange(args, 1, args.length)).send(spigot);
+    	    	break;
+    	    	
+    		case "hello":
+    			
+    			OpenAi gpt = new OpenAi(spigot);
+    			List<CompletionChoice> text = gpt.newPrompt("hello");
+    			
+    			text.forEach(c -> spigot.log(c.getText()));
+    			
     	    	break;
       
     	}

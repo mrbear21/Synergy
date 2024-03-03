@@ -24,6 +24,9 @@ import me.synergy.commands.SynergyCommand;
 import me.synergy.events.SynergyPluginMessage;
 import me.synergy.objects.BreadMaker;
 import me.synergy.objects.Config;
+import net.dv8tion.jda.api.JDA;
+import me.synergy.modules.ChatManager;
+import me.synergy.modules.Discord;
 import me.synergy.modules.Localizations;
 
 public class BrainSpigot extends JavaPlugin implements PluginMessageListener {
@@ -35,6 +38,8 @@ public class BrainSpigot extends JavaPlugin implements PluginMessageListener {
     private Map<String, HashMap<String, String>> LOCALES;
 
 	private ProtocolManager PROTOCOLMANAGER;
+
+	public JDA jda;
 	
 	@Override
 	public void onEnable() {
@@ -50,6 +55,8 @@ public class BrainSpigot extends JavaPlugin implements PluginMessageListener {
 		new Config(this).register();
 		new SynergyCommand(this).register();
 		new Localizations(this).register();
+		new ChatManager(this).register();
+        new Discord(this).register();
 
 		getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
 		
@@ -98,7 +105,7 @@ public class BrainSpigot extends JavaPlugin implements PluginMessageListener {
 	}
 	
 	public FileConfiguration getLocalesFile() {
-		return getLOCALESFILE();
+		return LOCALESFILE;
 	}
 	
 	public BrainSpigot getInstance() {
@@ -109,12 +116,8 @@ public class BrainSpigot extends JavaPlugin implements PluginMessageListener {
 		return new BreadMaker(this, name);
 	}
 
-	public FileConfiguration getLOCALESFILE() {
-		return LOCALESFILE;
-	}
-
-	public void setLOCALESFILE(FileConfiguration lOCALESFILE) {
-		LOCALESFILE = lOCALESFILE;
+	public JDA getJda() {
+		return jda;
 	}
 
 }

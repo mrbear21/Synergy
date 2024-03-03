@@ -117,7 +117,6 @@ public class Localizations implements Listener {
 				                BreadMaker bread = spigot.getBread(event.getPlayer().getName());
 				                String language = bread.getLanguage();
 		                        HashMap<String, String> locales = spigot.getLocales().get(language);
-		                        
 		                        if (locales != null) {
 					                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
 					                for (WrappedChatComponent component : components) {
