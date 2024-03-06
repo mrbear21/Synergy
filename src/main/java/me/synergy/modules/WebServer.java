@@ -44,28 +44,7 @@ public class WebServer {
     private class VoteHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            // Отримання інформації про голосування з запиту
-            String query = exchange.getRequestURI().getQuery();
-
-            // Перевірка, чи є параметр голосування
-            if (query != null) {
-                // Розбиття параметрів на окремі пари ключ-значення
-                String[] params = query.split("&");
-                for (String param : params) {
-                    // Розбиття пари ключ-значення на ключ та значення
-                    String[] keyValue = param.split("=");
-                    if (keyValue.length == 2) {
-                        String key = keyValue[0];
-                        String value = keyValue[1];
-                        // Опрацювання кожного параметра голосування
-                        spigot.getLogger().info("Received vote parameter: " + key + "=" + value);
-                        // Додаткова логіка для обробки параметрів голосування
-                    }
-                }
-            }
-
-            // Відправлення відповіді клієнту
-            String response = "Received vote!";
+            String response = "Hello World";
             exchange.sendResponseHeaders(200, response.getBytes().length);
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
