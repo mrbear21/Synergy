@@ -15,6 +15,9 @@ Basic tools and server messaging plugin for minecraft servers. The plugin can be
 ⏹️Security and caching features
 ⏹️Convenient API
 
+# Permissions
+https://github.com/mrbear21/Synergy/wiki/Permissions
+
 # Convenient data synchronization between servers
 ```
 @EventHandler
