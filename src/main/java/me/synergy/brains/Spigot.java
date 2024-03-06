@@ -1,4 +1,4 @@
-package me.synergy.brain;
+package me.synergy.brains;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,31 +19,32 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.sun.net.httpserver.HttpServer;
 
 import me.synergy.commands.SynergyCommand;
 import me.synergy.events.SynergyPluginMessage;
+import me.synergy.handlers.VoteListener;
 import me.synergy.objects.BreadMaker;
-import me.synergy.objects.Config;
 import net.dv8tion.jda.api.JDA;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Discord;
 import me.synergy.modules.Localizations;
+import me.synergy.modules.SynergyConfig;
+import me.synergy.modules.WebServer;
 
-public class BrainSpigot extends JavaPlugin implements PluginMessageListener {
+public class Spigot extends JavaPlugin implements PluginMessageListener {
 	
-	private BrainSpigot INSTANCE;
-	
+	private static Spigot INSTANCE;
 	private FileConfiguration LOCALESFILE;
-
     private Map<String, HashMap<String, String>> LOCALES;
-
 	private ProtocolManager PROTOCOLMANAGER;
-
 	public JDA jda;
+	public HttpServer WEBSERVER;
 	
 	@Override
 	public void onEnable() {
 		INSTANCE = this;
+		Synergy.platform = "spigot";
 
 		getServer().getMessenger().registerOutgoingPluginChannel(this, "net:synergy");
 		getServer().getMessenger().registerIncomingPluginChannel(this, "net:synergy", this);
@@ -52,11 +53,13 @@ public class BrainSpigot extends JavaPlugin implements PluginMessageListener {
 		LOCALESFILE = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "locales.yml"));
 		LOCALES = new HashMap<String, HashMap<String, String>>();
 		
-		new Config(this).register();
-		new SynergyCommand(this).register();
-		new Localizations(this).register();
-		new ChatManager(this).register();
-        new Discord(this).register();
+		new SynergyConfig(this).initialize();
+		new SynergyCommand(this).initialize();
+		new Localizations(this).initialize();
+		new ChatManager(this).initialize();
+        new Discord(this).initialize();
+        new WebServer(this).start();
+        new VoteListener(this).initialize();
 
 		getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
 		
@@ -84,6 +87,8 @@ public class BrainSpigot extends JavaPlugin implements PluginMessageListener {
     }
 
 	public void onDisable() {
+		new WebServer(this).stop();
+		getJda().shutdown();
 		getLogger().info("Synergy has stopped it's service!");
 	}
 	
@@ -108,18 +113,25 @@ public class BrainSpigot extends JavaPlugin implements PluginMessageListener {
 		return LOCALESFILE;
 	}
 	
-	public BrainSpigot getInstance() {
+	public static Spigot getInstance() {
 		return INSTANCE;
 	}
 
 	public BreadMaker getBread(String name) {
-		return new BreadMaker(this, name);
+		return new BreadMaker(name);
 	}
 
 	public JDA getJda() {
 		return jda;
 	}
 
+	public HttpServer getWeb() {
+		return WEBSERVER;
+	}
+
+	public boolean isDependencyAvailable(String string) {
+		return this.getServer().getPluginManager().isPluginEnabled(string);
+	}
 }
 
 

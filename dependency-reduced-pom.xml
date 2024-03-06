@@ -63,6 +63,10 @@
       <id>placeholderapi</id>
       <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
     </repository>
+    <repository>
+      <id>jitpack</id>
+      <url>https://jitpack.io</url>
+    </repository>
   </repositories>
   <dependencies>
     <dependency>
@@ -74,10 +78,6 @@
         <exclusion>
           <artifactId>guava</artifactId>
           <groupId>com.google.guava</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>gson</artifactId>
-          <groupId>com.google.code.gson</groupId>
         </exclusion>
         <exclusion>
           <artifactId>joml</artifactId>
@@ -164,10 +164,6 @@
           <groupId>org.jspecify</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>gson</artifactId>
-          <groupId>com.google.code.gson</groupId>
-        </exclusion>
-        <exclusion>
           <artifactId>guava</artifactId>
           <groupId>com.google.guava</groupId>
         </exclusion>
@@ -202,6 +198,34 @@
         <exclusion>
           <artifactId>adventure-platform-bukkit</artifactId>
           <groupId>net.kyori</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.github.NuVotifier</groupId>
+      <artifactId>NuVotifier</artifactId>
+      <version>2.7.2</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>nuvotifier-api</artifactId>
+          <groupId>com.github.NuVotifier.NuVotifier</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>nuvotifier-bukkit</artifactId>
+          <groupId>com.github.NuVotifier.NuVotifier</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>nuvotifier-bungeecord</artifactId>
+          <groupId>com.github.NuVotifier.NuVotifier</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>nuvotifier-common</artifactId>
+          <groupId>com.github.NuVotifier.NuVotifier</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>nuvotifier-sponge</artifactId>
+          <groupId>com.github.NuVotifier.NuVotifier</groupId>
         </exclusion>
       </exclusions>
     </dependency>

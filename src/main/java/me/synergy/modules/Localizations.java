@@ -1,6 +1,7 @@
 package me.synergy.modules;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
@@ -26,29 +28,32 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 
-import me.synergy.brain.BrainSpigot;
+import me.synergy.brains.Spigot;
 import me.synergy.events.SynergyPluginMessage;
 import me.synergy.objects.BreadMaker;
 
 public class Localizations implements Listener {
 
-    private BrainSpigot spigot;
+    private Spigot spigot;
     private ProtocolManager protocolManager;
 
-    public Localizations(BrainSpigot spigot) {
+    public Localizations(Spigot spigot) {
         this.spigot = spigot;
         this.protocolManager = spigot.getProtocolManager();
     }
 
-	public void register() {
+	public void initialize() {
 		try {
-			if (!spigot.getServer().getPluginManager().isPluginEnabled("ProtocolLib")) {
+			if (!spigot.getConfig().getBoolean("localizations.enabled")) {
+				return;
+			}
+			if (!spigot.isDependencyAvailable("ProtocolLib")) {
 				spigot.getLogger().warning("ProtocolLib is required to initialize "+this.getClass().getSimpleName()+" module!");
 				return;
 			}
 			
 			Bukkit.getPluginManager().registerEvents(new Localizations(spigot), spigot);
-			initializeLocalizations();
+			loadLocales();
 	
 			protocolManager.addPacketListener(
 				new PacketAdapter(spigot, ListenerPriority.MONITOR, PacketType.Play.Server.SET_SLOT, PacketType.Play.Server.WINDOW_ITEMS) {
@@ -109,32 +114,32 @@ public class Localizations implements Listener {
 			);
 
 			protocolManager.addPacketListener(
-				    new PacketAdapter(spigot, ListenerPriority.MONITOR, PacketType.Play.Server.SYSTEM_CHAT) {
-				        @Override
-				        public void onPacketSending(PacketEvent event) {
-				            try {
-				                PacketContainer packet = event.getPacket();
-				                BreadMaker bread = spigot.getBread(event.getPlayer().getName());
-				                String language = bread.getLanguage();
-		                        HashMap<String, String> locales = spigot.getLocales().get(language);
-		                        if (locales != null) {
-					                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
-					                for (WrappedChatComponent component : components) {
-					                    if (component != null) {
-					                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
-					                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-					                        locales.entrySet().forEach(l ->
-					                                component.setJson(component.getJson().replace(l.getKey(), ChatColor.GOLD + l.getValue()).replace("%nl%", System.lineSeparator())));
-					                        packet.getChatComponents().write(components.indexOf(component), component);    
-				                        }
-				                    }
-				                }
-				            } catch (Exception e) {
-				                e.printStackTrace();
-				            }
-				        }
-				    }
-				);
+			    new PacketAdapter(spigot, ListenerPriority.MONITOR, PacketType.Play.Server.SYSTEM_CHAT) {
+			        @Override
+			        public void onPacketSending(PacketEvent event) {
+			            try {
+			                PacketContainer packet = event.getPacket();
+			                BreadMaker bread = spigot.getBread(event.getPlayer().getName());
+			                String language = bread.getLanguage();
+	                        HashMap<String, String> locales = spigot.getLocales().get(language);
+	                        if (locales != null) {
+				                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
+				                for (WrappedChatComponent component : components) {
+				                    if (component != null) {
+				                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
+				                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+				                        locales.entrySet().forEach(l ->
+				                                component.setJson(component.getJson().replace(l.getKey(), ChatColor.GOLD + l.getValue()).replace("%nl%", System.lineSeparator())));
+				                        packet.getChatComponents().write(components.indexOf(component), component);    
+			                        }
+			                    }
+			                }
+			            } catch (Exception e) {
+			                e.printStackTrace();
+			            }
+			        }
+			    }
+			);
 			spigot.getLogger().info(this.getClass().getSimpleName()+" module has been initialized!");
 		} catch (Exception c) {
 			spigot.getLogger().warning(this.getClass().getSimpleName()+" module failed to initialize:");
@@ -154,7 +159,7 @@ public class Localizations implements Listener {
 		return string;
 	}
 	
-	public void initializeLocalizations() {
+	public void loadLocales() {
 		
 		if (!new File(spigot.getDataFolder(), "locales.yml").exists()) {
 			spigot.getLogger().info("Creating locales file...");
@@ -163,18 +168,24 @@ public class Localizations implements Listener {
 			} catch (Exception c) { c.printStackTrace(); }
 		}
 		
+        File localesFile = new File(spigot.getDataFolder(), "locales.yml");
+        if (localesFile.exists()) {
+            try {
+            	spigot.getLocalesFile().load(localesFile);
+            } catch (IOException | InvalidConfigurationException e) {
+                e.printStackTrace();
+            }
+        }
+		
 	    int count = 0;
 	    for (String key : spigot.getLocalesFile().getKeys(false)) {
 	        ConfigurationSection subSection = spigot.getLocalesFile().getConfigurationSection(key);
 	        if (subSection != null) {
-	            HashMap<String, String> translationMap = new HashMap<>();
 	            for (String language : subSection.getKeys(false)) {
-		            if (spigot.getLocales().containsKey(language)) {
-		            	translationMap = spigot.getLocales().get(language);
-		            }
-	                translationMap.put(key, subSection.getString(language));
+	                HashMap<String, String> translationMap = spigot.getLocales().getOrDefault(language, new HashMap<>());
+	                translationMap.put(key, ChatColor.translateAlternateColorCodes('&', subSection.getString(language)));
 	                count++;
-		            spigot.getLocales().put(language, translationMap);
+	                spigot.getLocales().put(language, translationMap);
 	            }
 	        }
 	    }

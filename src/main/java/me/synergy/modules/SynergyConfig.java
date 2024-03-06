@@ -1,4 +1,4 @@
-package me.synergy.objects;
+package me.synergy.modules;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,27 +13,28 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.bukkit.Bukkit;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import me.synergy.brain.BrainSpigot;
-import me.synergy.brain.BrainVelocity;
+import me.synergy.brains.Spigot;
+import me.synergy.brains.Velocity;
 import me.synergy.utils.Utils;
 
-public class Config {
+public class SynergyConfig {
 
-	private BrainSpigot spigot;
-	private BrainVelocity bungee;
+	private Spigot spigot;
+	private Velocity bungee;
 	private String configFile = "plugins/Synergy/config.yml";
 	
-    public Config(BrainSpigot spigot) {
+    public SynergyConfig(Spigot spigot) {
     	this.spigot = spigot;
 	}
-    public Config(BrainVelocity bungee) {
+    public SynergyConfig(Velocity bungee) {
     	this.bungee = bungee;
 	}
 
-    public void register() {
+    public void initialize() {
     	try {
 	    	if (spigot != null) {
 	    		
@@ -45,14 +46,16 @@ public class Config {
 	    		}
 	    		
 		        spigot.getConfig().addDefault("synergy-plugin-messaging.enabled", false);
+		        spigot.getConfig().addDefault("synergy-plugin-messaging.servername", Bukkit.getServer().getMotd());
 		        spigot.getConfig().addDefault("synergy-plugin-messaging.token", "Copy plugin-messaging-token from config.yml of Synergy in your Proxy folder");
 		        
-
 		        spigot.getConfig().addDefault("localizations.enabled", true);
 		        spigot.getConfig().addDefault("localizations.default-language", "en");
 		        
 		        spigot.getConfig().addDefault("chat-manager.enabled", true);
-		        spigot.getConfig().addDefault("chat-manager.global-chat", true);
+		        spigot.getConfig().addDefault("chat-manager.local-chat", true);
+		        spigot.getConfig().addDefault("chat-manager.blocked-words", new String[] {"fuck", "bitch"});
+		        spigot.getConfig().addDefault("chat-manager.blocked-words-tolerance-percentage", 38.5);
 		        spigot.getConfig().addDefault("chat-manager.local-chat-radius", 500);
 		        spigot.getConfig().addDefault("chat-manager.cross-server-global-chat", true);
 		        spigot.getConfig().addDefault("chat-manager.colors.global-chat", "&e");
@@ -64,30 +67,39 @@ public class Config {
 		        
 		        spigot.getConfig().addDefault("openai.enabled", false);
 		        spigot.getConfig().addDefault("openai.token", "token");
+		        spigot.getConfig().addDefault("openai.model", "gpt-3.5-turbo-instruct-0914");
 		        
 		        spigot.getConfig().addDefault("discord.enabled", false);
 		        spigot.getConfig().addDefault("discord.bot-token", "token");
-		        spigot.getConfig().addDefault("discord.global-chat-channel", "00000000000000000");
-		        spigot.getConfig().addDefault("discord.admin-chat-channel", "00000000000000000");
-		        spigot.getConfig().addDefault("discord.console-channel", "00000000000000000");
-		        spigot.getConfig().addDefault("discord.log-channel", "00000000000000000");
-		        spigot.getConfig().addDefault("web-server", false);
+		        spigot.getConfig().addDefault("discord.channels.global-chat-channel", "00000000000000000");
+		        spigot.getConfig().addDefault("discord.channels.admin-chat-channel", "00000000000000000");
+		        spigot.getConfig().addDefault("discord.channels.console-channel", "00000000000000000");
+		        spigot.getConfig().addDefault("discord.channels.log-channel", "00000000000000000");
+		        spigot.getConfig().addDefault("discord.gpt-bot.enabled", false);
+		        spigot.getConfig().addDefault("discord.gpt-bot.personality", "You are vile person. Give an answer in a mocking tone: %MESSAGE%");
+		        spigot.getConfig().addDefault("web-server.enabled", false);
+		        spigot.getConfig().addDefault("web-server.port", 8192);
 		        spigot.getConfig().addDefault("votifier.enabled", false);
-		        spigot.getConfig().addDefault("votifier.port", "8192");
+		        spigot.getConfig().addDefault("votifier.message", "synergy-voted-successfully");
+		        spigot.getConfig().addDefault("votifier.rewards", new String[] {"eco give %PLAYER% 1"});
 		        spigot.getConfig().options().copyDefaults(true);
 		        spigot.saveConfig();
+		        
+		        spigot.getLogger().info(this.getClass().getSimpleName()+" file has been initialized!");
 
 		    } else {
 		    	
 		    	bungee.getConfig().loadConfig();
 		    	
 		    	bungee.getConfig().addDefault("synergy-plugin-messaging.enabled", true);
+		        spigot.getConfig().addDefault("synergy-plugin-messaging.servername", "Proxy");
 		        bungee.getConfig().addDefault("synergy-plugin-messaging.token", new Utils().generateRandomString(50));
 		        
 		        bungee.getConfig().addDefault("default-language", "en");
 		        
 		        bungee.getConfig().addDefault("openai.enabled", false);
 		        bungee.getConfig().addDefault("openai.token", "token");
+		        bungee.getConfig().addDefault("openai.model", "gpt-3.5-turbo-instruct-0914");
 		        
 		        bungee.getConfig().addDefault("discord.enabled", false);
 		        bungee.getConfig().addDefault("discord.bot-token", "token");
@@ -97,10 +109,11 @@ public class Config {
 		        bungee.getConfig().addDefault("discord.log-channel", "00000000000000000");
 		        bungee.getConfig().addDefault("web-server", false);
 		        bungee.getConfig().addDefault("votifier.enabled", false);
-		        bungee.getConfig().addDefault("votifier.port", "8192");
+		        bungee.getConfig().addDefault("votifier.port", 8192);
+		        
+		    	bungee.getLogger().info(this.getClass().getSimpleName()+" file has been initialized!");
 		    }
 	    	
-	    	spigot.getLogger().info(this.getClass().getSimpleName()+" file has been initialized!");
 		} catch (Exception c) {
 			spigot.getLogger().warning(this.getClass().getSimpleName()+" file failed to initialize: "+c);
 		}
@@ -196,18 +209,31 @@ public class Config {
     }
     
     public boolean getBoolean(String key) {
-    	Object value = getValue(key);
-    	return value != null ? (boolean) value : null;
+    	if (bungee != null) {
+	    	Object value = getValue(key);
+	    	return value != null ? (boolean) value : null;
+    	}
+    	return spigot.getConfig().getBoolean(key);
     }
 
-    public Integer getInteger(String key) {
-    	Object value = getValue(key);
-    	return value != null ? (int) value : null;
+    public Integer getInt(String key) {
+    	if (bungee != null) {
+	    	Object value = getValue(key);
+	    	return value != null ? (int) value : null;
+    	}
+    	return spigot.getConfig().getInt(key);
     }
     
     public String getString(String key) {
-    	Object value = getValue(key);
-    	return value != null ? (String) value : null;
+    	if (bungee != null) {
+	    	Object value = getValue(key);
+	    	return value != null ? (String) value : null;
+		}
+		return spigot.getConfig().getString(key);
     }
+    
+	public String getString(String key, String defaultIfNull) {
+		return getString(key) != null ? getString(key) : defaultIfNull;
+	}
 	
 }

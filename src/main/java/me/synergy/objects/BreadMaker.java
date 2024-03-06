@@ -1,19 +1,17 @@
 package me.synergy.objects;
 
-import me.synergy.brain.BrainSpigot;
+import me.synergy.brains.Synergy;
 
 public class BreadMaker {
 
-	private BrainSpigot spigot;
 	private String name;
 	
-	public BreadMaker(BrainSpigot spigot, String name) {
-		this.spigot = spigot;
+	public BreadMaker(String name) {
 		this.setName(name);
 	}
 
 	public String getLanguage() {
-		return spigot.getConfig().getString("localizations.default-language");
+		return Synergy.getConfig().getString("localizations.default-language", "en");
 	}
 
 	public String getName() {
