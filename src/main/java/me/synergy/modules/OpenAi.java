@@ -18,7 +18,8 @@ public class OpenAi {
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .model(Synergy.getConfig().getString("openai.model"))
                 .prompt(args)
-                .maxTokens(512)
+                .maxTokens(Synergy.getConfig().getInt("openai.response-size"))
+                .temperature(0.7)
                 .build();
         List<CompletionChoice> choices = service.createCompletion(completionRequest).getChoices();
 

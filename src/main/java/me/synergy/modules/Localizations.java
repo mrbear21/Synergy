@@ -29,7 +29,7 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 
 import me.synergy.brains.Spigot;
-import me.synergy.events.SynergyPluginMessage;
+import me.synergy.events.SynergyPluginEvent;
 import me.synergy.objects.BreadMaker;
 
 public class Localizations implements Listener {
@@ -129,7 +129,7 @@ public class Localizations implements Listener {
 				                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
 				                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 				                        locales.entrySet().forEach(l ->
-				                                component.setJson(component.getJson().replace(l.getKey(), ChatColor.GOLD + l.getValue()).replace("%nl%", System.lineSeparator())));
+				                                component.setJson(component.getJson().replace(l.getKey(), l.getValue()).replace("%nl%", System.lineSeparator())));
 				                        packet.getChatComponents().write(components.indexOf(component), component);    
 			                        }
 			                    }
@@ -193,7 +193,7 @@ public class Localizations implements Listener {
 	}
 
     @EventHandler
-    public void getMessage(SynergyPluginMessage e) {
+    public void getMessage(SynergyPluginEvent e) {
         if (!e.getIdentifier().equals("locales")) {
             return;
         }

@@ -3,7 +3,6 @@ package me.synergy.modules;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -12,10 +11,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
+import com.theokanning.openai.completion.CompletionChoice;
+
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.brains.Spigot;
 import me.synergy.brains.Synergy;
-import me.synergy.events.SynergyPluginMessage;
+import me.synergy.events.SynergyPluginEvent;
 import net.md_5.bungee.api.ChatColor;
 
 public class ChatManager implements Listener {
@@ -38,13 +39,21 @@ public class ChatManager implements Listener {
 
 		if (!event.isCancelled()) {
 			event.setCancelled(true);
-    		new SynergyPluginMessage("chat").setArguments(new String[] {event.getPlayer().getName(), event.getMessage()}).send(spigot);
-    		new SynergyPluginMessage("discord").setArguments(new String[] {event.getPlayer().getName(), event.getMessage()}).send(spigot);
+    		Synergy.createSynergyEvent("chat").setArguments(new String[] {event.getPlayer().getName(), event.getMessage()}).send(spigot);
+    		Synergy.createSynergyEvent("discord").setArguments(new String[] {event.getPlayer().getName(), event.getMessage()}).send(spigot);
+    		
+    		String botName = Synergy.getDiscord().getBotName();
+    		if (removeChatTypeSymbol(event.getMessage()).toLowerCase().startsWith(botName.toLowerCase()) && getChatTypeFromMessage(event.getMessage()).equals("global")) {
+    			String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
+    			List<CompletionChoice> text = new OpenAi().newPrompt(question);
+        		Synergy.createSynergyEvent("chat").setArguments(new String[] {botName.replace(" ", "_"), "@"+text.get(0).getText().replace("\"", "").trim()}).send(spigot);
+        		Synergy.createSynergyEvent("discord").setArguments(new String[] {botName.replace(" ", "_"), "!"+text.get(0).getText().replace("\"", "").trim()}).send(spigot);
+    		}
 		}
 	}
 	
     @EventHandler
-    public void onSynergyPluginMessage(SynergyPluginMessage event) {
+    public void onSynergyPluginMessage(SynergyPluginEvent event) {
         if (!event.getIdentifier().equals("chat")) {
             return;
         }
@@ -106,32 +115,73 @@ public class ChatManager implements Listener {
         return format;
     }
 
-	public static String censorBlockedWords(String sentence, List<String> blockedWords) {
-        return List.of(sentence.split("\\s+")).stream()
-                .map(word -> {
-                    for (String blockedWord : blockedWords) {
-                        if (word.toLowerCase().contains(blockedWord)) {
-                            double percentage = (double) blockedWord.length() / word.length() * 100;
-                            if (Synergy.getSpigotInstance().getConfig().getDouble("chat-manager.blocked-words-tolerance-percentage") < percentage) {
-                            	return censorWord(word);
-                            }
+	public String censorBlockedWords(String sentence, List<String> blockedWords) {
+		double tolerance = Synergy.getConfig().getDouble("chat-manager.blocked-words-tolerance-percentage");
+		for (String blockedWord : blockedWords) {
+			String match = "";
+			int start = 0, end = 0;
+			for (int i = 0; i < sentence.length(); i++) {
+				if (Character.isAlphabetic(sentence.charAt(i))) {
+					if (blockedWord.charAt(0) == sentence.charAt(i) || blockedWord.startsWith(match+sentence.charAt(i))) {
+						if (match.isEmpty()) {
+							start = i;
+						}
+						match = match+sentence.charAt(i);
+						end = i;
+					} else {
+						match = "";
+					}
+					if (blockedWord.equals(match)) {
+						String word = findWordInRange(sentence, start, end);
+                        double percentage = (double) blockedWord.length() / word.length() * 100;
+                        if (tolerance < percentage || !word.contains(blockedWord)) {
+                        	sentence = censorPartOfSentence(sentence, start, end);
                         }
-                    }
-                    return word;
-                })
-                .collect(Collectors.joining(" "));
+					}
+				}
+			}
+		}
+		return sentence;
     }
+	
     
+    public static String findWordInRange(String sentence, int start, int end) {
+        String[] words = sentence.split("\\s+");
+        
+        for (String word : words) {
+            int wordStart = sentence.indexOf(word);
+            int wordEnd = wordStart + word.length() - 1;
+            
+            if (start >= wordStart && end <= wordEnd) {
+                return word;
+            }
+        }
+        
+        return sentence.substring(start, end);
+    }
+	
+	
     public static String censorWord(String word) {
         if (word.length() <= 2) {
             return word;
         }
-        
         char[] charArray = word.toCharArray();
         for (int i = 1; i < charArray.length - 1; i++) {
             charArray[i] = '*';
         }
-        
+        return new String(charArray);
+    }
+    
+    public static String censorPartOfSentence(String sentence, int start, int end) {
+        if (end-start < 2) {
+            return sentence;
+        }
+        char[] charArray = sentence.toCharArray();
+        for (int i = 1; i < charArray.length - 1; i++) {
+        	if (i > start && i < end && Character.isAlphabetic(sentence.charAt(i))) {
+        		charArray[i] = '*';
+        	}
+        }
         return new String(charArray);
     }
     

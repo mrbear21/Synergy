@@ -9,7 +9,8 @@ import com.vexsoftware.votifier.model.Vote;
 import com.vexsoftware.votifier.model.VotifierEvent;
 
 import me.synergy.brains.Spigot;
-import me.synergy.events.SynergyPluginMessage;
+import me.synergy.brains.Synergy;
+import me.synergy.events.SynergyPluginEvent;
     
 public class VoteListener implements Listener {
     
@@ -32,12 +33,12 @@ public class VoteListener implements Listener {
 	}
 		
     @EventHandler
-    public void onSynergyPluginMessage(SynergyPluginMessage event) {
+    public void onSynergyPluginMessage(SynergyPluginEvent event) {
         if (!event.getIdentifier().equals("votifier")) {
             return;
         }
 
-        String player = event.getArgs()[0];
+        String player = event.getPlayer();
         //String serviceName = event.getArgs()[1];
         
         if (Bukkit.getPlayer(player) != null) {
@@ -51,6 +52,6 @@ public class VoteListener implements Listener {
 	@EventHandler(priority=EventPriority.NORMAL)
 	public void onVotifierEvent(VotifierEvent event) {
 		Vote vote = event.getVote();
-		new SynergyPluginMessage("votifier").setArguments(new String[] {vote.getUsername(), vote.getServiceName()}).send(spigot);
+		Synergy.createSynergyEvent("votifier").setPlayer(vote.getUsername()).setArguments(new String[] {vote.getServiceName()}).send(spigot);
 	}
 }

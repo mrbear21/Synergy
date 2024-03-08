@@ -16,7 +16,7 @@ import com.theokanning.openai.completion.CompletionChoice;
 import me.synergy.brains.Spigot;
 import me.synergy.brains.Velocity;
 import me.synergy.brains.Synergy;
-import me.synergy.events.SynergyPluginMessage;
+import me.synergy.events.SynergyPluginEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -271,7 +272,7 @@ public class Discord extends ListenerAdapter implements Listener {
 	}
 
     @EventHandler
-    public void getMessage(SynergyPluginMessage e) {
+    public void getMessage(SynergyPluginEvent e) {
         if (!e.getIdentifier().equals("discord")) {
             return;
         }
@@ -283,24 +284,50 @@ public class Discord extends ListenerAdapter implements Listener {
 		String logchat = Synergy.getConfig().getString("discord.channels.log-channel");
 		
 		if (jda != null) {
-			EmbedBuilder builder = new EmbedBuilder();
-			builder.setAuthor(player, null, "https://minotar.net/helm/" + player);
-			builder.setTitle(new ChatManager(spigot).removeChatTypeSymbol(message), null);
-			
-			if (logchat.length() == 19) {
-				jda.getTextChannelById(logchat).sendMessage("```["+new ChatManager(spigot).getChatTypeFromMessage(message)+"] "+player+": "+message+"```").queue();
-			}
-			if (globalchat.length() == 19 && new ChatManager(spigot).getChatTypeFromMessage(message).equals("global")) {
-				builder.setColor(Color.decode("#f1c40f"));
-				jda.getTextChannelById(globalchat).sendMessageEmbeds(builder.build()).queue();
-			}
-			if (adminchat.length() == 19 && new ChatManager(spigot).getChatTypeFromMessage(message).equals("admin") && Bukkit.getPlayer(player).hasPermission("synergy.adminchat")) {
-				builder.setColor(Color.decode("#e74c3c"));
-				jda.getTextChannelById(adminchat).sendMessageEmbeds(builder.build()).queue();
-			}
+		    
+		    String[] messageParts = splitMessage(message);
+		    
+		    for (String part : messageParts) {
+			    EmbedBuilder builder = new EmbedBuilder();
+			    builder.setAuthor(player, null, getBotName().equals(player) ? jda.getSelfUser().getAvatarUrl() : "https://minotar.net/helm/" + player);
+			    builder.setTitle(new ChatManager(spigot).removeChatTypeSymbol(part), null);
+			    
+		        if (logchat.length() == 19) {
+		            jda.getTextChannelById(logchat).sendMessage("```["+new ChatManager(spigot).getChatTypeFromMessage(message)+"] "+player+": "+part+"```").queue();
+		        }
+		        if (globalchat.length() == 19 && new ChatManager(spigot).getChatTypeFromMessage(message).equals("global")) {
+		            builder.setColor(Color.decode("#f1c40f"));
+		            jda.getTextChannelById(globalchat).sendMessageEmbeds(builder.build()).queue();
+		        }
+		        if (adminchat.length() == 19 && new ChatManager(spigot).getChatTypeFromMessage(message).equals("admin") && Bukkit.getPlayer(player).hasPermission("synergy.adminchat")) {
+		            builder.setColor(Color.decode("#e74c3c"));
+		            jda.getTextChannelById(adminchat).sendMessageEmbeds(builder.build()).queue();
+		        }
+		    }
 		}
     }
-	
+
+    private String[] splitMessage(String message) {
+        List<String> parts = new ArrayList<>();
+        String[] words = message.split("\\s+");
+        StringBuilder currentPart = new StringBuilder();
+        for (String word : words) {
+            if (currentPart.length() + word.length() + 1 <= 256) {
+                if (currentPart.length() > 0) {
+                    currentPart.append(" ");
+                }
+                currentPart.append(word);
+            } else {
+                parts.add(currentPart.toString());
+                currentPart = new StringBuilder(word);
+            }
+        }
+        if (currentPart.length() > 0) {
+            parts.add(currentPart.toString());
+        }
+        return parts.toArray(new String[0]);
+    }
+    
 	@Override
 	public void onMessageReceived(MessageReceivedEvent event) {
 		Message message = event.getMessage();
@@ -311,31 +338,51 @@ public class Discord extends ListenerAdapter implements Listener {
 			String channelId = event.getChannel().getId();
 			
 			if (channelId.equals(Synergy.getConfig().getString("discord.channels.global-chat-channel"))) {
-				SynergyPluginMessage spm = new SynergyPluginMessage("chat");
+				SynergyPluginEvent spm = Synergy.createSynergyEvent("chat");
 		    	spm.setArguments(new String[] {memder.getEffectiveName(), "@"+message.getContentDisplay()}).send(spigot);
 			}
 			
 			if (channelId.equals(Synergy.getConfig().getString("discord.channels.admin-chat-channel"))) {
-				SynergyPluginMessage spm = new SynergyPluginMessage("chat");
+				SynergyPluginEvent spm = Synergy.createSynergyEvent("chat");
 		    	spm.setArguments(new String[] {memder.getEffectiveName(), "$"+message.getContentDisplay()}).send(spigot);
 			}
 			
 			if (Synergy.getConfig().getBoolean("discord.gpt-bot.enabled")) {
-				if (event.getMessage().getMentions().isMentioned(event.getJDA().getSelfUser(), Message.MentionType.USER) || (event.getMessage().getReferencedMessage() != null && event.getMessage().getReferencedMessage().getAuthor().equals(event.getJDA().getSelfUser()))) {
-					message.getChannel().sendTyping().queue();
-	    			OpenAi gpt = new OpenAi();
-	    			String question = spigot.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", event.getMessage().getContentRaw().replace("<@1213481423055486976>", ""));
-	    			List<CompletionChoice> text = gpt.newPrompt((event.getMessage().getReferencedMessage() != null ? event.getMessage().getReferencedMessage().getContentRaw() : "") + question);
-	    			text.forEach(t -> spigot.log(t.getText(), false));
-	    			String answer = text.get(0).getText();
-	    			event.getMessage().reply(answer.replace("\"", " ")).queue();
+				try {
+					if (event.getMessage().getMentions().isMentioned(event.getJDA().getSelfUser(), Message.MentionType.USER) 
+							|| (event.getMessage().getReferencedMessage() != null 
+							&& event.getMessage().getReferencedMessage().getAuthor().equals(event.getJDA().getSelfUser()))) {
+						message.getChannel().sendTyping().queue();
+		    			List<CompletionChoice> text = new OpenAi().newPrompt((event.getMessage().getReferencedMessage() != null ? event.getMessage().getReferencedMessage().getContentRaw() : "") 
+		    					+ Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", event.getMessage().getContentRaw().replace(event.getJDA().getSelfUser().getAsMention(), "")));
+		    			event.getMessage().reply(text.get(0).getText().replace("\"", " ").trim()).queue();
+					}
+					
+		    		if (event.getMessage().getContentDisplay().toLowerCase().startsWith(getBotName().toLowerCase()) && channelId.equals(Synergy.getConfig().getString("discord.channels.global-chat-channel"))) {
+		    			List<CompletionChoice> text = new OpenAi().newPrompt(Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(getBotName(), event.getMessage().getContentDisplay()) ));
+		        		Synergy.createSynergyEvent("chat").setArguments(new String[] {getBotName().replace(" ", "_"), "@"+text.get(0).getText().replace("\"", "").trim()}).send(spigot);
+		        		Synergy.createSynergyEvent("discord").setArguments(new String[] {getBotName().replace(" ", "_"), "!"+text.get(0).getText().replace("\"", "").trim()}).send(spigot);
+		    		}
+				} catch (Exception c) {
+					c.printStackTrace();
+					event.getMessage().reply(Synergy.translateString("synergy-service-unavailable")).queue();
 				}
+			
 			}
 			
-			
-			
+			if (Synergy.getConfig().getBoolean("discord.hightlights.enabled")) {
+				if (Synergy.getConfig().getStringList("discord.hightlights.channels").contains(channelId)
+						&& event.getMessage().getAttachments().size() > 0) {
+					event.getMessage().addReaction(Emoji.fromUnicode(Synergy.getConfig().getString("discord.hightlights.reaction-emoji"))).complete();
+				}
+			}
 			return;
 		}
+		
+	}
+
+	public String getBotName() {
+		return Synergy.getConfig().getString("discord.gpt-bot.name");
 		
 	}
 	

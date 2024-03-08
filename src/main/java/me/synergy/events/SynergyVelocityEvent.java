@@ -1,16 +1,16 @@
 package me.synergy.events;
 
-public class SynergyVelocityPluginMessage {
+public class SynergyVelocityEvent {
 
     private String identifier;
     private String[] args;
 
-    public SynergyVelocityPluginMessage(String identifier, String[] args) {
+    public SynergyVelocityEvent(String identifier, String[] args) {
         this.identifier = identifier;
         this.args = args;
     }
 
-	public SynergyVelocityPluginMessage(String identifier) {
+	public SynergyVelocityEvent(String identifier) {
         this.identifier = identifier;
 	}
 
@@ -22,12 +22,12 @@ public class SynergyVelocityPluginMessage {
         return this.args;
     }
 
-	public SynergyVelocityPluginMessage setArguments(String[] args) {
+	public SynergyVelocityEvent setArguments(String[] args) {
         this.args = args;
         return this;
 	}
 	
-	public SynergyVelocityPluginMessage setArgument(String args) {
+	public SynergyVelocityEvent setArgument(String args) {
         this.args = new String[] {args};
         return this;
 	}

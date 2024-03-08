@@ -22,7 +22,7 @@ import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 
-import me.synergy.events.SynergyVelocityPluginMessage;
+import me.synergy.events.SynergyVelocityEvent;
 import me.synergy.modules.Discord;
 import me.synergy.modules.SynergyConfig;
 import net.dv8tion.jda.api.JDA;
@@ -81,12 +81,12 @@ public class Velocity {
             }
         } catch (Exception ignored) {}
         String[] args = argsList.toArray(new String[0]);
-        server.getEventManager().fire(new SynergyVelocityPluginMessage(identifier, args));
+        server.getEventManager().fire(new SynergyVelocityEvent(identifier, args));
         
     }
     
 	@Subscribe(order = PostOrder.EARLY)
-	public void onEvent(SynergyVelocityPluginMessage e) {
+	public void onEvent(SynergyVelocityEvent e) {
         if (!e.getIdentifier().equals("chat")) {
             return;
         }

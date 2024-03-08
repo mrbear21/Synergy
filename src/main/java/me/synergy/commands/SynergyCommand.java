@@ -10,7 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 import me.synergy.brains.Spigot;
-import me.synergy.events.SynergyPluginMessage;
+import me.synergy.events.SynergyPluginEvent;
 import me.synergy.modules.Discord;
 import me.synergy.modules.Localizations;
 import me.synergy.modules.SynergyConfig;
@@ -35,7 +35,7 @@ public class SynergyCommand implements CommandExecutor, Listener {
 	}
     
     @EventHandler
-    public void getMessage(SynergyPluginMessage e) {
+    public void getMessage(SynergyPluginEvent e) {
         if (!e.getIdentifier().equals("hello")) {
             return;
         }
@@ -53,6 +53,7 @@ public class SynergyCommand implements CommandExecutor, Listener {
 	            if (sender.hasPermission("synergy.reload")) {
 	                new WebServer(spigot).stop();
 	        		spigot.getJda().shutdown();
+	        		spigot.jda = null;
 	            	spigot.reloadConfig();
 	                new Localizations(spigot).initialize();
 	                new SynergyConfig(spigot).initialize();
@@ -67,7 +68,7 @@ public class SynergyCommand implements CommandExecutor, Listener {
 
     		case "broadcast":
     			
-    	    	SynergyPluginMessage spm = new SynergyPluginMessage("hello");
+    	    	SynergyPluginEvent spm = new SynergyPluginEvent("hello");
     	    	spm.setArguments(Arrays.copyOfRange(args, 1, args.length)).send(spigot);
     	    	break;
 

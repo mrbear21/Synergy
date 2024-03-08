@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -67,6 +68,7 @@ public class SynergyConfig {
 		        
 		        spigot.getConfig().addDefault("openai.enabled", false);
 		        spigot.getConfig().addDefault("openai.token", "token");
+		        spigot.getConfig().addDefault("openai.response-size", 64);
 		        spigot.getConfig().addDefault("openai.model", "gpt-3.5-turbo-instruct-0914");
 		        
 		        spigot.getConfig().addDefault("discord.enabled", false);
@@ -76,12 +78,19 @@ public class SynergyConfig {
 		        spigot.getConfig().addDefault("discord.channels.console-channel", "00000000000000000");
 		        spigot.getConfig().addDefault("discord.channels.log-channel", "00000000000000000");
 		        spigot.getConfig().addDefault("discord.gpt-bot.enabled", false);
+		        spigot.getConfig().addDefault("discord.gpt-bot.name", "Stepan");
 		        spigot.getConfig().addDefault("discord.gpt-bot.personality", "You are vile person. Give an answer in a mocking tone: %MESSAGE%");
+		        spigot.getConfig().addDefault("discord.hightlights.enabled", false);
+		        spigot.getConfig().addDefault("discord.hightlights.channels", new String[] {"00000000000000000"});
+		        spigot.getConfig().addDefault("discord.hightlights.reaction-emoji", "♥");
+		        
 		        spigot.getConfig().addDefault("web-server.enabled", false);
 		        spigot.getConfig().addDefault("web-server.port", 8192);
+		        
 		        spigot.getConfig().addDefault("votifier.enabled", false);
 		        spigot.getConfig().addDefault("votifier.message", "synergy-voted-successfully");
 		        spigot.getConfig().addDefault("votifier.rewards", new String[] {"eco give %PLAYER% 1"});
+		        spigot.getConfig().addDefault("votifier.monitorings", new String[] {"https://example.com/vote/example"});
 		        spigot.getConfig().options().copyDefaults(true);
 		        spigot.saveConfig();
 		        
@@ -92,13 +101,14 @@ public class SynergyConfig {
 		    	bungee.getConfig().loadConfig();
 		    	
 		    	bungee.getConfig().addDefault("synergy-plugin-messaging.enabled", true);
-		        spigot.getConfig().addDefault("synergy-plugin-messaging.servername", "Proxy");
+		    	bungee.getConfig().addDefault("synergy-plugin-messaging.servername", "Proxy");
 		        bungee.getConfig().addDefault("synergy-plugin-messaging.token", new Utils().generateRandomString(50));
 		        
 		        bungee.getConfig().addDefault("default-language", "en");
 		        
 		        bungee.getConfig().addDefault("openai.enabled", false);
 		        bungee.getConfig().addDefault("openai.token", "token");
+		        bungee.getConfig().addDefault("openai.response-size", 64);
 		        bungee.getConfig().addDefault("openai.model", "gpt-3.5-turbo-instruct-0914");
 		        
 		        bungee.getConfig().addDefault("discord.enabled", false);
@@ -107,6 +117,9 @@ public class SynergyConfig {
 		        bungee.getConfig().addDefault("discord.admin-chat-channel", "00000000000000000");
 		        bungee.getConfig().addDefault("discord.console-channel", "00000000000000000");
 		        bungee.getConfig().addDefault("discord.log-channel", "00000000000000000");
+		        bungee.getConfig().addDefault("discord.gpt-bot.enabled", false);
+		        bungee.getConfig().addDefault("discord.gpt-bot.name", "Stepan");
+		        bungee.getConfig().addDefault("discord.gpt-bot.personality", "You are vile person. Give an answer in a mocking tone: %MESSAGE%");
 		        bungee.getConfig().addDefault("web-server", false);
 		        bungee.getConfig().addDefault("votifier.enabled", false);
 		        bungee.getConfig().addDefault("votifier.port", 8192);
@@ -234,6 +247,21 @@ public class SynergyConfig {
     
 	public String getString(String key, String defaultIfNull) {
 		return getString(key) != null ? getString(key) : defaultIfNull;
+	}
+	public double getDouble(String key) {
+    	if (bungee != null) {
+	    	Object value = getValue(key);
+	    	return value != null ? (int) value : null;
+    	}
+    	return spigot.getConfig().getDouble(key);
+	}
+	@SuppressWarnings("unchecked")
+	public List<String> getStringList(String key) {
+    	if (bungee != null) {
+	    	Object value = getValue(key);
+	    	return value != null ? (List<String>) value : null;
+		}
+		return spigot.getConfig().getStringList(key);
 	}
 	
 }

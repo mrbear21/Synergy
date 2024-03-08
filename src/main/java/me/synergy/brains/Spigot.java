@@ -22,7 +22,8 @@ import com.google.common.io.ByteStreams;
 import com.sun.net.httpserver.HttpServer;
 
 import me.synergy.commands.SynergyCommand;
-import me.synergy.events.SynergyPluginMessage;
+import me.synergy.commands.VoteCommand;
+import me.synergy.events.SynergyPluginEvent;
 import me.synergy.handlers.VoteListener;
 import me.synergy.objects.BreadMaker;
 import net.dv8tion.jda.api.JDA;
@@ -55,11 +56,13 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 		
 		new SynergyConfig(this).initialize();
 		new SynergyCommand(this).initialize();
+		new VoteCommand(this).initialize();
 		new Localizations(this).initialize();
 		new ChatManager(this).initialize();
         new Discord(this).initialize();
         new WebServer(this).start();
         new VoteListener(this).initialize();
+        new SynergyPluginEvent().initialize();
 
 		getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
 		
@@ -70,12 +73,14 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
     }
 	
     @Override
-    public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+    public void onPluginMessageReceived(String channel, Player p, byte[] message) {
         if (!channel.equals("net:synergy")) {
             return;
         }
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
+        String token = in.readUTF();
         String identifier = in.readUTF();
+        String player = in.readUTF();
         List<String> argsList = new ArrayList<>();
         try {
             while (true) {
@@ -83,7 +88,10 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
             }
         } catch (Exception ignored) {}
         String[] args = argsList.toArray(new String[0]);
-        Bukkit.getServer().getPluginManager().callEvent(new SynergyPluginMessage(identifier, args));
+        
+        if (token.equals(Synergy.getSynergyToken())) {
+        	Bukkit.getServer().getPluginManager().callEvent(new SynergyPluginEvent(identifier, player, args));
+        }
     }
 
 	public void onDisable() {
@@ -97,7 +105,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 	}
 	
 	public void log(String string, boolean broadcast) {
-		getLogger().info(string);
+		getLogger().info(Synergy.translateString(string));
 		if (broadcast) {
 			for (Player p : Bukkit.getOnlinePlayers().stream().filter(p -> p.hasPermission("synergy.sudo")).collect(Collectors.toList())) {
 				p.sendMessage(ChatColor.GRAY+""+ChatColor.ITALIC+"[Console] "+string);

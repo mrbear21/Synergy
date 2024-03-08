@@ -2,10 +2,18 @@ package me.synergy.brains;
 
 import me.synergy.modules.Localizations;
 import me.synergy.modules.SynergyConfig;
+import me.synergy.utils.Utils;
+import me.synergy.events.SynergyPluginEvent;
+import me.synergy.modules.ChatManager;
+import me.synergy.modules.Discord;
 
 public class Synergy {
 
 	public static String platform; 
+	
+	public static String getSynergyToken() {
+		return getConfig().getString("synergy-plugin-messaging.token");
+	}
 	
 	public static Spigot getSpigotInstance() {
 		return Spigot.getInstance();
@@ -15,28 +23,17 @@ public class Synergy {
 		return Velocity.getInstance();
 	}
 	
-	public static SynergyConfig getConfig() {
-		if (getSpigotInstance() != null) {
-			return new SynergyConfig(getSpigotInstance());
-		}
-		return new SynergyConfig(getVelocityInstance());
-	}
-	
 	public static Boolean isRunningSpigot() {
-		try {
-			if (platform.equals("spigot")) {
-				return true;
-			}
-		} catch (Exception ignore) {}
+		if (platform.equals("spigot")) {
+			return true;
+		}
 		return false;
 	}
 	
 	public static Boolean isRunningVelocity() {
-		try {
-			if (platform.equals("velocity")) {
-				return true;
-			}
-		} catch (Exception ignore) {}
+		if (platform.equals("velocity")) {
+			return true;
+		}
 		return false;
 	}
 	
@@ -50,5 +47,37 @@ public class Synergy {
 	public static String getServerName() {
 		return getConfig().getString("synergy-plugin-messaging.servername");
 	}
+
+	public static SynergyPluginEvent createSynergyEvent(String identifier) {
+		return new SynergyPluginEvent(identifier);
+	}
+	
+	public static Discord getDiscord() {
+		return new Discord(getSpigotInstance());
+	}
+	
+	public static ChatManager getChatManager() {
+		return new ChatManager(getSpigotInstance());
+	}
+	
+	public static Localizations getLocalizations() {
+		return new Localizations(getSpigotInstance());
+	}	
+	
+	public static SynergyPluginEvent buildSynergyMessage(String identifier) {
+		return new SynergyPluginEvent(identifier);
+	}	
+	
+	public static SynergyConfig getConfig() {
+		if (isRunningSpigot()) {
+			return new SynergyConfig(getSpigotInstance());
+		}
+		return new SynergyConfig(getVelocityInstance());
+	}
+
+	public static Utils getUtils() {
+		return new Utils();
+	}
+	
 	
 }
