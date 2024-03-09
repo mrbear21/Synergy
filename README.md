@@ -29,26 +29,30 @@ https://github.com/mrbear21/Synergy/wiki/Permissions
 
 # Convenient data synchronization between servers
 ```
-@EventHandler
-    public void onMessage(SynergyPluginMessage e) {
+	//The event will be sent to the proxy server
+	
+	@Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		
+		Synergy.createSynergyEvent("broadcast-message").setArguments(args).send();      
+        return true;
+    }
+	
+	
+	//The proxy server will trigger the event on all servers in the network synchronously
+	
+	@EventHandler
+    public void onSynergyEvent(SynergyEvent e) {
         if (!e.getIdentifier().equals("broadcast-message")) {
             return;
         }
         Bukkit.broadcastMessage(String.join(" ", e.getArgs()));
     }
-
-@Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		SynergyPluginMessage spm = new SynergyPluginMessage(plugin);
-		spm.setArguments(args);
-		spm.send("broadcast-message");      
-        return true;
-    }
 ```
 
 # Convenient localization system (including third-party plugins and system messages)
 
-Synergy's locales.yml
+## Make your transaltions in Synergy's locales.yml
 ```
 login-command-usage:
     en: "&cUsage: /login <password>"
@@ -61,6 +65,7 @@ localized-unknown-command-message:
     uk: "Невідома команда. Введіть '/help' для допомоги"
 
 ```
+## And replace texts in third-party plugins' messages files with Synergy translation keys
 Authme's messages_en.yml
 ```
 login:
@@ -78,7 +83,7 @@ messages:
 # Convenient storage of player data
 
 ```
-BreadMaker bread = plugin.getBread("player");
+BreadMaker bread = Synergy.getBread("player");
 //Get player data
 bread.getData("level").getAsInt()
 bread.getData("language").getAsString()
