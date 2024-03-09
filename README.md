@@ -1,19 +1,28 @@
-# Synergy [Velocity-Spigot]
+![image](https://github.com/mrbear21/Synergy/assets/52902417/37d67971-e488-4e9c-afb9-86d21b9608f6)# Synergy [Velocity-Spigot]
 Basic tools and server messaging plugin for minecraft servers. The plugin can be used both in proxy and standalone servers.
 
 > The purpose of the plugin is to create synergy between servers and unite them into a solid and seamless project
 
 # TODO List
-☑️Proxy messaging system
-☑️Localization system
-⏹️Player data manager
-⏹️Editable chat manager
-⏹️Discord integration
-⏹️Patreon integration (maybe)
-⏹️Votifier
-⏹️Convenient web manager
-⏹️Security and caching features
-⏹️Convenient API
+*☑️Proxy messaging system
+*☑️Localization system
+*☑️Chat manager
+*☑️Discord integration
+*☑️Votifier (only handling for now)
+*☑️Convenient API
+*⏹️Player data manager
+*⏹️Patreon integration (maybe)
+*⏹️Convenient web manager
+*⏹️Security and caching features
+
+# Maven Dependency
+```
+<dependency>
+  <groupId>archi.quest</groupId>
+  <artifactId>synergy</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
 
 # Permissions
 https://github.com/mrbear21/Synergy/wiki/Permissions
