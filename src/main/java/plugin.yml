@@ -2,11 +2,13 @@ name: Synergy
 main: me.synergy.brains.Spigot
 version: 0.0.1
 api-version: 1.16
-author: breadmakers
+author: mrbear25
 softdepend: [Authme, PlaceholderAPI, ProtocolLib, Votifier]
 description: Basic tools and server messaging plugin
 commands:
     synergy:
         description: Synergy
         usage: synergy-command-usage /<command>
-        aliaces: [sy, syn]
+    vote:
+        description: Vote
+        usage: synergy-command-usage /<command>
