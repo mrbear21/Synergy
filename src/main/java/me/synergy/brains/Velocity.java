@@ -24,7 +24,7 @@ import com.velocitypowered.api.proxy.server.ServerInfo;
 
 import me.synergy.events.SynergyVelocityEvent;
 import me.synergy.modules.Discord;
-import me.synergy.modules.SynergyConfig;
+import me.synergy.modules.Config;
 import net.dv8tion.jda.api.JDA;
 
 @SuppressWarnings("unused")
@@ -34,7 +34,6 @@ public class Velocity {
 
     private ProxyServer server;
     private Logger logger;
-	public JDA jda;
     public Map<String, Object> configValues;
 	public Object config;
 	private static Velocity INSTANCE;
@@ -55,7 +54,7 @@ public class Velocity {
     	INSTANCE = this;
     	Synergy.platform = "velocity";
 	    server.getChannelRegistrar().register(IDENTIFIER);
-	    new SynergyConfig(this).initialize();
+	    new Config().initialize();
 	  //  new Discord(this).register();
     }
 
@@ -64,16 +63,12 @@ public class Velocity {
         if (!event.getIdentifier().equals(IDENTIFIER)) {
             return;
         }
-        
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.write(event.getData());
-        byte[] messageData = out.toByteArray();
-        for (RegisteredServer registeredServer : server.getAllServers()) {
-            registeredServer.sendPluginMessage(IDENTIFIER, messageData);
-        }
 
         ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
+        String token = Synergy.getSynergyToken();
         String identifier = in.readUTF();
+        String player = in.readUTF();
+        String waitForPlayer = in.readUTF();
         List<String> argsList = new ArrayList<>();
         try {
             while (true) {
@@ -81,7 +76,28 @@ public class Velocity {
             }
         } catch (Exception ignored) {}
         String[] args = argsList.toArray(new String[0]);
-        server.getEventManager().fire(new SynergyVelocityEvent(identifier, args));
+        
+        if (!Boolean.valueOf(waitForPlayer)) {
+	        server.getEventManager().fire(new SynergyVelocityEvent(identifier, player, args));
+	        
+	        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+	        out.writeUTF(token);
+	        out.writeUTF(identifier);
+	        out.writeUTF(player);
+	        out.writeUTF(waitForPlayer);
+	        for (String arg : argsList) {
+		        out.writeUTF(arg);
+	        }
+	        
+	        for (RegisteredServer registeredServer : server.getAllServers()) {
+	            registeredServer.sendPluginMessage(IDENTIFIER, out.toByteArray());
+	        }
+	        
+        } else {
+        	
+        }
+
+
         
     }
     
@@ -93,10 +109,6 @@ public class Velocity {
 		getLogger().info(e.getIdentifier());
 	}
     
-    public JDA getJda() {
-    	return jda;
-    }
-
     public Logger getLogger() {
     	return logger;
     }
@@ -105,8 +117,8 @@ public class Velocity {
     	return server;
     }
 
-	public SynergyConfig getConfig() {
-		return new SynergyConfig(this);
+	public Config getConfig() {
+		return new Config();
 	}
 
 	public static Velocity getInstance() {
