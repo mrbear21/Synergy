@@ -18,7 +18,6 @@ discord:
     global-chat-channel: '00000000000000000'
     admin-chat-channel: '00000000000000000'
     console-channel: '00000000000000000'
-  activity: Example Activity
   bot-token: token
   gpt-bot:
     enabled: false

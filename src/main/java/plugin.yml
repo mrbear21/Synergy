@@ -12,3 +12,12 @@ commands:
     vote:
         description: Vote
         usage: synergy-command-usage /<command>
+    chat:
+        description: Chat
+        usage: synergy-command-usage /<command>
+    colors:
+        description: Custom colors list
+        usage: synergy-command-usage /<command>
+    discord:
+        description: Discord
+        usage: synergy-command-usage /<command>

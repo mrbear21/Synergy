@@ -25,19 +25,24 @@ public class Synergy {
     return Velocity.getInstance();
   }
   
-  public static Boolean isRunningSpigot() {
-    return Boolean.valueOf(platform.equals("spigot"));
+  public static boolean isSpigot() {
+      try {
+          Class.forName("org.bukkit.Bukkit");
+          return true;
+      } catch (ClassNotFoundException e) {
+          return false;
+      }
   }
-  
+
   public static Boolean isRunningVelocity() {
     return Boolean.valueOf(platform.equals("velocity"));
   }
   
   public static String translateString(String string) {
-    return isRunningSpigot().booleanValue() ? getLocalizations().translateString(string, getDefaultLanguage()) : string;
+    return isSpigot() ? getLocalizations().translateString(string, getDefaultLanguage()) : string;
   }
   
-  private static String getDefaultLanguage() {
+  public static String getDefaultLanguage() {
     return getConfig().getString("localizations.default-language");
   }
   
@@ -86,7 +91,7 @@ public class Synergy {
   }
   
   public static boolean isDependencyAvailable(String plugin) {
-    return isRunningSpigot().booleanValue() ? getSpigotInstance().getServer().getPluginManager().isPluginEnabled(plugin) : false;
+    return isSpigot() ? getSpigotInstance().getServer().getPluginManager().isPluginEnabled(plugin) : false;
   }
   
   public static void debug(String string) {

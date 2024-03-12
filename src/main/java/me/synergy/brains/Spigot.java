@@ -12,6 +12,7 @@ import java.util.Map;
 import me.synergy.commands.SynergyCommand;
 import me.synergy.commands.VoteCommand;
 import me.synergy.events.SynergyEvent;
+import me.synergy.handlers.MOTDListener;
 import me.synergy.handlers.VoteListener;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
@@ -51,6 +52,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         new Discord().initialize();
         new VoteListener().initialize();
         new SynergyEvent().initialize();
+        new MOTDListener().initialize();
         
         getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
     }

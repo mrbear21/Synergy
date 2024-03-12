@@ -7,9 +7,6 @@ import org.bukkit.command.CommandSender;
 
 public class SynergyCommand implements CommandExecutor {
 
-    public SynergyCommand() {
-    }
-
     public void initialize() {
         Synergy.getSpigotInstance().getCommand("synergy").setExecutor(this);
     }

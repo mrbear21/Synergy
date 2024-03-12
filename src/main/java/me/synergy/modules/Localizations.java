@@ -31,8 +31,8 @@ import me.synergy.objects.BreadMaker;
 
 public class Localizations implements Listener {
 
-    public Localizations() {
-    }
+	public Localizations() {
+	}
 
 	public void initialize() {
 		try {
@@ -106,32 +106,35 @@ public class Localizations implements Listener {
 			);
 
 			Synergy.getSpigotInstance().getProtocolManager().addPacketListener(
-			    new PacketAdapter(Synergy.getSpigotInstance(), ListenerPriority.MONITOR, PacketType.Play.Server.SYSTEM_CHAT) {
-			        @Override
-			        public void onPacketSending(PacketEvent event) {
-			            try {
-			                PacketContainer packet = event.getPacket();
-			                BreadMaker bread = Synergy.getBread(event.getPlayer().getName());
-			                String language = bread.getLanguage();
-	                        HashMap<String, String> locales = Synergy.getSpigotInstance().getLocales().get(language);
-	                        if (locales != null) {
-				                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
-				                for (WrappedChatComponent component : components) {
-				                    if (component != null) {
-				                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
-				                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-				                        locales.entrySet().forEach(l ->
-				                                component.setJson(component.getJson().replace(l.getKey(), ChatColor.GOLD + l.getValue()).replace("%nl%", System.lineSeparator())));
-				                        packet.getChatComponents().write(components.indexOf(component), component);    
-			                        }
-			                    }
-			                }
-			            } catch (Exception e) {
-			                e.printStackTrace();
-			            }
-			        }
-			    }
-			);
+				    new PacketAdapter(Synergy.getSpigotInstance(), ListenerPriority.MONITOR, PacketType.Play.Server.SYSTEM_CHAT) {
+				        @Override
+				        public void onPacketSending(PacketEvent event) {
+				            try {
+				                PacketContainer packet = event.getPacket();
+				                BreadMaker bread = Synergy.getBread(event.getPlayer().getName());
+				                String language = bread.getLanguage();
+		                        HashMap<String, String> locales = Synergy.getSpigotInstance().getLocales().get(language);
+		                        if (locales != null) {
+					                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
+					                for (WrappedChatComponent component : components) {
+					                    if (component != null) {
+					                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
+					                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+					                        locales.entrySet().forEach(l ->
+					                                component.setJson(component.getJson().replace(l.getKey(), ChatColor.GOLD + l.getValue()).replace("%nl%", System.lineSeparator())));
+					                        packet.getChatComponents().write(components.indexOf(component), component);    
+				                        }
+				                    }
+				                }
+				            } catch (Exception e) {
+				                e.printStackTrace();
+				            }
+				        }
+				    }
+				);
+
+
+
 			Synergy.getLogger().info(this.getClass().getSimpleName()+" module has been initialized!");
 		} catch (Exception c) {
 			Synergy.getLogger().error(this.getClass().getSimpleName()+" module failed to initialize:");
@@ -175,10 +178,30 @@ public class Localizations implements Listener {
 	        ConfigurationSection subSection = Synergy.getSpigotInstance().getLocalesFile().getConfigurationSection(key);
 	        if (subSection != null) {
 	            for (String language : subSection.getKeys(false)) {
-	                HashMap<String, String> translationMap = Synergy.getSpigotInstance().getLocales().getOrDefault(language, new HashMap<>());
-	                translationMap.put(key, ChatColor.translateAlternateColorCodes('&', subSection.getString(language)));
-	                count++;
-	                Synergy.getSpigotInstance().getLocales().put(language, translationMap);
+	                if (subSection.isString(language)) {
+	                    String translation = subSection.getString(language);
+	                    HashMap<String, String> translationMap = Synergy.getSpigotInstance().getLocales().getOrDefault(language, new HashMap<>());
+	                    translationMap.put(key, Synergy.getUtils().processColors(translation));
+	                    count++;
+	                    Synergy.getSpigotInstance().getLocales().put(language, translationMap);
+	                } else if (subSection.isList(language)) {
+	                    List<String> translations = subSection.getStringList(language);
+	                    StringBuilder sb = new StringBuilder();
+	                    for (String translation : translations) {
+	                        translation = ChatColor.translateAlternateColorCodes('&', translation);
+	                        sb.append(translation).append("\n");
+	                    }
+	                    if (sb.length() > 0) {
+	                        sb.setLength(sb.length() - 1);
+	                    }
+	                    String combinedTranslations = sb.toString();
+	                    HashMap<String, String> translationMap = Synergy.getSpigotInstance().getLocales().getOrDefault(language, new HashMap<>());
+	                    translationMap.put(key, Synergy.getUtils().processColors(combinedTranslations));
+	                    count++;
+	                    Synergy.getSpigotInstance().getLocales().put(language, translationMap);
+	                } else {
+	                    // Other types
+	                }
 	            }
 	        }
 	    }

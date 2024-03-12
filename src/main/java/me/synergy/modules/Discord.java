@@ -4,13 +4,20 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -22,6 +29,9 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -40,18 +50,19 @@ import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInput.Builder;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.md_5.bungee.api.ChatColor;
 
-public class Discord extends ListenerAdapter implements Listener {
+public class Discord extends ListenerAdapter implements Listener, CommandExecutor {
 
     private static JDA JDA;
-
-    public Discord() {}
+    ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     private static final GatewayIntent[] INTENTS = new GatewayIntent[] {
         GatewayIntent.SCHEDULED_EVENTS, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_VOICE_STATES
@@ -64,19 +75,34 @@ public class Discord extends ListenerAdapter implements Listener {
                 return;
             }
             
+            if (Synergy.isSpigot()) {
+                Bukkit.getPluginManager().registerEvents(new Discord(), Synergy.getSpigotInstance());
+                Synergy.getSpigotInstance().getCommand("discord").setExecutor(this);
+            }
+
+            
+            
             String token = Synergy.getConfig().getString("discord.bot-token");
             
             Discord.JDA = JDABuilder.create(token, Arrays.asList(INTENTS))
         		.enableCache(CacheFlag.MEMBER_OVERRIDES, new CacheFlag[] {CacheFlag.VOICE_STATE})
         		.disableCache(CacheFlag.ACTIVITY, new CacheFlag[] {CacheFlag.CLIENT_STATUS, CacheFlag.EMOJI, CacheFlag.ONLINE_STATUS, CacheFlag.STICKER})
         		.setStatus(OnlineStatus.ONLINE)
-        		.setActivity(Activity.customStatus(Synergy.getConfig().getString("discord.activity")))
+        		.setActivity(Activity.customStatus(Synergy.getConfig().getStringList("discord.activities").get(0)))
         		.setMemberCachePolicy(MemberCachePolicy.ALL)
         		.addEventListeners(this)
         		.setBulkDeleteSplittingEnabled(true).build();
-
-            if (Synergy.isRunningSpigot()) {
-                Bukkit.getPluginManager().registerEvents(new Discord(), Synergy.getSpigotInstance());
+            
+            if (Synergy.getConfig().getStringList("discord.activities").size() > 1) {
+	            executorService.scheduleAtFixedRate(() -> {
+	                long currentTimeSeconds = System.currentTimeMillis() / 1000;
+	                int index = (int) (currentTimeSeconds % Synergy.getConfig().getStringList("discord.activities").size());
+	                String customStatusText = Synergy.getConfig().getStringList("discord.activities").get(index);
+	                if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
+	                	customStatusText = PlaceholderAPI.setPlaceholders(null, customStatusText);
+	                }
+	                Discord.JDA.getPresence().setActivity(Activity.customStatus(customStatusText));
+	            }, 0, 5, TimeUnit.SECONDS);
             }
 
             CommandListUpdateAction commands = Discord.JDA.updateCommands();
@@ -102,6 +128,13 @@ public class Discord extends ListenerAdapter implements Listener {
                 Commands.slash("link", Synergy.translateString("synergy-link-minecraft"))
                 .setGuildOnly(true)
             });
+           commands.addCommands(new CommandData[] {
+                Commands.slash("embed", Synergy.translateString("synergy-discord-embed-new"))
+                .addOptions(new OptionData[] {(new OptionData(OptionType.CHANNEL, "channel", "Channel ID")).setRequired(true)})
+                .addOptions(new OptionData[] {(new OptionData(OptionType.STRING, "message", "Message ID (edit a message that has already been sent)"))})
+                .setGuildOnly(true)
+                .setDefaultPermissions(DefaultMemberPermissions.enabledFor(new Permission[] {Permission.MESSAGE_MANAGE}))
+            });
             commands.addCommands(new CommandData[] {
                 Commands.slash("prune", Synergy.translateString("synergy-prune-messages"))
                 .addOption(OptionType.INTEGER, "amount", "Amount")
@@ -116,6 +149,41 @@ public class Discord extends ListenerAdapter implements Listener {
         }
     }
 
+
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if (args.length == 0) {
+			sender.sendMessage(Synergy.translateString("synergy-discord-invite").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+			return true;
+		}
+		
+		switch (args[0]) {
+			case "link":
+				try {
+					User user = getJda().getUsersByName(args[1], false).get(0);
+					PrivateChannel privateChannel = user.openPrivateChannel().complete();
+					if (privateChannel.canTalk()) {
+						privateChannel.sendMessage(Synergy.translateString("synergy-discord-confirm-link").replace("%PLAYER%", sender.getName()))
+							.addActionRow(
+					            Button.secondary(user.getId() + ":cancel:"+sender.getName(), "Cancel"),
+					            Button.success(user.getId() + ":confirm:"+sender.getName(), "Confirm"))
+					        .queue();
+						sender.sendMessage(Synergy.translateString("synergy-discord-link-check-pm").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+					} else {
+						sender.sendMessage(Synergy.translateString("synergy-discord-use-link-cmd").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+					}
+				} catch (Exception c) {
+					sender.sendMessage(Synergy.translateString("synergy-discord-use-link-cmd").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+				}
+				break;
+			case "unlink":
+				break;
+		}
+		
+		return true;
+	}
+    
+    
     public void shutdown() {
     	if (getJda() != null) {
     		getJda().shutdownNow();
@@ -128,25 +196,31 @@ public class Discord extends ListenerAdapter implements Listener {
     
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (event.getGuild() == null)
-            return;
-        switch (event.getName()) {
-            case "prune":
-                prune(event);
-                break;
-            case "post":
-                post(event);
-                break;
-            case "list":
-                list(event);
-                break;
-            case "link":
-                link(event);
-                break;
-            default:
-                event.reply(Synergy.translateString("synergy-service-unavailable")).setEphemeral(true).queue();
-        }
-
+       	try {
+	        if (event.getGuild() == null)
+	            return;
+	        switch (event.getName()) {
+	            case "prune":
+	                prune(event);
+	                break;
+	            case "post":
+	                post(event);
+	                break;
+	            case "list":
+	                list(event);
+	                break;
+	            case "link":
+	                link(event);
+	                break;
+	            case "embed":
+	                embed(event);
+	                break;
+	            default:
+	                event.reply(Synergy.translateString("synergy-service-unavailable")).setEphemeral(true).queue();
+	        }
+		} catch (Exception c) {
+	        event.reply(Synergy.translateString("synergy-service-unavailable") + " (*" + c.getMessage()+"*)").setEphemeral(true).queue();
+		}
     }
 
     private void link(SlashCommandInteractionEvent event) {
@@ -159,6 +233,45 @@ public class Discord extends ListenerAdapter implements Listener {
         event.replyModal(modal).queue();
     }
 
+    private static TextChannel channel = null;
+    private static String message = null;
+    
+    private void embed(SlashCommandInteractionEvent event) {
+    	if (event.getOption("channel") != null) {
+    		channel = event.getOption("channel").getAsChannel().asTextChannel();
+    	}
+    	   	
+    	Builder title = TextInput.create("title", "Title", TextInputStyle.SHORT).setPlaceholder("Title").setMinLength(0).setMaxLength(256);
+    	Builder text = TextInput.create("text", "Text", TextInputStyle.PARAGRAPH).setPlaceholder("Text").setMinLength(0).setMaxLength(1000);
+    	Builder author = TextInput.create("author", "Author", TextInputStyle.SHORT).setPlaceholder("Author").setRequired(false).setMinLength(0).setMaxLength(256);
+    	Builder image = TextInput.create("image", "Image URL", TextInputStyle.SHORT).setPlaceholder("URL").setRequired(false).setMinLength(0).setMaxLength(256);
+    	Builder color = TextInput.create("color", "#color", TextInputStyle.SHORT).setPlaceholder("#B48EAD").setMinLength(0).setMaxLength(256);
+    	
+    	if (event.getOption("message") != null) {
+    		message = event.getOption("message").getAsString();
+    		MessageEmbed embed  = channel.retrieveMessageById(event.getOption("message").getAsString()).complete().getEmbeds().get(0);
+    		if (embed.getTitle() != null)
+    			title.setValue(embed.getTitle());
+    		if (embed.getDescription() != null)
+    			text.setValue(embed.getDescription());
+    		if (embed.getAuthor() != null)
+    			author.setValue(embed.getAuthor().getName());
+    		if (embed.getImage() != null)
+    			image.setValue(embed.getImage().getUrl());
+    		if (embed.getColor() != null)
+    			color.setValue("#"+Integer.toHexString(embed.getColor().getRGB()).substring(2));
+    	}
+        
+        Modal modal = Modal.create("embed", event.getOption("message") != null ? Synergy.translateString("synergy-discord-embed-edit") : Synergy.translateString("synergy-discord-embed-new")).addComponents(
+        		ActionRow.of(title.build()),
+        		ActionRow.of(text.build()),
+        		ActionRow.of(author.build()),
+        		ActionRow.of(image.build()),
+        		ActionRow.of(color.build())
+        ).build();
+        event.replyModal(modal).queue();
+    }
+    
     @EventHandler
     public void onDiscordLink(SynergyEvent event) {
         if (!event.getIdentifier().equals("discord-link"))
@@ -175,6 +288,21 @@ public class Discord extends ListenerAdapter implements Listener {
             if (Bukkit.getPlayer(username) != null)
                 Synergy.createSynergyEvent("discord-link").setPlayer(username).setArgument(event.getMember().getId()).send();
             event.reply(Synergy.translateString("synergy-link-minecraft-confirmation")).setEphemeral(true).queue();
+        }
+        if (event.getModalId().equals("embed")) {
+	        EmbedBuilder builder = new EmbedBuilder();
+	        builder.setAuthor(event.getValue("author").getAsString(), null, "https://minotar.net/helm/" + event.getValue("author").getAsString());
+	        builder.setTitle(event.getValue("title").getAsString());
+	        builder.setDescription(ChatColor.stripColor(Synergy.translateString(event.getValue("text").getAsString())));
+	        builder.setColor(Color.decode(event.getValue("color").getAsString()));
+	        builder.setImage(event.getValue("image").getAsString());
+	        if (message != null) {
+	        	channel.retrieveMessageById(message).complete().editMessageEmbeds(builder.build()).queue();
+	        	message = null;
+	        } else {
+	        	channel.sendMessageEmbeds(builder.build()).queue();
+	        }
+	        event.reply("Published!").setEphemeral(true).queue();
         }
     }
 
@@ -216,7 +344,7 @@ public class Discord extends ListenerAdapter implements Listener {
         EmbedBuilder builder = new EmbedBuilder();
         builder.setAuthor(author, null, "https://minotar.net/helm/" + author);
         builder.setTitle(title);
-        builder.setDescription(text);
+        builder.setDescription(ChatColor.stripColor(Synergy.translateString(text)));
         builder.setThumbnail(thumbnail);
         builder.setColor(Color.decode(color));
         builder.setImage(image);
@@ -238,6 +366,13 @@ public class Discord extends ListenerAdapter implements Listener {
 	    }
 	    event.deferEdit().queue();
 	    switch (type) {
+	    	case "confirm":
+	    		event.getUser().openPrivateChannel().complete().sendMessage(Synergy.translateString("synergy-discord-confirmation-success").replace("%PLAYER%", id[2])).queue();
+	    		Synergy.createSynergyEvent("discord-link").setPlayer(id[2]).setArgument(id[0]).send();
+	    		break;
+	    	case "cancel":
+	    		event.getUser().openPrivateChannel().complete().sendMessage(Synergy.translateString("synergy-discord-confirmation-canceled").replace("%PLAYER%", id[2])).queue();
+	    		break;
 	        case "prune":
 	            int amount = Integer.parseInt(id[2]);
 	            event.getChannel().getIterableHistory()
@@ -314,48 +449,53 @@ public class Discord extends ListenerAdapter implements Listener {
     public void onMessageReceived(MessageReceivedEvent event) {
         Message message = event.getMessage();
         Member memder = event.getMember();
+        String channelId = event.getChannel().getId();
+
         if (!event.getAuthor().isBot()) {
-            String channelId = event.getChannel().getId();
-            if (channelId.equals(Synergy.getConfig().getString("discord.channels.global-chat-channel")))
-                Synergy.createSynergyEvent("chat").setPlayer(memder.getEffectiveName()).setArguments(new String[] {
-                    "@" + message.getContentDisplay()
-                }).send();
-            if (channelId.equals(Synergy.getConfig().getString("discord.channels.admin-chat-channel")))
-                Synergy.createSynergyEvent("chat").setPlayer(memder.getEffectiveName()).setArguments(new String[] {
-                    "$" + message.getContentDisplay()
-                }).send();
+        	
+            if (channelId.equals(Synergy.getConfig().getString("discord.channels.global-chat-channel"))) {
+                Synergy.createSynergyEvent("chat").setPlayer(memder.getEffectiveName()).setArguments(new String[] {"@" + message.getContentDisplay()}).send();
+            }
+            
+            if (channelId.equals(Synergy.getConfig().getString("discord.channels.admin-chat-channel"))) {
+                Synergy.createSynergyEvent("chat").setPlayer(memder.getEffectiveName()).setArguments(new String[] {"$" + message.getContentDisplay()}).send();
+            }
+            
             if (Synergy.getConfig().getBoolean("discord.gpt-bot.enabled"))
+            	
                 try {
-                    if ( event.getMessage().getContentDisplay().toLowerCase().startsWith(getBotName().toLowerCase())
-                    		|| event.getMessage().getMentions().isMentioned((IMentionable) event.getJDA().getSelfUser(), new Message.MentionType[] {Message.MentionType.USER}) 
-                    		|| (event.getMessage().getReferencedMessage() != null
-                    		&& event.getMessage().getReferencedMessage().getAuthor().equals(event.getJDA().getSelfUser()))) {
-                    	
+                	boolean startsWithBotName = message.getContentDisplay().toLowerCase().startsWith(getBotName().toLowerCase());
+                	boolean isGlobalChatChannel = channelId.equals(Synergy.getConfig().getString("discord.channels.global-chat-channel"));
+                	boolean mentionedBot = message.getMentions().isMentioned((IMentionable) event.getJDA().getSelfUser(), Message.MentionType.USER);
+                	boolean isReplyToBot = message.getReferencedMessage() != null && message.getReferencedMessage().getAuthor().equals(event.getJDA().getSelfUser());
+
+                	if ((startsWithBotName && !isGlobalChatChannel) || mentionedBot || isReplyToBot) {
                         message.getChannel().sendTyping().queue();
-                        
                         String question =  Synergy.getConfig().getString("discord.gpt-bot.personality")
                         		.replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(getBotName(), event.getMessage().getContentRaw())
                         		.replace(event.getJDA().getSelfUser().getAsMention(), ""));
                         Synergy.debug(question);
                         //String.valueOf((event.getMessage().getReferencedMessage() != null) ? event.getMessage().getReferencedMessage().getContentRaw() : "");
                         String answer = new OpenAi().newPrompt(question).get(0).getText().replace("\"", "");
-                        
-                        event.getMessage().reply(answer).queue();
+                        message.reply(answer).queue();
                     }
-                    if (event.getMessage().getContentDisplay().toLowerCase().startsWith(getBotName().toLowerCase()) && channelId.equals(Synergy.getConfig().getString("discord.channels.global-chat-channel"))) {
-                        String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(getBotName(), event.getMessage().getContentDisplay()));
+                	
+                    if (startsWithBotName && isGlobalChatChannel) {
+                        String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(getBotName(), message.getContentDisplay()));
                         String answer = (new OpenAi().newPrompt(question).get(0)).getText().replace("\"", "").trim();
                         Synergy.createSynergyEvent("chat").setPlayer(getBotName().replace(" ", "_")).setArguments(new String[] {"@" + answer}).send();
                         Synergy.createSynergyEvent("discord").setPlayer(getBotName().replace(" ", "_")).setArguments(new String[] {"!" + answer}).send();
                     }
+                    
                 } catch (Exception c) {
                     Synergy.getLogger().error(c.getMessage());
                     event.getMessage().reply(Synergy.translateString("synergy-service-unavailable")).queue();
                 }
+            
             if (Synergy.getConfig().getBoolean("discord.hightlights.enabled") &&
                 Synergy.getConfig().getStringList("discord.hightlights.channels").contains(channelId) &&
-                event.getMessage().getAttachments().size() > 0)
-                event.getMessage().addReaction((Emoji) Emoji.fromUnicode(Synergy.getConfig().getString("discord.hightlights.reaction-emoji"))).complete();
+                message.getAttachments().size() > 0)
+            	message.addReaction((Emoji) Emoji.fromUnicode(Synergy.getConfig().getString("discord.hightlights.reaction-emoji"))).complete();
             return;
         }
     }
@@ -363,4 +503,5 @@ public class Discord extends ListenerAdapter implements Listener {
     public String getBotName() {
         return Synergy.getConfig().getString("discord.gpt-bot.name");
     }
+
 }

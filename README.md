@@ -29,25 +29,22 @@ https://github.com/mrbear21/Synergy/wiki/Permissions
 
 # Convenient data synchronization between servers
 ```
-	//The event will be sent to the proxy server
-	
-	@Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		
-		Synergy.createSynergyEvent("broadcast-message").setArguments(args).send();      
-        return true;
-    }
-	
-	
-	//The proxy server will trigger the event on all servers in the network synchronously
-	
-	@EventHandler
-    public void onSynergyEvent(SynergyEvent e) {
-        if (!e.getIdentifier().equals("broadcast-message")) {
-            return;
-        }
-        Bukkit.broadcastMessage(String.join(" ", e.getArgs()));
-    }
+//The event will be sent to the proxy server
+@Override
+public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+	Synergy.createSynergyEvent("broadcast-message").setArguments(args).send();      
+	return true;
+}
+
+
+//The proxy server will trigger the event on all servers in the network synchronously
+@EventHandler
+public void onSynergyEvent(SynergyEvent e) {
+	if (!e.getIdentifier().equals("broadcast-message")) {
+		return;
+	}
+	Bukkit.broadcastMessage(String.join(" ", e.getArgs()));
+}
 ```
 
 # Convenient localization system (including third-party plugins and system messages)

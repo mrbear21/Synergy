@@ -1,13 +1,17 @@
 package me.synergy.modules;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
@@ -18,22 +22,40 @@ import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import net.md_5.bungee.api.ChatColor;
 
-public class ChatManager implements Listener {
-
-    public ChatManager() {
-
-    }
+public class ChatManager implements Listener, CommandExecutor {
 
     public void initialize() {
         if (Synergy.getConfig().getBoolean("chat-manager.enabled")) {
             Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigotInstance());
+            Synergy.getSpigotInstance().getCommand("chat").setExecutor(this);
+            Synergy.getSpigotInstance().getCommand("colors").setExecutor(this);
             Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
         }
     }
+    
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		
+		if (label.equalsIgnoreCase("colors")) {
+			ConfigurationSection tags = Synergy.getSpigotInstance().getConfig().getConfigurationSection("chat-manager.custom-color-tags");
+			for (String t : tags.getKeys(false)) {
+				sender.sendMessage(Synergy.getUtils().processColors(t)+t);
+			}
+		}
+		
+		return true;
+	}
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(AsyncPlayerChatEvent event) {
-        if (!event.isCancelled()) {
+    	
+        if (!isAborted(event)) {
+        	Synergy.getLogger().info("Chat event not cancelled, cancelling it now");
+        } else {
+        	Synergy.getLogger().info("Chat event already cancelled by another plugin");
+        }
+    	
+        if (!isAborted(event)) {
             event.setCancelled(true);
             
             Synergy.createSynergyEvent("chat").setPlayer(event.getPlayer().getName()).setArguments(new String[] {event.getMessage()}).send();
@@ -48,6 +70,10 @@ public class ChatManager implements Listener {
             }
         }
     }
+    
+    boolean isAborted(final AsyncPlayerChatEvent event) {
+        return event.isCancelled();
+    }
 
     @EventHandler
     public void onSynergyPluginMessage(SynergyEvent event) {
@@ -56,7 +82,7 @@ public class ChatManager implements Listener {
         }
 
         String player = event.getPlayer();
-        String message = event.getArgs()[0];
+        String message = removeSynergyTranlationKeys(event.getArgs()[0]);
         String chatType = getChatTypeFromMessage(message);
         String format = getFormattedChatMessage(player, message);
 
@@ -87,7 +113,14 @@ public class ChatManager implements Listener {
 
     }
 
-    private String getFormattedChatMessage(String sender, String message) {
+    public String removeSynergyTranlationKeys(String string) {
+    	for (Entry<String, String> k : Synergy.getSpigotInstance().getLocales().get(Synergy.getDefaultLanguage()).entrySet()) {
+    		string = string.replace(k.getKey(), k.getKey().replace("-", "–"));
+    	}
+		return string;
+	}
+
+	private String getFormattedChatMessage(String sender, String message) {
         String format = getFormat();
         String chatType = getChatTypeFromMessage(message);
         
@@ -107,7 +140,7 @@ public class ChatManager implements Listener {
         format = format.replace("%CHAT%", String.valueOf(chatType.charAt(0)).toUpperCase());
         format = format.replace("%COLOR%", getChatColor(chatType));
 
-        format = processColors(format);
+        format = Synergy.getUtils().processColors(format);
         
         return format;
     }
@@ -119,7 +152,7 @@ public class ChatManager implements Listener {
             int start = 0, end = 0;
             for (int i = 0; i < sentence.length(); i++) {
                 if (Character.isAlphabetic(sentence.charAt(i))) {
-                    if (blockedWord.charAt(0) == sentence.charAt(i) || blockedWord.startsWith(String.valueOf(match) + sentence.charAt(i))) {
+                    if (blockedWord.charAt(0) == sentence.charAt(i) || blockedWord.startsWith(String.valueOf(match) + sentence.charAt(i)) || (match.length() > 0 && match.charAt(match.length()-1) == sentence.charAt(i))) {
                         if (match.isEmpty())
                             start = i;
                         match = String.valueOf(match) + sentence.charAt(i);
@@ -129,9 +162,9 @@ public class ChatManager implements Listener {
                     }
                     if (blockedWord.equals(match)) {
                         String word = findWordInRange(sentence, start, end);
-                        double percentage = blockedWord.length() / word.length() * 100.0;
-                        if (tolerance < percentage || !word.contains(blockedWord))
-                            sentence = censorPartOfSentence(sentence, start, end);
+                        double percentage = (double) match.length() / (double) word.length() * 100;
+                        if (tolerance < percentage || !word.contains(blockedWord)) 
+                            sentence = censorPartOfSentence(sentence, start, end); 
                     }
                 }
             }
@@ -141,7 +174,6 @@ public class ChatManager implements Listener {
 
     public static String findWordInRange(String sentence, int start, int end) {
         String[] words = sentence.split("\\s+");
-        
         for (String word : words) {
             int wordStart = sentence.indexOf(word);
             int wordEnd = wordStart + word.length() - 1;
@@ -150,7 +182,6 @@ public class ChatManager implements Listener {
                 return word;
             }
         }
-        
         return sentence.substring(start, end);
     }
 
@@ -164,6 +195,7 @@ public class ChatManager implements Listener {
         }
         return new String(charArray);
     }
+
     
     public static String censorPartOfSentence(String sentence, int start, int end) {
         if (end-start < 2) {
@@ -183,7 +215,6 @@ public class ChatManager implements Listener {
 	}
 
 	public String detectPlayernamePlaceholder(String text, String defaultIfNull) {
-
 	    int startIdx = text.indexOf("%");
 	    if (startIdx == -1) {
 	        return defaultIfNull;
@@ -214,16 +245,6 @@ public class ChatManager implements Listener {
 
     private void logChatMessage(String format) {
         Bukkit.getLogger().info(ChatColor.stripColor(format));
-    }
-
-    public static String processColors(String string) {
-        Pattern pattern = Pattern.compile("<(#[A-Fa-f0-9]{6})>");
-        Matcher matcher = pattern.matcher(string);
-        while (matcher.find()) {
-            string = string.replace(matcher.group(), "" + ChatColor.of(matcher.group(1)));
-        }
-        string = ChatColor.translateAlternateColorCodes('&', string);
-        return string;
     }
 
     public String getChatTypeFromMessage(String message) {
@@ -258,4 +279,5 @@ public class ChatManager implements Listener {
     private String getFormat() {
         return Synergy.getConfig().getString("chat-manager.format");
     }
+
 }

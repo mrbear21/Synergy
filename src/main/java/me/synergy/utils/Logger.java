@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class Logger {
+	
   private void opLog(String string) {
     for (Player p : Bukkit.getOnlinePlayers().stream().filter(p -> p.hasPermission("synergy.sudo")).collect(Collectors.toList()))
       p.sendMessage(ChatColor.GRAY +""+ ChatColor.ITALIC + "[Console] " + string); 
@@ -17,26 +18,31 @@ public class Logger {
   }
   
   public void info(String string, boolean broadcast) {
-    if (Synergy.isRunningSpigot().booleanValue()) {
+    if (Synergy.isSpigot()) {
       Synergy.getSpigotInstance().getLogger().info(string);
-      if (broadcast)
-        opLog(string); 
+      if (broadcast) {
+        opLog(string);
+      }
     } 
-    if (Synergy.isRunningVelocity().booleanValue())
+    if (Synergy.isRunningVelocity()) {
       Synergy.getVelocityInstance().getLogger().info(string); 
+    }
   }
   
   public void warning(String string) {
-    if (Synergy.isRunningSpigot().booleanValue())
+    if (Synergy.isSpigot()) {
       Synergy.getSpigotInstance().getLogger().warning(Synergy.translateString(string)); 
-    if (Synergy.isRunningVelocity().booleanValue())
+    }
+    if (Synergy.isRunningVelocity()) {
       Synergy.getVelocityInstance().getLogger().warn(string); 
+    }
   }
   
   public void error(String string) {
-    if (Synergy.isRunningSpigot().booleanValue())
+    if (Synergy.isSpigot())
       Synergy.getSpigotInstance().getLogger().severe(Synergy.translateString(string)); 
-    if (Synergy.isRunningVelocity().booleanValue())
+    if (Synergy.isRunningVelocity()) {
       Synergy.getVelocityInstance().getLogger().error(string); 
+    }
   }
 }

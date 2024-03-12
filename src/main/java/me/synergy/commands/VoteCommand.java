@@ -20,7 +20,6 @@ public class VoteCommand implements CommandExecutor {
         	return;
         }
         Synergy.getSpigotInstance().getCommand("vote").setExecutor(this);
-        Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
