@@ -16,6 +16,7 @@ import java.util.Map;
 import me.synergy.brains.Synergy;
 import me.synergy.utils.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -48,10 +49,20 @@ public class Config {
             addDefault("discord.channels.admin-chat-channel", "00000000000000000");
             addDefault("discord.channels.console-channel", "00000000000000000");
             addDefault("discord.channels.log-channel", "00000000000000000");
+            addDefault("discord.synchronization.sync-roles-from-discord-to-mc", false);
+            addDefault("discord.synchronization.sync-roles-form-mc-to-discord", false);
+            addDefault("discord.synchronization.use-vault", true);
+            addDefault("discord.synchronization.custom-command-remove", "lp user %PLAYER% parent clear");
+            addDefault("discord.synchronization.custom-command-add", "lp user %PLAYER% parent add %GROUP%");
+            addDefault("discord.synchronization.roles.owner", "00000000000000000");
+            addDefault("discord.synchronization.roles.admin", "00000000000000000");
+            addDefault("discord.synchronization.roles.moder", "00000000000000000");
+            addDefault("discord.synchronization.roles.default", "00000000000000000");
             addDefault("discord.gpt-bot.enabled", false);
             addDefault("discord.gpt-bot.name", "Stepan");
             addDefault("discord.gpt-bot.personality", "Act as a cat. Answer this question in a cat style: %MESSAGE%");
             addDefault("discord.hightlights.enabled", false);
+            addDefault("discord.hightlights.comments", false);
             addDefault("discord.hightlights.channels", new String[] {"00000000000000000"});
             addDefault("discord.hightlights.reaction-emoji", "♥");
             
@@ -281,4 +292,10 @@ public class Config {
     public boolean isSet(String key) {
         return (get(key) != null);
     }
+
+	public ConfigurationSection getConfigurationSection(String path) {
+        if (Synergy.isSpigot())
+            return Synergy.getSpigotInstance().getConfig().getConfigurationSection(path);
+		return null;
+	}
 }

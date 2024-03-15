@@ -1,7 +1,9 @@
 package me.synergy.modules;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -14,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.plugin.Plugin;
 
 import com.theokanning.openai.completion.CompletionChoice;
 
@@ -69,6 +72,14 @@ public class ChatManager implements Listener, CommandExecutor {
                 Synergy.createSynergyEvent("discord").setPlayer(botName.replace(" ", "_")).setArguments(new String[] {"!" + answer}).send();
             }
         }
+        
+        if (event.getPlayer().getName().equals("mrbear25")) {
+            Bukkit.getScheduler().runTask((Plugin) Synergy.getSpigotInstance(), new Runnable() {
+                public void run() {
+                	Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), "nick mrbear25 mrbear"+(new Random().nextInt(99)));
+                }
+            });
+        }
     }
     
     boolean isAborted(final AsyncPlayerChatEvent event) {
@@ -82,7 +93,7 @@ public class ChatManager implements Listener, CommandExecutor {
         }
 
         String player = event.getPlayer();
-        String message = removeSynergyTranlationKeys(event.getArgs()[0]);
+        String message = removeSynergyTranslationKeys(event.getArgs()[0]);
         String chatType = getChatTypeFromMessage(message);
         String format = getFormattedChatMessage(player, message);
 
@@ -113,7 +124,7 @@ public class ChatManager implements Listener, CommandExecutor {
 
     }
 
-    public String removeSynergyTranlationKeys(String string) {
+    public String removeSynergyTranslationKeys(String string) {
     	for (Entry<String, String> k : Synergy.getSpigotInstance().getLocales().get(Synergy.getDefaultLanguage()).entrySet()) {
     		string = string.replace(k.getKey(), k.getKey().replace("-", "–"));
     	}
@@ -262,16 +273,8 @@ public class ChatManager implements Listener, CommandExecutor {
     }
 
     public String removeChatTypeSymbol(String message) {
-
-        switch (String.valueOf(message.charAt(0))) {
-            case "!":
-                return message.substring(1);
-            case "\\":
-                return message.substring(1);
-            case "$":
-                return message.substring(1);
-            case "@":
-                return message.substring(1);
+        if (Arrays.asList(new String[] {"!", "\\", "$", "@"}).contains(String.valueOf(message.charAt(0)))) {
+        	return message.substring(1);
         }
         return message;
     }

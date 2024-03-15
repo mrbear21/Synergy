@@ -121,7 +121,7 @@ public class Localizations implements Listener {
 					                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
 					                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 					                        locales.entrySet().forEach(l ->
-					                                component.setJson(component.getJson().replace(l.getKey(), ChatColor.GOLD + l.getValue()).replace("%nl%", System.lineSeparator())));
+					                                component.setJson(component.getJson().replace(l.getKey(), ChatColor.GOLD + l.getValue())));
 					                        packet.getChatComponents().write(components.indexOf(component), component);    
 				                        }
 				                    }
@@ -152,6 +152,7 @@ public class Localizations implements Listener {
 				string = string.replace(locale.getKey(), locale.getValue());
 			}
 		}
+		string = string.replace("%nl%", System.lineSeparator());
 		return string;
 	}
 	
@@ -181,6 +182,7 @@ public class Localizations implements Listener {
 	                if (subSection.isString(language)) {
 	                    String translation = subSection.getString(language);
 	                    HashMap<String, String> translationMap = Synergy.getSpigotInstance().getLocales().getOrDefault(language, new HashMap<>());
+	                    translation = translation.replace("%nl%", System.lineSeparator());
 	                    translationMap.put(key, Synergy.getUtils().processColors(translation));
 	                    count++;
 	                    Synergy.getSpigotInstance().getLocales().put(language, translationMap);
@@ -195,6 +197,7 @@ public class Localizations implements Listener {
 	                        sb.setLength(sb.length() - 1);
 	                    }
 	                    String combinedTranslations = sb.toString();
+	                    combinedTranslations = combinedTranslations.replace("%nl%", System.lineSeparator());
 	                    HashMap<String, String> translationMap = Synergy.getSpigotInstance().getLocales().getOrDefault(language, new HashMap<>());
 	                    translationMap.put(key, Synergy.getUtils().processColors(combinedTranslations));
 	                    count++;
