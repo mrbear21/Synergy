@@ -1,5 +1,9 @@
 package me.synergy.brains;
 
+import java.util.Set;
+
+import org.bukkit.ChatColor;
+
 import me.synergy.events.SynergyEvent;
 import me.synergy.events.SynergyVelocityEvent;
 import me.synergy.modules.ChatManager;
@@ -43,7 +47,15 @@ public class Synergy {
     public static String translateString(String string) {
         return isSpigot() ? getLocalizations().translateString(string, getDefaultLanguage()) : string;
     }
+    
+    public static String translateStringColorStripped(String string) {
+        return ChatColor.stripColor(translateString(string));
+    }
 
+	public static String translateString(String string, String name) {
+		return isSpigot() ? getLocalizations().translateString(string, new BreadMaker(name).getLanguage()) : string;
+	}
+    
     public static String getDefaultLanguage() {
         return getConfig().getString("localizations.default-language");
     }
@@ -107,5 +119,10 @@ public class Synergy {
 	public static DataManager getDataManager() {
 		return new DataManager();
 	}
+
+	public static Set<String> getLanguages() {
+		return getSpigotInstance().getLocales().keySet();
+	}
+
 	
 }

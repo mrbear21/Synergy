@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import me.synergy.commands.LanguageCommand;
 import me.synergy.commands.SynergyCommand;
 import me.synergy.commands.VoteCommand;
 import me.synergy.events.SynergyEvent;
@@ -21,6 +22,7 @@ import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
 import me.synergy.modules.Discord;
 import me.synergy.modules.Localizations;
+import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
@@ -42,6 +44,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
     private ProtocolManager PROTOCOLMANAGER;
     private static Economy econ;
     private static Permission perms;
+    private static Chat chat;
     
     
     public void onEnable() {
@@ -67,9 +70,11 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         new MOTDListener().initialize();
         new DataManager().initialize();
         new PlayerJoinListener().initialize();
+        new LanguageCommand().initialize();
         
         setupEconomy();
         setupPermissions();
+        setupChat();
         
         getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
     }
@@ -93,7 +98,24 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         return false;
     }
 
-    public Economy getEconomy() {
+    private boolean setupChat() {
+        if (getServer().getPluginManager().isPluginEnabled("Vault")) {
+            RegisteredServiceProvider <Chat> rsp = getServer().getServicesManager().getRegistration(Chat.class);
+            setChat(rsp.getProvider());
+            return (getChat() != null);
+        }
+        return false;
+    }
+    
+    private void setChat(Chat chat) {
+		Spigot.chat = chat;
+	}
+    
+	public Chat getChat() {
+        return chat;
+    }
+    
+	public Economy getEconomy() {
         return econ;
     }
 

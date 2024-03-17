@@ -3,7 +3,6 @@ package me.synergy.modules;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -16,7 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.plugin.Plugin;
 
 import com.theokanning.openai.completion.CompletionChoice;
 
@@ -49,18 +47,13 @@ public class ChatManager implements Listener, CommandExecutor {
 		return true;
 	}
 
-    @EventHandler(priority = EventPriority.LOWEST)
+
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
-    	
-        if (!isAborted(event)) {
-        	Synergy.getLogger().info("Chat event not cancelled, cancelling it now");
+
+        if (event.isCancelled()) {
+            Synergy.getLogger().info("Chat event cancelled by another plugin");
         } else {
-        	Synergy.getLogger().info("Chat event already cancelled by another plugin");
-        }
-    	
-        if (!isAborted(event)) {
-            event.setCancelled(true);
-            
             Synergy.createSynergyEvent("chat").setPlayer(event.getPlayer().getName()).setArguments(new String[] {event.getMessage()}).send();
             Synergy.createSynergyEvent("discord").setPlayer(event.getPlayer().getName()).setArguments(new String[] {event.getMessage()}).send();
             
@@ -71,19 +64,9 @@ public class ChatManager implements Listener, CommandExecutor {
                 Synergy.createSynergyEvent("chat").setPlayer(botName.replace(" ", "_")).setArguments(new String[] {"@" + answer}).send();
                 Synergy.createSynergyEvent("discord").setPlayer(botName.replace(" ", "_")).setArguments(new String[] {"!" + answer}).send();
             }
+            event.setCancelled(true);
         }
-        
-        if (event.getPlayer().getName().equals("mrbear25")) {
-            Bukkit.getScheduler().runTask((Plugin) Synergy.getSpigotInstance(), new Runnable() {
-                public void run() {
-                	Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), "nick mrbear25 mrbear"+(new Random().nextInt(99)));
-                }
-            });
-        }
-    }
-    
-    boolean isAborted(final AsyncPlayerChatEvent event) {
-        return event.isCancelled();
+	
     }
 
     @EventHandler

@@ -18,6 +18,7 @@ public class SynergyCommand implements CommandExecutor {
                 	Synergy.getDiscord().shutdown();
                 	Synergy.getSpigotInstance().reloadConfig();
                     Synergy.getLocalizations().initialize();
+                    Synergy.getDataManager().initialize();
                     Synergy.getConfig().initialize();
                     Synergy.getDiscord().initialize();
                     sender.sendMessage("synergy-reloaded");

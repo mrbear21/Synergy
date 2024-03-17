@@ -10,11 +10,11 @@ import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 
 public class PlayerJoinListener implements Listener {
-	
-	public void initialize() {
+
+    public void initialize() {
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigotInstance());
-	}
-	
+    }
+
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         String player = event.getPlayer().getName();
@@ -26,8 +26,8 @@ public class PlayerJoinListener implements Listener {
                     if (objs != null) {
                         for (String obj: objs.getKeys(false)) {
                             if (Synergy.getDataManager().getConfig().isSet("synergy-event-waiting." + player + "." + identifier + "." + obj)) {
-                            	Synergy.debug("synergy-event-waiting." + player + "." + identifier + "." + obj + " => " +Synergy.getDataManager().getConfig().getStringList("synergy-event-waiting." + player + "." + identifier + "." + obj));
-                            	new SynergyEvent().triggerEvent(identifier, player, Synergy.getDataManager().getConfig().getStringList("synergy-event-waiting." + player + "." + identifier + "." + obj).toArray(new String[0]));
+                                Synergy.debug("synergy-event-waiting." + player + "." + identifier + "." + obj + " => " + Synergy.getDataManager().getConfig().getStringList("synergy-event-waiting." + player + "." + identifier + "." + obj));
+                                new SynergyEvent().triggerEvent(identifier, player, Synergy.getDataManager().getConfig().getStringList("synergy-event-waiting." + player + "." + identifier + "." + obj).toArray(new String[0]));
                             }
                         }
                     }
@@ -41,12 +41,16 @@ public class PlayerJoinListener implements Listener {
             }
         }, 0, 60);
 
-        if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-form-mc-to-discord")) { 
-        	Synergy.createSynergyEvent("sync-roles-from-mc-to-discord").setPlayer(event.getPlayer().getName()).setArgument(Synergy.getSpigotInstance().getPermissions().getPrimaryGroup(event.getPlayer())).send();
+        if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-form-mc-to-discord")) {
+            Synergy.createSynergyEvent("sync-roles-from-mc-to-discord").setPlayer(event.getPlayer().getName()).setArgument(Synergy.getSpigotInstance().getPermissions().getPrimaryGroup(event.getPlayer())).send();
         }
-        
-        if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-from-discord-to-mc")) { 
-        	Synergy.createSynergyEvent("sync-roles-from-discord-to-mc").setPlayer(event.getPlayer().getName()).send();
+
+        if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-from-discord-to-mc")) {
+            Synergy.createSynergyEvent("sync-roles-from-discord-to-mc").setPlayer(event.getPlayer().getName()).send();
+        }
+
+        if (Synergy.getDiscord().getDiscordIdByPlayername(player) != null) {
+        Synergy.getDiscord().addVerifiedRole(Synergy.getDiscord().getDiscordIdByPlayername(player));
         }
     }
 }

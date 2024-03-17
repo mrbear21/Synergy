@@ -8,10 +8,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.event.Listener;
@@ -28,6 +28,7 @@ import com.comphenix.protocol.wrappers.WrappedChatComponent;
 
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.Utils;
 
 public class Localizations implements Listener {
 
@@ -121,7 +122,7 @@ public class Localizations implements Listener {
 					                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
 					                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 					                        locales.entrySet().forEach(l ->
-					                                component.setJson(component.getJson().replace(l.getKey(), ChatColor.GOLD + l.getValue())));
+					                                component.setJson(component.getJson().replace(l.getKey(), l.getValue()).replace("%RANDOM%", ""+new Random().nextInt(99))));
 					                        packet.getChatComponents().write(components.indexOf(component), component);    
 				                        }
 				                    }
@@ -190,7 +191,7 @@ public class Localizations implements Listener {
 	                    List<String> translations = subSection.getStringList(language);
 	                    StringBuilder sb = new StringBuilder();
 	                    for (String translation : translations) {
-	                        translation = ChatColor.translateAlternateColorCodes('&', translation);
+	                        translation = new Utils().processColors(translation);
 	                        sb.append(translation).append("\n");
 	                    }
 	                    if (sb.length() > 0) {
@@ -199,7 +200,7 @@ public class Localizations implements Listener {
 	                    String combinedTranslations = sb.toString();
 	                    combinedTranslations = combinedTranslations.replace("%nl%", System.lineSeparator());
 	                    HashMap<String, String> translationMap = Synergy.getSpigotInstance().getLocales().getOrDefault(language, new HashMap<>());
-	                    translationMap.put(key, Synergy.getUtils().processColors(combinedTranslations));
+	                    translationMap.put(key, combinedTranslations);
 	                    count++;
 	                    Synergy.getSpigotInstance().getLocales().put(language, translationMap);
 	                } else {

@@ -61,7 +61,7 @@ public class SynergyEvent extends Event implements Listener {
     }
 
     public String getArgument() {
-        return getArgs()[0] != null ? getArgs()[0] : "N/A";
+        return getArgs().length > 0 ? getArgs()[0] : "N/A";
     }
 
     public String getPlayer() {

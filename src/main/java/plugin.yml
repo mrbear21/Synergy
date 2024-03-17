@@ -21,3 +21,6 @@ commands:
     discord:
         description: Discord
         usage: synergy-command-usage /<command>
+    language:
+        description: Language
+        usage: synergy-command-usage /<command>

@@ -58,6 +58,7 @@ public class Config {
             addDefault("discord.synchronization.roles.admin", "00000000000000000");
             addDefault("discord.synchronization.roles.moder", "00000000000000000");
             addDefault("discord.synchronization.roles.default", "00000000000000000");
+            addDefault("discord.synchronization.verified-role", "00000000000000000");
             addDefault("discord.gpt-bot.enabled", false);
             addDefault("discord.gpt-bot.name", "Stepan");
             addDefault("discord.gpt-bot.personality", "Act as a cat. Answer this question in a cat style: %MESSAGE%");

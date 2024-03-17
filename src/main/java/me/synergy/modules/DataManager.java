@@ -33,6 +33,7 @@ public class DataManager {
         if (dataFile.exists()) {
             try {
             	Synergy.getSpigotInstance().getDataFile().load(dataFile);
+            	Synergy.getSpigotInstance().getDataFile().save(dataFile);
             } catch (IOException | InvalidConfigurationException e) {
                 e.printStackTrace();
             }

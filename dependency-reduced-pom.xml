@@ -242,9 +242,9 @@
   </dependencies>
   <distributionManagement>
     <repository>
-      <id>synergy</id>
-      <name>Synergy</name>
-      <url>file://${project.build.directory}/mvn-repo</url>
+      <id>github</id>
+      <name>GitHub mrbear21 Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/mrbear21/Synergy</url>
     </repository>
   </distributionManagement>
   <properties>

@@ -11,13 +11,13 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
-	<distributionManagement>
-		<repository>
-			<id>synergy</id>
-			<name>Synergy</name>
-			<url>file://${project.build.directory}/mvn-repo</url>
-		</repository>
-	</distributionManagement>
+		<distributionManagement>
+		   <repository>
+		     <id>github</id>
+		     <name>GitHub mrbear21 Apache Maven Packages</name>
+		     <url>https://maven.pkg.github.com/mrbear21/Synergy</url>
+		   </repository>
+		</distributionManagement>
 	<build>
 		<finalName>Synergy</finalName>
 		<sourceDirectory>src/main/java</sourceDirectory>

@@ -11,6 +11,9 @@ public class BreadMaker {
 	}
 
 	public String getLanguage() {
+		if (Synergy.getDataManager().getConfig().isSet("players."+getName()+".language")) {
+			return Synergy.getDataManager().getConfig().getString("players."+getName()+".language");
+		}
 		return Synergy.getConfig().getString("localizations.default-language", "en");
 	}
 
