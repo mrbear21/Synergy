@@ -33,7 +33,7 @@ url = "archi.quest", description = "Basic tools and messaging plugin", authors =
 public class Velocity {
 
     private ProxyServer server;
-    private Logger logger;
+    private static Logger logger;
     public Map<String, Object> configValues;
 	public Object config;
 	private static Velocity INSTANCE;
@@ -44,7 +44,7 @@ public class Velocity {
     @Inject
     public Velocity(ProxyServer server, Logger logger) {
         this.server = server;
-        this.logger = logger;
+        Velocity.setLogger(logger);
 
         logger.info("Synergy is ready to be helpful for all beadmakers!");
     }
@@ -109,7 +109,7 @@ public class Velocity {
 		getLogger().info(e.getIdentifier());
 	}
     
-    public Logger getLogger() {
+    public static Logger getLogger() {
     	return logger;
     }
     
@@ -123,6 +123,10 @@ public class Velocity {
 
 	public static Velocity getInstance() {
 		return INSTANCE;
+	}
+
+	public static void setLogger(Logger logger) {
+		Velocity.logger = logger;
 	}
     
 }

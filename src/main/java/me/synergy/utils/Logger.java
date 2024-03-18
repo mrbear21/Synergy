@@ -2,6 +2,8 @@ package me.synergy.utils;
 
 import java.util.stream.Collectors;
 import me.synergy.brains.Synergy;
+import me.synergy.brains.Velocity;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -25,7 +27,7 @@ public class Logger {
       }
     } 
     if (Synergy.isRunningVelocity()) {
-      Synergy.getVelocityInstance().getLogger().info(string); 
+      Velocity.getLogger().info(string); 
     }
   }
   
@@ -34,7 +36,7 @@ public class Logger {
       Synergy.getSpigotInstance().getLogger().warning(Synergy.translateString(string)); 
     }
     if (Synergy.isRunningVelocity()) {
-      Synergy.getVelocityInstance().getLogger().warn(string); 
+    	Velocity.getLogger().warn(string); 
     }
   }
   
@@ -42,7 +44,7 @@ public class Logger {
     if (Synergy.isSpigot())
       Synergy.getSpigotInstance().getLogger().severe(Synergy.translateString(string)); 
     if (Synergy.isRunningVelocity()) {
-      Synergy.getVelocityInstance().getLogger().error(string); 
+    	Velocity.getLogger().error(string); 
     }
   }
 }
