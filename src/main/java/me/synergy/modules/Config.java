@@ -22,6 +22,7 @@ import org.yaml.snakeyaml.Yaml;
 
 public class Config {
     private String configFile = "plugins/Synergy/config.yml";
+    public Map<String, Object> configValues;
 
     public void initialize() {
         try {
@@ -129,7 +130,7 @@ public class Config {
                     }
                 }
             } else {
-                Synergy.getVelocityInstance().configValues = new HashMap<>();
+                configValues = new HashMap<>();
     	        File file = new File(configFile);
     	        if (!file.exists()) {
     	            file.getParentFile().mkdirs();
@@ -147,7 +148,7 @@ public class Config {
     	        Yaml yaml = new Yaml();
     	        Map<? extends String, ? extends Object> s = yaml.load(input);
     	        if (s != null) {
-    	        	Synergy.getVelocityInstance().configValues.putAll(s);
+    	        	configValues.putAll(s);
     	        }
             }
         } catch (IOException e) {
@@ -164,7 +165,7 @@ public class Config {
                 DumperOptions options = new DumperOptions();
                 options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
                 Yaml yaml = new Yaml(options);
-                yaml.dump((Synergy.getVelocityInstance()).configValues, new OutputStreamWriter(output));
+                yaml.dump(configValues, new OutputStreamWriter(output));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -177,7 +178,7 @@ public class Config {
             return Synergy.getSpigotInstance().getConfig().get(key);
         } else {
             String[] keys = key.split("\\.");
-            Map<String, Object> currentMap = Synergy.getVelocityInstance().configValues;
+            Map<String, Object> currentMap = configValues;
             for (String k : keys) {
                 if (currentMap.containsKey(k) && currentMap.get(k) instanceof Map) {
                     currentMap = (Map<String, Object>) currentMap.get(k);
@@ -196,7 +197,7 @@ public class Config {
             Synergy.getSpigotInstance().getConfig().set(key, value);
         } else {
             String[] keys = key.split("\\.");
-            Map<String, Object> currentMap = Synergy.getVelocityInstance().configValues;
+            Map<String, Object> currentMap = configValues;
             for (int i = 0; i < keys.length - 1; i++) {
                 currentMap.computeIfAbsent(keys[i], k -> new HashMap<>());
                 currentMap = (Map<String, Object>) currentMap.get(keys[i]);

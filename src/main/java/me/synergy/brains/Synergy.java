@@ -2,10 +2,8 @@ package me.synergy.brains;
 
 import java.util.Set;
 
-import org.bukkit.ChatColor;
-
 import me.synergy.events.SynergyEvent;
-import me.synergy.events.SynergyVelocityEvent;
+//import me.synergy.events.SynergyVelocityEvent;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
@@ -27,9 +25,9 @@ public class Synergy {
         return Spigot.getInstance();
     }
 
-    public static Velocity getVelocityInstance() {
-        return Velocity.getInstance();
-    }
+    //public static Velocity getVelocityInstance() {
+    //    return Velocity.getInstance();
+    //}
 
     public static boolean isSpigot() {
         try {
@@ -49,7 +47,7 @@ public class Synergy {
     }
     
     public static String translateStringColorStripped(String string) {
-        return ChatColor.stripColor(translateString(string));
+    	return isSpigot() ? getLocalizations().translateStringColorStripped(string, getDefaultLanguage()) : string;
     }
 
 	public static String translateString(String string, String name) {
@@ -68,9 +66,9 @@ public class Synergy {
         return new SynergyEvent(identifier);
     }
 
-    public static SynergyVelocityEvent createSynergyVelocityEvent(String identifier) {
-        return new SynergyVelocityEvent(identifier);
-    }
+   //public static SynergyVelocityEvent createSynergyVelocityEvent(String identifier) {
+    //    return new SynergyVelocityEvent(identifier);
+    //}
 
     public static Discord getDiscord() {
         return new Discord();

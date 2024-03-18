@@ -3,11 +3,13 @@ package me.synergy.modules;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -202,22 +204,34 @@ public class Discord extends ListenerAdapter implements Listener, CommandExecuto
         }
     }
 
+    private Set<String> userTagsCache = new CopyOnWriteArraySet<>();
+    private long lastCacheUpdate = 0;
+    private static final long CACHE_UPDATE_INTERVAL = 60000;
+
+    private List<String> getAllUserTags() {
+        if (System.currentTimeMillis() - lastCacheUpdate >= CACHE_UPDATE_INTERVAL) {
+            userTagsCache.clear();
+            getJda().getGuilds().forEach(guild ->
+                guild.getMembers().stream()
+                    .filter(member -> !member.getUser().isBot())
+                    .forEach(member -> userTagsCache.add(member.getUser().getEffectiveName()))
+            );
+            lastCacheUpdate = System.currentTimeMillis();
+            Synergy.debug("нове гамно");
+        }
+        return List.copyOf(userTagsCache);
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("link", "unlink", "confirm");
-        } else if (args[0].equals("link") && args.length == 2) {
-        	List<String> usertags = new ArrayList<>();
-        	getJda().getGuilds().forEach(g -> 
-        	    g.getMembers().forEach(member -> {
-        	    	if (!member.getUser().isBot()) {
-        	    		usertags.add(member.getUser().getEffectiveName());
-        	    	}
-        	    }));
-        	return usertags;
-        } else {
-            return Collections.emptyList();
+            return List.of("link", "unlink", "confirm");
+        } else if (args.length == 2 && args[0].equals("link")) {
+            return getAllUserTags().stream()
+                    .filter(u -> u.startsWith(args[1]))
+                    .collect(Collectors.toList());
         }
+        return List.of();
     }
     
     @Override
@@ -230,7 +244,7 @@ public class Discord extends ListenerAdapter implements Listener, CommandExecuto
         switch (args[0]) {
             case "link":
             	if (getDiscordIdByPlayername(sender.getName()) != null) {
-            		sender.sendMessage("synergy-link-discord-already-linked");
+            		sender.sendMessage(Synergy.translateString("synergy-link-discord-already-linked").replace("%ACCOUNT%", getJda().getUserById(getDiscordIdByPlayername(sender.getName())).getEffectiveName()));
             		return true;
             	}
             	if (args.length < 2) {
@@ -244,12 +258,12 @@ public class Discord extends ListenerAdapter implements Listener, CommandExecuto
                 	            User user = member.getUser();
                 	            
                 	            if (getPlayernameByDiscordId(user.getId()) != null) {
-                	                sender.sendMessage("synergy-link-minecraft-already-linked");
+                	                sender.sendMessage(Synergy.translateString("synergy-link-minecraft-already-linked").replace("%ACCOUNT%", getPlayernameByDiscordId(user.getId())));
                 	                return true;
                 	            }
                 	            
                 	            PrivateChannel privateChannel = user.openPrivateChannel().complete();
-                	            String message = Synergy.translateStringColorStripped("synergy-discord-confirm-link").replace("%PLAYER%", sender.getName());
+                	            String message = Synergy.translateStringColorStripped("synergy-discord-confirm-link").replace("%ACCOUNT%", sender.getName());
                 	            
                 	            MessageHistory history = privateChannel.getHistory();
                 	            Message lastMessage = history.retrievePast(1).complete().size() == 0 ? null : history.retrievePast(1).complete().get(0);
@@ -342,10 +356,10 @@ public class Discord extends ListenerAdapter implements Listener, CommandExecuto
                     vote(event);
                     break;
                 default:
-                    event.reply(Synergy.translateStringColorStripped("synergy-service-unavailable")).setEphemeral(true).queue();
+                    event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-service-unavailable"))).setEphemeral(true).queue();
             }
         } catch (Exception c) {
-            event.reply(Synergy.translateStringColorStripped("synergy-service-unavailable") + " (*" + c.getMessage() + "*)").setEphemeral(true).queue();
+            event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-service-unavailable") + " (*" + c.getMessage() + "*)")).setEphemeral(true).queue();
         }
     }
 
@@ -361,7 +375,7 @@ public class Discord extends ListenerAdapter implements Listener, CommandExecuto
 	    	embed.setFooter(Synergy.translateStringColorStripped("synergy-vault-balance-footer"));
 	    	event.replyEmbeds(embed.build()).queue();
     	} else {
-    		event.reply(Synergy.translateStringColorStripped("synergy-you-have-to-link-account")).queue();
+    		event.replyEmbeds(info(Synergy.translateStringColorStripped("synergy-you-have-to-link-account"))).queue();
     	}
 	}
 
@@ -437,15 +451,33 @@ public class Discord extends ListenerAdapter implements Listener, CommandExecuto
         return Synergy.getDataManager().getData("discord.links." + id).getAsString();
     }
 
+    private MessageEmbed info(String message) {
+    	EmbedBuilder embed = new EmbedBuilder();
+    	embed.setColor(Color.decode("#3498db"));
+    	embed.setDescription(message);
+    	return embed.build();
+    }
+    
+    private MessageEmbed warning(String message) {
+    	EmbedBuilder embed = new EmbedBuilder();
+    	embed.setColor(Color.decode("#f39c12"));
+    	embed.setDescription(message);
+    	return embed.build();
+    }
+    
     public void onModalInteraction(@Nonnull ModalInteractionEvent event) {
         if (event.getModalId().equals("minecraftlink")) {
             String username = event.getValue("username").getAsString();
             if (getDiscordIdByPlayername(username) != null) {
-                event.reply(Synergy.translateStringColorStripped("synergy-link-minecraft-already-linked")).setEphemeral(true).queue();
+                event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-link-minecraft-already-linked").replace("%ACCOUNT%", getJda().getUserById(getDiscordIdByPlayername(username)).getEffectiveName()))).setEphemeral(true).queue();
+                return;
+            }
+            if (getPlayernameByDiscordId(event.getUser().getId()) != null) {
+                event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-link-discord-already-linked").replace("%ACCOUNT%", getPlayernameByDiscordId(event.getUser().getId())))).setEphemeral(true).queue();
                 return;
             }
             Synergy.getDataManager().setData("players."+username+".confirm-discord", event.getUser().getId());
-            event.reply(Synergy.translateStringColorStripped("synergy-link-minecraft-confirmation")).setEphemeral(true).queue();
+            event.replyEmbeds(info(Synergy.translateStringColorStripped("synergy-link-minecraft-confirmation"))).setEphemeral(true).queue();
             if (Bukkit.getPlayer(username) != null) {
             	Bukkit.getPlayer(username).sendMessage(Synergy.translateString("synergy-link-discord-confirmation", username).replace("%ACCOUNT%", event.getUser().getEffectiveName()));
             }
@@ -749,7 +781,7 @@ public class Discord extends ListenerAdapter implements Listener, CommandExecuto
             if (channelId.equals(Synergy.getConfig().getString("discord.channels.global-chat-channel"))) {
                 String sender = Synergy.getDataManager().getData("discord.links." + memder.getId()).getAsString();
                 if (sender == null) {
-                    event.getChannel().sendMessage(Synergy.translateStringColorStripped("synergy-you-have-to-link-account")).queue();
+                	event.getChannel().sendMessageEmbeds(warning(Synergy.translateStringColorStripped("synergy-you-have-to-link-account"))).queue();
                     return;
                 } else {
                     Synergy.createSynergyEvent("chat").setPlayer(sender).setArguments(new String[] {
@@ -797,7 +829,7 @@ public class Discord extends ListenerAdapter implements Listener, CommandExecuto
 
                 } catch (Exception c) {
                     Synergy.getLogger().error(c.getMessage());
-                    event.getMessage().reply(Synergy.translateStringColorStripped("synergy-service-unavailable")).queue();
+                    event.getMessage().replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-service-unavailable"))).queue();
                 }
             }
 

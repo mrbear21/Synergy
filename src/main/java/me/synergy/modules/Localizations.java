@@ -29,6 +29,7 @@ import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
 import me.synergy.utils.Utils;
+import net.md_5.bungee.api.ChatColor;
 
 public class Localizations implements Listener {
 
@@ -157,6 +158,10 @@ public class Localizations implements Listener {
 		return string;
 	}
 	
+	public String translateStringColorStripped(String string, String defaultLanguage) {
+		return ChatColor.stripColor(translateString(string, Synergy.getDefaultLanguage()));
+	}
+	
 	public void loadLocales() {
 		
 		if (!new File(Synergy.getSpigotInstance().getDataFolder(), "locales.yml").exists()) {
@@ -211,4 +216,6 @@ public class Localizations implements Listener {
 	    }
 	    Synergy.getLogger().info("There were "+count+" translations initialized!");
 	}
+
+
 }
