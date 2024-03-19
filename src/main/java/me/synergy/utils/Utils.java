@@ -1,6 +1,8 @@
 package me.synergy.utils;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,5 +54,21 @@ public class Utils {
         }
         string = ChatColor.translateAlternateColorCodes('&', string);
         return string;
+    }
+    
+    public String[] splitMessage(String message) {
+        List < String > parts = new ArrayList < > ();
+        String[] words = message.split("\\s+");
+        StringBuilder currentPart = new StringBuilder();
+        for (String word: words) {
+            if (currentPart.length() + word.length() + 1 <= 256) {
+                currentPart.append(currentPart.length() > 0 ? " " : "").append(word);
+            } else {
+                parts.add(currentPart.toString());
+                currentPart = new StringBuilder(word);
+            }
+        }
+        parts.add(currentPart.toString());
+        return parts.toArray(new String[0]);
     }
 }

@@ -17,6 +17,10 @@ public class BreadMaker {
 		return Synergy.getConfig().getString("localizations.default-language", "en");
 	}
 
+	public void sendMessage(String message) {
+		Synergy.sendMessage(getName(), message);
+	}
+	
 	public String getName() {
 		return name;
 	}

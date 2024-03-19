@@ -71,39 +71,43 @@ public class ChatManager implements Listener, CommandExecutor {
 
     @EventHandler
     public void onSynergyPluginMessage(SynergyEvent event) {
-        if (!event.getIdentifier().equals("chat")) {
-            return;
-        }
 
-        String player = event.getPlayer();
-        String message = removeSynergyTranslationKeys(event.getArgs()[0]);
-        String chatType = getChatTypeFromMessage(message);
-        String format = getFormattedChatMessage(player, message);
-
-        for (Player recipient: Bukkit.getOnlinePlayers()) {
-            switch (chatType) {
-                case "discord":
-                case "global":
-                    recipient.sendMessage(format);
-                    playMsgSound(recipient);
-                    break;
-                case "local":
-                    Player sender = Bukkit.getPlayer(player);
-                    if (sender != null && sender.getLocation().distance(recipient.getLocation()) <= getLocalChatRadius()) {
-                        recipient.sendMessage(format);
-                        playMsgSound(recipient);
-                    }
-                    break;
-                case "admin":
-                case "discord_admin":
-                    if ((chatType.equals("admin") && recipient.hasPermission("synergy.adminchat")) || chatType.startsWith("discord")) {
-                        recipient.sendMessage(format);
-                        playMsgSound(recipient);
-                    }
-                    break;
-            }
+        if (event.getIdentifier().equals("system-chat")) {
+        	Bukkit.getPlayer(event.getPlayer()).sendMessage(event.getArgument());
         }
-        logChatMessage(format);
+        
+        if (event.getIdentifier().equals("chat")) {
+        	
+	        String player = event.getPlayer();
+	        String message = removeSynergyTranslationKeys(event.getArgs()[0]);
+	        String chatType = getChatTypeFromMessage(message);
+	        String format = getFormattedChatMessage(player, message);
+	
+	        for (Player recipient: Bukkit.getOnlinePlayers()) {
+	            switch (chatType) {
+	                case "discord":
+	                case "global":
+	                    recipient.sendMessage(format);
+	                    playMsgSound(recipient);
+	                    break;
+	                case "local":
+	                    Player sender = Bukkit.getPlayer(player);
+	                    if (sender != null && sender.getLocation().distance(recipient.getLocation()) <= getLocalChatRadius()) {
+	                        recipient.sendMessage(format);
+	                        playMsgSound(recipient);
+	                    }
+	                    break;
+	                case "admin":
+	                case "discord_admin":
+	                    if ((chatType.equals("admin") && recipient.hasPermission("synergy.adminchat")) || chatType.startsWith("discord")) {
+	                        recipient.sendMessage(format);
+	                        playMsgSound(recipient);
+	                    }
+	                    break;
+	            }
+	        }
+	        logChatMessage(format);
+        }
 
     }
 

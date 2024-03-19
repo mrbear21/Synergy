@@ -22,7 +22,7 @@ import org.yaml.snakeyaml.Yaml;
 
 public class Config {
     private String configFile = "plugins/Synergy/config.yml";
-    public Map<String, Object> configValues;
+    public static Map<String, Object> configValues;
 
     public void initialize() {
         try {
@@ -94,7 +94,7 @@ public class Config {
                 addDefault("chat-manager.colors.discord-chat", "&b");
                 addDefault("chat-manager.colors.admin-chat", "&c");
                 addDefault("chat-manager.colors.discord_admin-chat", "&c");
-                addDefault("chat-manager.format", "[%CHAT%] %DISPLAYNAME%: %MESSAGE%");
+                addDefault("chat-manager.format", "%COLOR%[%CHAT%] %DISPLAYNAME%%COLOR%: %MESSAGE%");
                 
                 Synergy.getSpigotInstance().getConfig().options().copyDefaults(true);
                 Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " file has been initialized!");

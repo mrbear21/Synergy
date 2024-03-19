@@ -66,7 +66,11 @@ public class Synergy {
         return new SynergyEvent(identifier);
     }
 
-   //public static SynergyVelocityEvent createSynergyVelocityEvent(String identifier) {
+    public static void sendMessage(String player, String message) {
+        createSynergyEvent("system-chat").setPlayer(player).setArgument(message).send();
+    }
+    
+    //public static SynergyVelocityEvent createSynergyVelocityEvent(String identifier) {
     //    return new SynergyVelocityEvent(identifier);
     //}
 

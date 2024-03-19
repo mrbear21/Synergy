@@ -1,7 +1,5 @@
 package me.synergy.brains;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,15 +18,12 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
-import com.velocitypowered.api.proxy.server.ServerInfo;
 
 import me.synergy.events.SynergyVelocityEvent;
-import me.synergy.modules.Discord;
 import me.synergy.modules.Config;
-import net.dv8tion.jda.api.JDA;
+import me.synergy.modules.Discord;
 
-@SuppressWarnings("unused")
-@Plugin(id = "synergy", name = "Synergy", version = "0.0.1-SNAPSHOT",
+@Plugin(id = "synergy", name = "Synergy", version = "0.0.2-SNAPSHOT",
 url = "archi.quest", description = "Basic tools and messaging plugin", authors = {"mrbear22"})
 public class Velocity {
 
@@ -55,7 +50,7 @@ public class Velocity {
     	Synergy.platform = "velocity";
 	    server.getChannelRegistrar().register(IDENTIFIER);
 	    new Config().initialize();
-	  //  new Discord(this).register();
+	    new Discord().initialize();
     }
 
     @Subscribe
@@ -96,9 +91,7 @@ public class Velocity {
         } else {
         	
         }
-
-
-        
+   
     }
     
 	@Subscribe(order = PostOrder.EARLY)
