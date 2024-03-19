@@ -1,5 +1,7 @@
 package me.synergy.events;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.Event;
@@ -11,6 +13,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
 import me.synergy.brains.Synergy;
+import me.synergy.objects.BreadMaker;
 
 public class SynergyEvent extends Event implements Listener {
     private static final HandlerList HANDLER_LIST = new HandlerList();
@@ -19,7 +22,7 @@ public class SynergyEvent extends Event implements Listener {
 
     private String[] args;
 
-    private String player;
+    private UUID player;
 
     private boolean waitForPlayer = false;
 
@@ -32,7 +35,7 @@ public class SynergyEvent extends Event implements Listener {
         this.identifier = identifier;
     }
 
-    public SynergyEvent(String identifier, String player, String[] args) {
+    public SynergyEvent(String identifier, UUID player, String[] args) {
         this.identifier = identifier;
         this.args = args;
         this.player = player;
@@ -64,14 +67,19 @@ public class SynergyEvent extends Event implements Listener {
         return getArgs().length > 0 ? getArgs()[0] : "N/A";
     }
 
-    public String getPlayer() {
-        return this.player;
-    }
-
     public boolean getWaitForPlayerIfOffline() {
         return this.waitForPlayer;
     }
 
+	public SynergyEvent setUniqueId(UUID UUID) {
+		this.player = UUID;
+        return this;
+	}
+
+	public UUID getUniqueId() {
+		return player;
+	}
+    
     public SynergyEvent setArguments(String[] args) {
         this.args = args;
         return this;
@@ -84,11 +92,6 @@ public class SynergyEvent extends Event implements Listener {
         return this;
     }
 
-    public SynergyEvent setPlayer(String player) {
-        this.player = player;
-        return this;
-    }
-
     public SynergyEvent setWaitForPlayerIfOffline(boolean waitPlayer) {
         this.waitForPlayer = waitPlayer;
         return this;
@@ -98,27 +101,32 @@ public class SynergyEvent extends Event implements Listener {
         if (Synergy.getConfig().getBoolean("synergy-plugin-messaging.enabled")) {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
             out.writeUTF(identifier);
-            out.writeUTF(player);
-            out.writeUTF(waitForPlayer+"");
+            out.writeUTF(player.toString());
+            out.writeUTF(String.valueOf(waitForPlayer));
             for (String arg: args) {
                 out.writeUTF(arg);
             }
             Bukkit.getServer().sendPluginMessage(Synergy.getSpigotInstance(), "net:synergy", out.toByteArray());
         } else if (getWaitForPlayerIfOffline() && Bukkit.getPlayer(this.player) == null) {
-            ConfigurationSection objs = Synergy.getDataManager().getConfigurationSection("synergy-event-waiting." + this.player + "." + this.identifier);
+            ConfigurationSection objs = Synergy.getDataManager().getConfigurationSection("synergy-event-waiting." + this.player.toString() + "." + this.identifier);
             int obj = (objs != null) ? (objs.getKeys(false).size() + 1) : 1;
-            Synergy.getDataManager().getConfig().set("synergy-event-waiting."+this.player+"."+this.identifier+"." + obj, this.args);
+            Synergy.getDataManager().getConfig().set("synergy-event-waiting."+this.player.toString()+"."+this.identifier+"." + obj, this.args);
             Synergy.getDataManager().saveConfig();
         } else {
             triggerEvent(this.identifier, this.player, this.args);
         }
     }
     
-    public void triggerEvent(final String identifier, final String player, final String[] args) {
+    public void triggerEvent(final String identifier, final UUID player, final String[] args) {
         Bukkit.getScheduler().runTask((Plugin) Synergy.getSpigotInstance(), new Runnable() {
             public void run() {
                 Bukkit.getServer().getPluginManager().callEvent(new SynergyEvent(identifier, player, args));
             }
         });
     }
+
+	public BreadMaker getBread() {
+		return new BreadMaker(getUniqueId());
+	}
+
 }

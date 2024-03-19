@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -144,7 +145,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
         String token = in.readUTF();
         String identifier = in.readUTF();
-        String player = in.readUTF();
+        UUID player = UUID.nameUUIDFromBytes(in.readUTF().getBytes());
         @SuppressWarnings("unused")
 		String waitForPlayer = in.readUTF();
         List<String> argsList = new ArrayList<>();

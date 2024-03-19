@@ -8,6 +8,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import me.synergy.brains.Synergy;
@@ -39,6 +40,7 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
     
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    	Player player = (Player) sender;
         if (args.length == 0) {
             sender.sendMessage(Synergy.translateStringColorStripped("synergy-discord-invite").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
             return true;
@@ -49,13 +51,13 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
     	    		sender.sendMessage("synergy-discord-link-cmd-usage");
     	    		return true;
     	    	}
-            	Synergy.createSynergyEvent("make-discord-link").setPlayer(sender.getName()).setArgument(args[1]).send();
+            	Synergy.createSynergyEvent("make-discord-link").setUniqueId(player.getUniqueId()).setArgument(args[1]).send();
                 break;
             case "confirm":
-            	Synergy.createSynergyEvent("confirm-discord-link").setPlayer(sender.getName()).send();
+            	Synergy.createSynergyEvent("confirm-discord-link").setUniqueId(player.getUniqueId()).send();
                 break;
             case "unlink":
-            	Synergy.createSynergyEvent("remove-discord-link").setPlayer(sender.getName()).send();
+            	Synergy.createSynergyEvent("remove-discord-link").setUniqueId(player.getUniqueId()).send();
                 break;
         }
         return true;

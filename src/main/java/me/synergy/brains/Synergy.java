@@ -1,6 +1,7 @@
 package me.synergy.brains;
 
 import java.util.Set;
+import java.util.UUID;
 
 import me.synergy.events.SynergyEvent;
 //import me.synergy.events.SynergyVelocityEvent;
@@ -50,8 +51,8 @@ public class Synergy {
     	return isSpigot() ? getLocalizations().translateStringColorStripped(string, getDefaultLanguage()) : string;
     }
 
-	public static String translateString(String string, String name) {
-		return isSpigot() ? getLocalizations().translateString(string, new BreadMaker(name).getLanguage()) : string;
+	public static String translateString(String string, UUID uuid) {
+		return isSpigot() ? getLocalizations().translateString(string, new BreadMaker(uuid).getLanguage()) : string;
 	}
     
     public static String getDefaultLanguage() {
@@ -66,8 +67,8 @@ public class Synergy {
         return new SynergyEvent(identifier);
     }
 
-    public static void sendMessage(String player, String message) {
-        createSynergyEvent("system-chat").setPlayer(player).setArgument(message).send();
+    public static void sendMessage(UUID player, String message) {
+        createSynergyEvent("system-chat").setUniqueId(player).setArgument(message).send();
     }
     
     //public static SynergyVelocityEvent createSynergyVelocityEvent(String identifier) {
@@ -102,8 +103,8 @@ public class Synergy {
         return new Logger();
     }
 
-    public static BreadMaker getBread(String player) {
-        return new BreadMaker(player);
+    public static BreadMaker getBread(UUID uuid) {
+        return new BreadMaker(uuid);
     }
 
     public static boolean isDependencyAvailable(String plugin) {

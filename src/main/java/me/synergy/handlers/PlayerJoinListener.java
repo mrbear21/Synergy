@@ -1,5 +1,7 @@
 package me.synergy.handlers;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
@@ -17,7 +19,7 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        String player = event.getPlayer().getName();
+        UUID player = event.getPlayer().getUniqueId();
         if (Synergy.getDataManager().getConfig().get("synergy-event-waiting." + player) != null) {
             ConfigurationSection identifiers = Synergy.getDataManager().getConfig().getConfigurationSection("synergy-event-waiting." + player);
             if (identifiers != null) {
@@ -42,15 +44,15 @@ public class PlayerJoinListener implements Listener {
         }, 0, 60);
 
         if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-form-mc-to-discord")) {
-            Synergy.createSynergyEvent("sync-roles-from-mc-to-discord").setPlayer(event.getPlayer().getName()).setArgument(Synergy.getSpigotInstance().getPermissions().getPrimaryGroup(event.getPlayer())).send();
+            Synergy.createSynergyEvent("sync-roles-from-mc-to-discord").setUniqueId(event.getPlayer().getUniqueId()).setArgument(Synergy.getSpigotInstance().getPermissions().getPrimaryGroup(event.getPlayer())).send();
         }
 
         if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-from-discord-to-mc")) {
-            Synergy.createSynergyEvent("sync-roles-from-discord-to-mc").setPlayer(event.getPlayer().getName()).send();
+            Synergy.createSynergyEvent("sync-roles-from-discord-to-mc").setUniqueId(event.getPlayer().getUniqueId()).send();
         }
 
-        if (Synergy.getDiscord().getDiscordIdByPlayername(player) != null) {
-        Synergy.getDiscord().addVerifiedRole(Synergy.getDiscord().getDiscordIdByPlayername(player));
+        if (Synergy.getDiscord().getDiscordIdByUUID(player) != null) {
+        Synergy.getDiscord().addVerifiedRole(Synergy.getDiscord().getDiscordIdByUUID(player));
         }
     }
 }

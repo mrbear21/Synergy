@@ -3,6 +3,7 @@ package me.synergy.handlers;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 
@@ -18,6 +19,7 @@ import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.events.SynergyVelocityEvent;
 import me.synergy.modules.OpenAi;
+import me.synergy.objects.BreadMaker;
 import me.synergy.utils.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -69,30 +71,32 @@ public class DiscordListener extends ListenerAdapter implements Listener {
     @EventHandler
     public void getMessage(SynergyEvent event) {
     	
+    	BreadMaker bread = event.getBread();
+    	
     	if (event.getIdentifier().equals("make-discord-link")) {
-    		String player = event.getPlayer();
+    		UUID player = event.getUniqueId();
     		String discordTag = event.getArgument();
     		Synergy.getDiscord().makeDiscordLink(player, discordTag);
     	}
     	
     	if (event.getIdentifier().equals("confirm-discord-link")) {
-    		String player = event.getPlayer();
+    		UUID player = event.getUniqueId();
     		Synergy.getDiscord().confirmDiscordLink(player);
     	}
     	
         if (event.getIdentifier().equals("create-discord-link")) {
-            String player = event.getPlayer();
+        	UUID player = event.getUniqueId();
             String discordId = event.getArgument();
             Synergy.getDiscord().createDiscordLink(player, discordId);
         }
     	
     	if (event.getIdentifier().equals("remove-discord-link")) {
-    		String player = event.getPlayer();
+    		UUID player = event.getUniqueId();
     		Synergy.getDiscord().removeDiscordLink(player);
     	}
     	
         if (event.getIdentifier().equals("discord")) {
-	        String player = event.getPlayer();
+        	UUID player = event.getUniqueId();
 	        String message = event.getArgument();
 	        String globalchat = Synergy.getConfig().getString("discord.channels.global-chat-channel");
 	        String adminchat = Synergy.getConfig().getString("discord.channels.admin-chat-channel");
@@ -101,7 +105,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
             String[] messageParts = Synergy.getUtils().splitMessage(message);
             for (String part: messageParts) {
                 EmbedBuilder builder = new EmbedBuilder();
-                builder.setAuthor(player, null, Synergy.getDiscord().getBotName().equals(player) ? Synergy.getDiscord().getJda().getSelfUser().getAvatarUrl() : ("https://minotar.net/helm/" + player));
+                builder.setAuthor(bread.getName(), null, Synergy.getDiscord().getBotName().equals(bread.getName()) ? Synergy.getDiscord().getJda().getSelfUser().getAvatarUrl() : ("https://minotar.net/helm/" + player));
                 builder.setTitle(Synergy.getChatManager().removeChatTypeSymbol(part), null);
                 if (logchat.length() == 19)
                 	Synergy.getDiscord().getJda().getTextChannelById(logchat).sendMessage("```[" + Synergy.getChatManager().getChatTypeFromMessage(message) + "] " + player + ": " + part + "```").queue();
@@ -117,28 +121,28 @@ public class DiscordListener extends ListenerAdapter implements Listener {
         }
     
         if (event.getIdentifier().equals("sync-roles-from-mc-to-discord")) {
-        	Synergy.getDiscord().syncRolesFromMcToDiscord(event.getPlayer(), event.getArgument());
+        	Synergy.getDiscord().syncRolesFromMcToDiscord(event.getUniqueId(), event.getArgument());
         }
 
         if (event.getIdentifier().equals("sync-roles-from-discord-to-mc")) {
-        	Synergy.getDiscord().syncRolesFromDiscordToMc(event.getPlayer());
+        	Synergy.getDiscord().syncRolesFromDiscordToMc(event.getUniqueId());
         }
 
         if (event.getIdentifier().equals("clear-player-group")) {
             if (Synergy.getConfig().getBoolean("discord.synchronization.use-vault")) {
-                for (String g: Synergy.getSpigotInstance().getPermissions().getPlayerGroups(Bukkit.getPlayer(event.getPlayer()))) {
-                    Synergy.getSpigotInstance().getPermissions().playerRemoveGroup(Bukkit.getPlayer(event.getPlayer()), g);
+                for (String g: Synergy.getSpigotInstance().getPermissions().getPlayerGroups(Bukkit.getPlayer(event.getUniqueId()))) {
+                    Synergy.getSpigotInstance().getPermissions().playerRemoveGroup(Bukkit.getPlayer(event.getUniqueId()), g);
                 }
             } else {
-                Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Synergy.getConfig().getString("discord.synchronization.custom-command-remove").replace("%PLAYER%", event.getPlayer()));
+                Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Synergy.getConfig().getString("discord.synchronization.custom-command-remove").replace("%PLAYER%", event.getBread().getName()));
             }
         }
 
         if (event.getIdentifier().equals("set-player-group")) {
             if (Synergy.getConfig().getBoolean("discord.synchronization.use-vault")) {
-                Synergy.getSpigotInstance().getPermissions().playerAddGroup(Bukkit.getPlayer(event.getPlayer()), event.getArgument());
+                Synergy.getSpigotInstance().getPermissions().playerAddGroup(Bukkit.getPlayer(event.getUniqueId()), event.getArgument());
             } else {
-                Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Synergy.getConfig().getString("discord.synchronization.custom-command-add").replace("%PLAYER%", event.getPlayer()).replace("%GROUP%", event.getArgument()));
+                Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Synergy.getConfig().getString("discord.synchronization.custom-command-add").replace("%PLAYER%", event.getBread().getName()).replace("%GROUP%", event.getArgument()));
             }
         }
     }
@@ -163,12 +167,12 @@ public class DiscordListener extends ListenerAdapter implements Listener {
         if (!event.getAuthor().isBot()) {
 
             if (channelId.equals(Synergy.getConfig().getString("discord.channels.global-chat-channel"))) {
-                String sender = Synergy.getDataManager().getData("discord.links." + memder.getId()).getAsString();
+                UUID sender = UUID.nameUUIDFromBytes(Synergy.getDataManager().getData("discord.links." + memder.getId()).getAsString().getBytes());
                 if (sender == null) {
                 	event.getChannel().sendMessageEmbeds(warning(Synergy.translateStringColorStripped("synergy-you-have-to-link-account"))).queue();
                     return;
                 } else {
-                    Synergy.createSynergyEvent("chat").setPlayer(sender).setArguments(new String[] {
+                    Synergy.createSynergyEvent("chat").setUniqueId(sender).setArguments(new String[] {
                         "@" + message.getContentDisplay()
                     }).send();
                 }
@@ -176,7 +180,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 
             if (channelId.equals(Synergy.getConfig().getString("discord.channels.admin-chat-channel"))) {
                 OfflinePlayer sender = Synergy.getVault().getPlayersWithPermission("synergy.discord." + memder.getId()).get(0);
-                Synergy.createSynergyEvent("chat").setPlayer(sender.getName()).setArguments(new String[] {
+                Synergy.createSynergyEvent("chat").setUniqueId(sender.getUniqueId()).setArguments(new String[] {
                     "$" + message.getContentDisplay()
                 }).send();
             }
@@ -203,10 +207,11 @@ public class DiscordListener extends ListenerAdapter implements Listener {
                     if (startsWithBotName && isGlobalChatChannel) {
                         String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(Synergy.getDiscord().getBotName(), message.getContentDisplay()));
                         String answer = (new OpenAi().newPrompt(question).get(0)).getText().replace("\"", "").trim();
-                        Synergy.createSynergyEvent("chat").setPlayer(Synergy.getDiscord().getBotName().replace(" ", "_")).setArguments(new String[] {
+                        UUID botNameInUUID = UUID.nameUUIDFromBytes(Synergy.getDiscord().getBotName().replace(" ", "_").getBytes());
+                        Synergy.createSynergyEvent("chat").setUniqueId(botNameInUUID).setArguments(new String[] {
                             "@" + answer
                         }).send();
-                        Synergy.createSynergyEvent("discord").setPlayer(Synergy.getDiscord().getBotName().replace(" ", "_")).setArguments(new String[] {
+                        Synergy.createSynergyEvent("discord").setUniqueId(botNameInUUID).setArguments(new String[] {
                             "!" + answer
                         }).send();
                     }
@@ -238,10 +243,11 @@ public class DiscordListener extends ListenerAdapter implements Listener {
         event.deferEdit().queue();
         switch (type) {
             case "confirm":
-            	if (Synergy.getDiscord().getPlayernameByDiscordId(event.getUser().getId()) == null) {
+            	if (Synergy.getDiscord().getUUIDByDiscordId(event.getUser().getId()) == null) {
             		String player = id[2];
+            		UUID uuid = UUID.nameUUIDFromBytes(player.getBytes());
 	                event.getUser().openPrivateChannel().complete().sendMessage(Synergy.translateStringColorStripped("synergy-discord-link-success").replace("%ACCOUNT%", player)).queue();
-	                Synergy.getDiscord().createDiscordLink(player, authorId);
+	                Synergy.getDiscord().createDiscordLink(uuid, authorId);
             	}
                 break;
         }
@@ -282,18 +288,21 @@ public class DiscordListener extends ListenerAdapter implements Listener {
     public void onModalInteraction(@Nonnull ModalInteractionEvent event) {
         if (event.getModalId().equals("minecraftlink")) {
             String username = event.getValue("username").getAsString();
-            if (Synergy.getDiscord().getDiscordIdByPlayername(username) != null) {
-                event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-link-minecraft-already-linked").replace("%ACCOUNT%", Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByPlayername(username)).getEffectiveName()))).setEphemeral(true).queue();
+            UUID uuid = UUID.nameUUIDFromBytes(username.getBytes());
+            if (Synergy.getDiscord().getDiscordIdByUUID(uuid) != null) {
+                event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-link-minecraft-already-linked").replace("%ACCOUNT%", Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUUID(uuid)).getEffectiveName()))).setEphemeral(true).queue();
                 return;
             }
-            if (Synergy.getDiscord().getPlayernameByDiscordId(event.getUser().getId()) != null) {
-                event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-link-discord-already-linked").replace("%ACCOUNT%", Synergy.getDiscord().getPlayernameByDiscordId(event.getUser().getId())))).setEphemeral(true).queue();
+            if (Synergy.getDiscord().getUUIDByDiscordId(event.getUser().getId()) != null) {
+            	String account = UUID.fromString(Synergy.getDiscord().getUUIDByDiscordId(event.getUser().getId()).toString()).toString();
+                event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-link-discord-already-linked").replace("%ACCOUNT%", account))).setEphemeral(true).queue();
                 return;
             }
             Synergy.getDataManager().setData("players."+username+".confirm-discord", event.getUser().getId());
+            
             event.replyEmbeds(info(Synergy.translateStringColorStripped("synergy-link-minecraft-confirmation"))).setEphemeral(true).queue();
             if (Bukkit.getPlayer(username) != null) {
-            	Bukkit.getPlayer(username).sendMessage(Synergy.translateString("synergy-link-discord-confirmation", username).replace("%ACCOUNT%", event.getUser().getEffectiveName()));
+            	Bukkit.getPlayer(username).sendMessage(Synergy.translateString("synergy-link-discord-confirmation", Bukkit.getPlayer(username).getUniqueId()).replace("%ACCOUNT%", event.getUser().getEffectiveName()));
             }
         }
         if (event.getModalId().equals("embed")) {
@@ -364,13 +373,12 @@ public class DiscordListener extends ListenerAdapter implements Listener {
     }
 
     public void balance(SlashCommandInteractionEvent event) {
-    	if (Synergy.getDiscord().getPlayernameByDiscordId(event.getUser().getId()) != null) {
-        	@SuppressWarnings("deprecation")
-			OfflinePlayer player = Bukkit.getOfflinePlayer(Synergy.getDiscord().getPlayernameByDiscordId(event.getUser().getId()));
+    	if (Synergy.getDiscord().getUUIDByDiscordId(event.getUser().getId()) != null) {
+			OfflinePlayer player = Bukkit.getOfflinePlayer(Synergy.getDiscord().getUUIDByDiscordId(event.getUser().getId()));
 	    	double balance = Synergy.getSpigotInstance().getEconomy().getBalance(player);
 	    	EmbedBuilder embed = new EmbedBuilder();
 	    	embed.addField(Synergy.translateStringColorStripped("synergy-vault-balance-title"), Synergy.translateStringColorStripped("synergy-vault-balance-field").replace("%AMOUNT%", String.valueOf((int) balance)), true);
-	    	embed.setThumbnail("https://minotar.net/helm/"+Synergy.getDiscord().getPlayernameByDiscordId(event.getUser().getId()));
+	    	embed.setThumbnail("https://minotar.net/helm/"+Synergy.getDiscord().getUUIDByDiscordId(event.getUser().getId()));
 	    	embed.setColor(Color.decode("#f1c40f"));
 	    	embed.setFooter(Synergy.translateStringColorStripped("synergy-vault-balance-footer"));
 	    	event.replyEmbeds(embed.build()).queue();

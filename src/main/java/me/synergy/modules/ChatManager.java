@@ -3,8 +3,10 @@ package me.synergy.modules;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -51,20 +53,19 @@ public class ChatManager implements Listener, CommandExecutor {
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
 
-        if (event.isCancelled()) {
-            Synergy.getLogger().info("Chat event cancelled by another plugin");
-        } else {
-            Synergy.createSynergyEvent("chat").setPlayer(event.getPlayer().getName()).setArguments(new String[] {event.getMessage()}).send();
-            Synergy.createSynergyEvent("discord").setPlayer(event.getPlayer().getName()).setArguments(new String[] {event.getMessage()}).send();
+        if (!event.isCancelled()) {
+            event.setCancelled(true);
+            Synergy.createSynergyEvent("chat").setUniqueId(event.getPlayer().getUniqueId()).setArguments(new String[] {event.getMessage()}).send();
+            Synergy.createSynergyEvent("discord").setUniqueId(event.getPlayer().getUniqueId()).setArguments(new String[] {event.getMessage()}).send();
             
             String botName = Synergy.getDiscord().getBotName();
             if (removeChatTypeSymbol(event.getMessage()).toLowerCase().startsWith(botName.toLowerCase()) && getChatTypeFromMessage(event.getMessage()).equals("global")) {
                 String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
                 String answer = ((CompletionChoice)(new OpenAi()).newPrompt(question).get(0)).getText().replace("\"", "").trim();
-                Synergy.createSynergyEvent("chat").setPlayer(botName.replace(" ", "_")).setArguments(new String[] {"@" + answer}).send();
-                Synergy.createSynergyEvent("discord").setPlayer(botName.replace(" ", "_")).setArguments(new String[] {"!" + answer}).send();
+                UUID botNameInUUID = UUID.nameUUIDFromBytes(botName.replace(" ", "_").getBytes());
+                Synergy.createSynergyEvent("chat").setUniqueId(botNameInUUID).setArguments(new String[] {"@" + answer}).send();
+                Synergy.createSynergyEvent("discord").setUniqueId(botNameInUUID).setArguments(new String[] {"!" + answer}).send();
             }
-            event.setCancelled(true);
         }
 	
     }
@@ -73,15 +74,16 @@ public class ChatManager implements Listener, CommandExecutor {
     public void onSynergyPluginMessage(SynergyEvent event) {
 
         if (event.getIdentifier().equals("system-chat")) {
-        	Bukkit.getPlayer(event.getPlayer()).sendMessage(event.getArgument());
+        	Bukkit.getPlayer(event.getUniqueId()).sendMessage(event.getArgument());
         }
         
         if (event.getIdentifier().equals("chat")) {
         	
-	        String player = event.getPlayer();
+        	UUID uuid = event.getUniqueId();
+	        OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
 	        String message = removeSynergyTranslationKeys(event.getArgs()[0]);
 	        String chatType = getChatTypeFromMessage(message);
-	        String format = getFormattedChatMessage(player, message);
+	        String format = getFormattedChatMessage(uuid, message);
 	
 	        for (Player recipient: Bukkit.getOnlinePlayers()) {
 	            switch (chatType) {
@@ -91,7 +93,7 @@ public class ChatManager implements Listener, CommandExecutor {
 	                    playMsgSound(recipient);
 	                    break;
 	                case "local":
-	                    Player sender = Bukkit.getPlayer(player);
+	                    Player sender = Bukkit.getPlayer(player.getUniqueId());
 	                    if (sender != null && sender.getLocation().distance(recipient.getLocation()) <= getLocalChatRadius()) {
 	                        recipient.sendMessage(format);
 	                        playMsgSound(recipient);
@@ -118,22 +120,23 @@ public class ChatManager implements Listener, CommandExecutor {
 		return string;
 	}
 
-	private String getFormattedChatMessage(String sender, String message) {
+	private String getFormattedChatMessage(UUID uuid, String message) {
         String format = getFormat();
         String chatType = getChatTypeFromMessage(message);
+        OfflinePlayer sender = Bukkit.getOfflinePlayer(uuid);
         
         if (chatType.contains("discord")) {
-        	format = format.replace(detectPlayernamePlaceholder(format, "%DISPLAYNAME%"), sender);
+        	format = format.replace(detectPlayernamePlaceholder(format, "%DISPLAYNAME%"), sender != null ? sender.getName() : UUID.fromString(uuid.toString()).toString());
         }
         
         if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
-            format = PlaceholderAPI.setPlaceholders(Bukkit.getPlayer(sender), format);
+            format = PlaceholderAPI.setPlaceholders(sender, format);
         }
 
         message = removeChatTypeSymbol(message);
         message = censorBlockedWords(message, getBlockedWorlds());
 
-        format = format.replace("%DISPLAYNAME%", sender);
+        format = format.replace("%DISPLAYNAME%", sender.getName());
         format = format.replace("%MESSAGE%", message);
         format = format.replace("%CHAT%", String.valueOf(chatType.charAt(0)).toUpperCase());
         format = format.replace("%COLOR%", getChatColor(chatType));

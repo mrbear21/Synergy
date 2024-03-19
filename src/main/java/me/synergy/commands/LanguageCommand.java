@@ -7,6 +7,7 @@ import java.util.Set;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class LanguageCommand implements CommandExecutor {
 
@@ -18,10 +19,11 @@ public class LanguageCommand implements CommandExecutor {
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    	Player player = (Player) sender;
     	Set<String> languages = Synergy.getLanguages();
     	if (args.length > 0 && languages.contains(args[0])) {
-    		Synergy.getDataManager().setData("players."+sender.getName()+".language", args[0]);
-    		sender.sendMessage(Synergy.translateString("synergy-selected-language", sender.getName()).replace("%LANGUAGE%", args[0]));
+    		Synergy.getDataManager().setData("players."+player.getUniqueId()+".language", args[0]);
+    		sender.sendMessage(Synergy.translateString("synergy-selected-language", player.getUniqueId()).replace("%LANGUAGE%", args[0]));
     		return true;
     	}
 		sender.sendMessage("synergy-command-usage /language "+languages);

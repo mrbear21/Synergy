@@ -55,7 +55,7 @@ public class Localizations implements Listener {
 		            public void onPacketSending(PacketEvent event) {
 
 		                PacketContainer packet = event.getPacket();
-		                BreadMaker bread = Synergy.getBread(event.getPlayer().getName());
+		                BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
 
 		                String language = bread.getLanguage();
 		                
@@ -113,7 +113,7 @@ public class Localizations implements Listener {
 				        public void onPacketSending(PacketEvent event) {
 				            try {
 				                PacketContainer packet = event.getPacket();
-				                BreadMaker bread = Synergy.getBread(event.getPlayer().getName());
+				                BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
 				                String language = bread.getLanguage();
 		                        HashMap<String, String> locales = Synergy.getSpigotInstance().getLocales().get(language);
 		                        if (locales != null) {
