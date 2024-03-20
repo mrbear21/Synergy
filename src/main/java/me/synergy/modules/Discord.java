@@ -107,30 +107,38 @@ public class Discord {
             getJda().getGuilds().forEach(guild ->
                 guild.getMembers().stream()
                     .filter(member -> !member.getUser().isBot())
-                    .forEach(member -> userTagsCache.add(member.getUser().getEffectiveName()))
+                    .forEach(member -> userTagsCache.add(member.getUser().getName()))
             );
             lastCacheUpdate = System.currentTimeMillis();
         }
         return List.copyOf(userTagsCache);
     }
 
-    public String getDiscordIdByUUID(UUID player) {
-        for (String l: Synergy.getDataManager().getConfigurationSection("discord.links").getKeys(false)) {
-            if (Synergy.getDataManager().getData("discord.links." + l).getAsString().equals(player.toString())) {
-                return l;
-            }
-        }
+    
+    
+    public String getDiscordIdByUUID(UUID uuid) {
+    	ConfigurationSection links = Synergy.getDataManager().getConfigurationSection("discord.links");
+    	if (links != null) {
+	        for (String l: links.getKeys(false)) {
+	            if (Synergy.getDataManager().getData("discord.links." + l).getAsString().equals(uuid.toString())) {
+	                return l;
+	            }
+	        }
+    	}
         return null;
     }
 
     public UUID getUUIDByDiscordId(String id) {
-    	UUID uuid = UUID.nameUUIDFromBytes(Synergy.getDataManager().getData("discord.links." + id).getAsString().getBytes());
+    	UUID uuid = null;
+    	if (Synergy.getDataManager().isSet("discord.links." + id)) {
+    		UUID.nameUUIDFromBytes(Synergy.getDataManager().getData("discord.links." + id).getAsString().getBytes());
+    	}
         return uuid;
     }
     
-    public void syncRolesFromMcToDiscord(UUID player, String group) {
+    public void syncRolesFromMcToDiscord(UUID uuid, String group) {
         String roleId = getRoleIdByGroup(group);
-        String discordId = getDiscordIdByUUID(player);
+        String discordId = getDiscordIdByUUID(uuid);
         if (roleId != null && discordId != null) {
             try {
                 Role role = getJda().getRoleById(roleId);
@@ -154,9 +162,9 @@ public class Discord {
         }
     }
 
-    public void syncRolesFromDiscordToMc(UUID player) {
+    public void syncRolesFromDiscordToMc(UUID uuid) {
         try {
-            String memberId = getDiscordIdByUUID(player);
+            String memberId = getDiscordIdByUUID(uuid);
             for (String r: Synergy.getConfig().getConfigurationSection("discord.synchronization.roles").getKeys(false)) {
                 if (Synergy.getConfig().getString("discord.synchronization.roles." + r).length() == 19) {
                     Role role = getJda().getRoleById(Synergy.getConfig().getString("discord.synchronization.roles." + r));
@@ -173,12 +181,12 @@ public class Discord {
     public void syncRolesFromDiscordToMc(Member member) {
         try {
 	    	if (getUUIDByDiscordId(member.getId()) != null) {
-		        UUID player = getUUIDByDiscordId(member.getId());
-		        Synergy.createSynergyEvent("clear-player-group").setUniqueId(player).setWaitForPlayerIfOffline(true).send();
+		        UUID uuid = getUUIDByDiscordId(member.getId());
+		        Synergy.createSynergyEvent("clear-player-group").setUniqueId(uuid).setWaitForPlayerIfOffline(true).send();
 		        for (Role r: member.getRoles()) {
 		            String group = getGroupByRoleId(r.getId());
-		            if (group != null && player != null) {
-		                Synergy.createSynergyEvent("set-player-group").setUniqueId(player).setArgument(group).setWaitForPlayerIfOffline(true).send();
+		            if (group != null && uuid != null) {
+		                Synergy.createSynergyEvent("set-player-group").setUniqueId(uuid).setOption("group" ,group).setWaitForPlayerIfOffline(true).send();
 		            }
 		        }
 	    	}
@@ -220,79 +228,76 @@ public class Discord {
         }
     }
     
-    public void removeDiscordLink(UUID player) {
-    	BreadMaker bread = new BreadMaker(player);
+    public void removeDiscordLink(UUID uuid) {
+    	BreadMaker bread = new BreadMaker(uuid);
         for (String l: Synergy.getDataManager().getConfigurationSection("discord.links").getKeys(false)) {
-            if (Synergy.getDataManager().getData("discord.links." + l).getAsString().equals(player)) {
+            if (Synergy.getDataManager().getData("discord.links." + l).getAsUUID().equals(uuid)) {
                 Synergy.getDataManager().setData("discord.links." + l, null);
-                bread.sendMessage(Synergy.translateString("synergy-link-minecraft-unlinked", player));
+                bread.sendMessage("synergy-link-minecraft-unlinked");
                 return;
             }
         }
         bread.sendMessage("synergy-you-have-no-linked-accounts");
     }
 
-    public void createDiscordLink(UUID player, String discordId) {
-    	BreadMaker bread = new BreadMaker(player);
-    	Synergy.getDataManager().setData("discord.links." + discordId, player.toString());
-		String account = Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUUID(player)).getEffectiveName();
-    	bread.sendMessage(Synergy.translateString("synergy-discord-link-success").replace("%ACCOUNT%", account));
+    public void createDiscordLink(UUID uuid, String discordId) {
+    	BreadMaker bread = new BreadMaker(uuid);
+    	Synergy.getDataManager().setData("discord.links." + discordId, uuid.toString());
+		String account = Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUUID(uuid)).getEffectiveName();
+    	bread.sendMessage(bread.translateString("synergy-discord-link-success").replace("%ACCOUNT%", account));
     	addVerifiedRole(discordId);
     }
     
-    public void confirmDiscordLink(UUID player) {
-    	BreadMaker bread = new BreadMaker(player);
-		if (Synergy.getDataManager().getConfig().isSet("players."+player+".confirm-discord")) {
-	    	String discordid = Synergy.getDataManager().getData("players."+player+".confirm-discord").getAsString();
-	    	createDiscordLink(player, discordid);
-	    	Synergy.getDataManager().setData("players."+player+".confirm-discord", null);
+    public void confirmDiscordLink(UUID uuid) {
+    	BreadMaker bread = new BreadMaker(uuid);
+		if (Synergy.getDataManager().getConfig().isSet("players."+uuid+".confirm-discord")) {
+	    	String discordid = Synergy.getDataManager().getData("players."+uuid+".confirm-discord").getAsString();
+	    	createDiscordLink(uuid, discordid);
+	    	Synergy.getDataManager().setData("players."+uuid+".confirm-discord", null);
 		} else {
 			bread.sendMessage("synergy-confirmation-nothing-to-confirm");
 		}
     }
     
-    public void makeDiscordLink(UUID player, String discordTag) {
-    	BreadMaker bread = new BreadMaker(player);
+    public void makeDiscordLink(UUID uuid, String discordTag) {
+    	BreadMaker bread = new BreadMaker(uuid);
 		
-       	if (Synergy.getDiscord().getDiscordIdByUUID(player) != null) {
-    		String account = Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUUID(player)).getEffectiveName();
-    		bread.sendMessage(Synergy.translateString("synergy-link-discord-already-linked").replace("%ACCOUNT%", account));
+       	if (Synergy.getDiscord().getDiscordIdByUUID(uuid) != null) {
+    		String account = Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUUID(uuid)).getEffectiveName();
+    		bread.sendMessage(bread.translateString("synergy-link-discord-already-linked").replace("%ACCOUNT%", account));
     		return;
     	}
 
         try {
         	for (Guild guild : Synergy.getDiscord().getJda().getGuilds()) {
         	    for (Member member : guild.getMembers()) {
-        	        if (member.getEffectiveName().equalsIgnoreCase(discordTag)) {
+        	        if (member.getUser().getName().equalsIgnoreCase(discordTag)) {
         	            User user = member.getUser();
 
-    	            	String account = UUID.fromString(Synergy.getDiscord().getUUIDByDiscordId(user.getId()).toString()).toString();
     	            	
         	            if (Synergy.getDiscord().getUUIDByDiscordId(user.getId()) != null) {
-        	            	bread.sendMessage(Synergy.translateString("synergy-link-minecraft-already-linked").replace("%ACCOUNT%", account));
+        	            	bread.sendMessage(Synergy.translateString("synergy-link-minecraft-already-linked").replace("%ACCOUNT%", bread.getName()));
         	                return;
         	            }
         	            
         	            PrivateChannel privateChannel = user.openPrivateChannel().complete();
-        	            String message = Synergy.translateStringColorStripped("synergy-discord-confirm-link").replace("%ACCOUNT%", account);
+        	            String message = Synergy.translateStringColorStripped("synergy-discord-confirm-link").replace("%ACCOUNT%", bread.getName());
         	            
         	            MessageHistory history = privateChannel.getHistory();
         	            Message lastMessage = history.retrievePast(1).complete().size() == 0 ? null : history.retrievePast(1).complete().get(0);
-        	            
-        	            System.out.println(lastMessage.getContentRaw() + " => " + message);
         	            
         	            if (lastMessage == null || !lastMessage.getContentRaw().equals(message)) {
         	                if (privateChannel.canTalk()) {
         	                    privateChannel.sendMessage(message)
         	                            .addActionRow(
-        	                                    Button.success(user.getId() + ":confirm:" + player, Synergy.translateStringColorStripped("synergy-confirm-action")))
+        	                                    Button.success(user.getId() + ":confirm:" + uuid, Synergy.translateStringColorStripped("synergy-confirm-action")))
         	                            .queue();
-        	                    bread.sendMessage(Synergy.translateString("synergy-discord-link-check-pm", player).replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	                    bread.sendMessage(bread.translateString("synergy-discord-link-check-pm").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	                } else {
-        	                	bread.sendMessage(Synergy.translateString("synergy-discord-use-link-cmd", player).replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	                	bread.sendMessage(bread.translateString("synergy-discord-use-link-cmd").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	                }
         	            } else {
-        	            	bread.sendMessage(Synergy.translateString("synergy-discord-use-link-cmd", player).replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	            	bread.sendMessage(bread.translateString("synergy-discord-use-link-cmd").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	            }
         	            return;
         	        }

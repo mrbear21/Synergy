@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender;
 public class SynergyCommand implements CommandExecutor {
 
     public void initialize() {
-        Synergy.getSpigotInstance().getCommand("synergy").setExecutor(this);
+        Synergy.getSpigot().getCommand("synergy").setExecutor(this);
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -16,8 +16,8 @@ public class SynergyCommand implements CommandExecutor {
             case "reload":
                 if (sender.hasPermission("synergy.reload")) {
                 	Synergy.getDiscord().shutdown();
-                	Synergy.getSpigotInstance().reloadConfig();
-                    Synergy.getLocalizations().initialize();
+                	Synergy.getSpigot().reloadConfig();
+                    Synergy.getLocalesManager().initialize();
                     Synergy.getDataManager().initialize();
                     Synergy.getConfig().initialize();
                     Synergy.getDiscord().initialize();

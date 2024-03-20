@@ -2,8 +2,6 @@ package me.synergy.objects;
 
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
-
 import me.synergy.brains.Synergy;
 
 public class BreadMaker {
@@ -11,30 +9,33 @@ public class BreadMaker {
 	private UUID uuid;
 	
 	public BreadMaker(UUID uuid) {
-		this.setName(uuid);
+		this.uuid = uuid;
 	}
 
 	public String getLanguage() {
 		if (Synergy.getDataManager().getConfig().isSet("players."+getUniqueId()+".language")) {
 			return Synergy.getDataManager().getConfig().getString("players."+getUniqueId()+".language");
 		}
+		if (Synergy.isSpigot()) {
+			return Synergy.getSpigot().getPlayerLanguage(getUniqueId());
+		}
 		return Synergy.getConfig().getString("localizations.default-language", "en");
 	}
 
 	public void sendMessage(String message) {
-		Synergy.sendMessage(getUniqueId(), message);
+		Synergy.createSynergyEvent("system-chat").setUniqueId(uuid).setOption("message", translateString(message)).send();
+	}
+	
+	public String translateString(String string) {
+		return Synergy.isSpigot() ? Synergy.getLocalesManager().translateString(string, getLanguage()) : string;
 	}
 	
 	public UUID getUniqueId() {
 		return uuid;
 	}
-
-	public void setName(UUID name) {
-		this.uuid = name;
-	}
-
+	
 	public String getName() {
-		return Bukkit.getOfflinePlayer(getUniqueId()).getName();
+		return Synergy.isSpigot() ? Synergy.getSpigot().getPlayerName(getUniqueId()) : null;
 	}
 
 }

@@ -13,9 +13,9 @@ public class VaultAPI {
 
     public List<OfflinePlayer> getPlayersWithPermission(String permissionNode) {
         List<OfflinePlayer> playersWithPermission = new ArrayList<>();
-        if (Synergy.getSpigotInstance().getPermissions() != null) {
+        if (Synergy.getSpigot().getPermissions() != null) {
             for (OfflinePlayer player : Bukkit.getServer().getOfflinePlayers()) {
-                if (Synergy.getSpigotInstance().getPermissions().playerHas(null, player, permissionNode)) {
+                if (Synergy.getSpigot().getPermissions().playerHas(null, player, permissionNode)) {
                     playersWithPermission.add(player);
                 }
             }
@@ -24,7 +24,7 @@ public class VaultAPI {
     }
     
     public OfflinePlayer getPlayerWithExactPermission(String permissionNode) {
-    	Permission permission = Synergy.getSpigotInstance().getPermissions();
+    	Permission permission = Synergy.getSpigot().getPermissions();
         if (permission != null) {
             for (OfflinePlayer player : Bukkit.getServer().getOfflinePlayers()) {
                 if (permission.playerHas(null, player, permissionNode) || permission.playerHas(null, player, permissionNode + ".*")) {
@@ -34,7 +34,7 @@ public class VaultAPI {
                 }
             }
         }
-        return null; // No player found with the exact permission
+        return null;
     }
 	
 }

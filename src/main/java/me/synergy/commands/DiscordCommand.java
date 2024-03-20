@@ -20,9 +20,9 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
             return;
         }
         
-        Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigotInstance());
-        Synergy.getSpigotInstance().getCommand("discord").setExecutor(this);
-        Synergy.getSpigotInstance().getCommand("discord").setTabCompleter(this);
+        Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
+        Synergy.getSpigot().getCommand("discord").setExecutor(this);
+        Synergy.getSpigot().getCommand("discord").setTabCompleter(this);
         
 	}
 
@@ -51,7 +51,7 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
     	    		sender.sendMessage("synergy-discord-link-cmd-usage");
     	    		return true;
     	    	}
-            	Synergy.createSynergyEvent("make-discord-link").setUniqueId(player.getUniqueId()).setArgument(args[1]).send();
+            	Synergy.createSynergyEvent("make-discord-link").setUniqueId(player.getUniqueId()).setOption("tag", args[1]).send();
                 break;
             case "confirm":
             	Synergy.createSynergyEvent("confirm-discord-link").setUniqueId(player.getUniqueId()).send();

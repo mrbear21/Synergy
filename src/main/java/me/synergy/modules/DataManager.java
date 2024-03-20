@@ -2,6 +2,7 @@ package me.synergy.modules;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -22,36 +23,37 @@ public class DataManager {
 
 	public void initialize() {
 		
-		if (!new File(Synergy.getSpigotInstance().getDataFolder(), "data.yml").exists()) {
+		if (!new File(Synergy.getSpigot().getDataFolder(), "data.yml").exists()) {
 			Synergy.getLogger().info("Creating data file...");
 			try {
-				Synergy.getSpigotInstance().saveResource("data.yml", false);
+				Synergy.getSpigot().saveResource("data.yml", false);
 			} catch (Exception c) { c.printStackTrace(); }
 		}
 		
-        File dataFile = new File(Synergy.getSpigotInstance().getDataFolder(), "data.yml");
+        File dataFile = new File(Synergy.getSpigot().getDataFolder(), "data.yml");
         if (dataFile.exists()) {
             try {
-            	Synergy.getSpigotInstance().getDataFile().load(dataFile);
-            	Synergy.getSpigotInstance().getDataFile().save(dataFile);
+            	Synergy.getSpigot().getDataFile().load(dataFile);
             } catch (IOException | InvalidConfigurationException e) {
                 e.printStackTrace();
             }
         }
+        
+        saveConfig();
 	}
 	
 	public void setData(String key, String value) {
-		Synergy.getSpigotInstance().getDataFile().set(key, value);
+		Synergy.getSpigot().getDataFile().set(key, value);
 		try {
-			File dataFile = new File(Synergy.getSpigotInstance().getDataFolder(), "data.yml");
-			Synergy.getSpigotInstance().getDataFile().save(dataFile);
+			File dataFile = new File(Synergy.getSpigot().getDataFolder(), "data.yml");
+			Synergy.getSpigot().getDataFile().save(dataFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public DataManager getData(String key) {
-		return new DataManager(Synergy.getSpigotInstance().getDataFile().get(key));
+		return new DataManager(Synergy.getSpigot().getDataFile().get(key));
 	}
 	
 	public String getAsString() {
@@ -66,21 +68,30 @@ public class DataManager {
 		return data != null ? (Boolean) data : null;
 	}
 
+	public UUID getAsUUID() {
+		return data != null ? UUID.fromString(getAsString()) : null;
+	}
+	
 	public ConfigurationSection getConfigurationSection(String path) {
-		return Synergy.getSpigotInstance().getDataFile().getConfigurationSection(path);
+		return Synergy.getSpigot().getDataFile().get(path) == null ? null : Synergy.getSpigot().getDataFile().getConfigurationSection(path);
 		
 	}
 
 	public FileConfiguration getConfig() {
-		return Synergy.getSpigotInstance().getDataFile();
+		return Synergy.getSpigot().getDataFile();
 	}
 
 	public void saveConfig() {
 		try {
-			File dataFile = new File(Synergy.getSpigotInstance().getDataFolder(), "data.yml");
-			Synergy.getSpigotInstance().getDataFile().save(dataFile);
+			File dataFile = new File(Synergy.getSpigot().getDataFolder(), "data.yml");
+			Synergy.getSpigot().getDataFile().save(dataFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+
+	public boolean isSet(String path) {
+		return Synergy.getSpigot().getDataFile().get(path) != null;
+	}
+
 }

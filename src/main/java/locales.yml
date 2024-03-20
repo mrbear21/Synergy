@@ -1,6 +1,219 @@
+# ____  _  _  __ _  ____  ____   ___  _  _ 
+#/ ___)( \/ )(  ( \(  __)(  _ \ / __)( \/ )
+#\___ \ )  / /    / ) _)  )   /( (_ \ )  / 
+#(____/(__/  \_)__)(____)(__\_) \___/(__/  
+
 thanks-for-using-synergy:
     en: "Thanks for using Synergy!"
+    ru: "Благодарю за использование Synergy!"
+    lv: "Paldies, ka izmantojāt Synergy!"
     uk: "Дякую за використання Synergy!"
+    
+synergy-no-permission:
+    en: "&cYou don't have permission to use this =("
+    ru: "&cУ вас нет прав =("
+    lv: "&cJums nav atļaujas =("
+    uk: "&cУ вас немає прав =("
+    
+synergy-command-usage:
+    en: "&аСommand usage:"
+    ru: "&fИспользование команды:"
+    lv: "&fKomandu lietojums:"
+    uk: "&fВикористання команди:"
+    
+synergy-reloaded:
+    en: "&aTranslations and configuration files reloaded successfully!"
+    ru: "&aПереводы и конфигурационные файлы успешно перезагружены!"
+    lv: "&aTulkojumi un konfigurācijas faili ir veiksmīgi ielādēti!"
+    uk: "&aПереклади та конфігураційні файли успішно перезавантажено!"
+    
 have-a-nice-day:
-    en: "Have a nice day!"
-    uk: "Гарного дня!"
+    en: "&eHave a nice day!"
+    ru: "&eХорошего дня!"
+    lv: "&eJauku dienu!"
+    uk: "&eНехай щастить!"
+
+synergy-confirm-action:
+    en: "Confirm"
+    ru: "Подтвердить"
+    lv: "Apstiprināt"
+    uk: "Підтвердити"
+
+synergy-confirmation-nothing-to-confirm:
+    ru: "&cНечего подтверждать"
+    uk: "&cНемає що підтвердити"
+
+synergy-confirmation-success:
+    en: "&aSuccessfully confirmed!"
+    ru: "&aУспешно подтверждено!"
+    lv: "&aVeiksmīgi apstiprināts!"
+    uk: "&aУспішно підтверджено!"
+
+synergy-confirmation-canceled:
+    en: "&cConfirmation has been cancelled."
+    ru: "&cПодтверждение отменено."
+    lv: "&cApstiprinājums ir atcelts."
+    uk: "&cПідтвердження відмінено."
+    
+synergy-selected-language:
+    en: "&aSelected language: &e%LANGUAGE%"
+    ru: "&aВыбран язык: &e%LANGUAGE%"
+    lv: "&aIzvēlētā valoda: &e%LANGUAGE%"
+    uk: "&aВибрана мова: &e%LANGUAGE%"
+    
+synergy-player-doesnt-exist:
+    ru: "&cТакого игрока не существует!"
+    uk: "&cТакого гравця не існує!"
+
+# _  _   __  ____  __  ____  __  ____  ____ 
+#/ )( \ /  \(_  _)(  )(  __)(  )(  __)(  _ \
+#\ \/ /(  O ) )(   )(  ) _)  )(  ) _)  )   /
+# \__/  \__/ (__) (__)(__)  (__)(____)(__\_)  
+     
+synergy-voted-successfully:
+    en: "&aYour vote from %SERVICE% has been successfully counted. Thank you very much!"
+    ru: "&aВаш голос c %SERVICE% успешно засчитан. Большое спасибо!"
+    lv: "&aJūsu balsojums no %SERVICE% ir veiksmīgi ieskaitīts. Liels paldies!"
+    uk: "&aВаш голос з %SERVICE% успішно зараховано. Дякую!"
+    
+synergy-vote-for-server:
+    en: "Vote for the server on monitorings"
+    ru: "Проголосовать за сервер на мониторингах"
+    lv: "Balsojiet par serveri uz monitoringiem"
+    uk: "Проголосувати за сервер на моніторингах"
+
+synergy-vote-monitorings:
+    en: "&eEarn by voting for the server:%nl%"
+    ru: "%nl%&eЗарабатывай голосуя за сервер:%nl%"
+    lv: "&eNopelniet, balsojot par serveri:%nl%"
+    uk: "%nl%&eЗаробляй, голосуючи за сервер:%nl%"
+    
+# ____  __  ____   ___  __  ____  ____ 
+#(    \(  )/ ___) / __)/  \(  _ \(    \
+# ) D ( )( \___ \( (__(  O ))   / ) D (
+#(____/(__)(____/ \___)\__/(__\_)(____/  
+  
+synergy-discord-invite:
+    ru:
+    - "%nl%&aПрисоединяйся в наш дискорд: &b&n%INVITE%%nl%"
+    - "synergy-discord-link-cmd-usage %nl%"
+    uk:
+    - "%nl%&aПриєднуйтесь до нашого Discord: &b&n%INVITE%%nl%"
+    - "synergy-discord-link-cmd-usage %nl%"
+
+synergy-discord-link-cmd-usage:
+    ru: "&e/discord link <usertag> - присоединить ваш discord"
+    uk: "&e/discord link <usertag> - приєднати ваш discord"
+
+synergy-hightlights-comments:
+    ru: "💭️Комментарии"
+    uk: "💭️Коментарі"
+
+synergy-discord-confirm-link:
+    ru: "Пожалуйста, подтвердите привязку к вашему игровому аккаунту `%ACCOUNT%`. Игнорируйте это сообщение если это не ваш аккаунт."
+    uk: "Будь ласка, підтвердіть прив'язку до вашого ігрового акаунту `%ACCOUNT%`. Проігноруйте це повідомлення, якщо це не ваш акаунт."
+    
+synergy-discord-link-check-pm:
+    ru: "&aПроверьте Ваши личные сообщения и подтвердите привязку. %nl%%nl%<#55efc4>Или перейдите в наш дискорд: &b&n%INVITE%<#55efc4> и введите команду &b&n/link"
+    uk: "&aПеревірьте ваші персональні повідомлення та підтвердіть прив'язку. %nl%%nl%<#55efc4>Чи перейдіть в наш Discord: &b&n%INVITE%<#55efc4> і введіть команду &b&n/link"
+   
+synergy-discord-use-link-cmd:
+    ru: "&eПожалуйста, перейдите в наш дискорд: &b&n%INVITE%&e и введите команду &b&n/link"
+    uk: "&eБудь ласка, перейдіть в наш Discord: &b&n%INVITE%&e и введіть команду &b&n/link"
+
+synergy-check-vault-balance:
+    ru: "Проверить ваш баланс"
+    uk: "Перевірити ваш баланс"
+
+synergy-vault-balance-title:
+    ru: "**На вашем счету:**"
+    uk: "**На вашому рахунку:**"
+    
+synergy-vault-balance-field:
+    ru: "`%AMOUNT%` голосов"
+    uk: "`%AMOUNT%` голосів"
+    
+synergy-vault-balance-footer:
+    ru: "synergy-motd-message-2"
+    uk: "synergy-motd-message-2"
+
+synergy-you-have-to-link-account:
+    ru: "сперва линкни свой акаунт гадюка такая /link"
+    uk: "спочатку лінкни свій акаунт командою /link, розбійник."
+    
+synergy-link-discord-already-linked:
+    ru: "&eВаш аккаунт уже привязан к &b%ACCOUNT%&e! Отвяжите с помощью &b&n/discord unlink"
+    uk: "&eВаш акаунт уже прив'язаний до &b%ACCOUNT%&e! Відв'яжіть завдяки &b&n/discord unlin"
+    
+synergy-link-minecraft-already-linked:
+    ru: "&eЭтот аккаунт уже привязан к &b%ACCOUNT%&e! Если это ваш, зайдите на него и отвяжите дискорд с помощью &b&n/discord unlink"
+    uk: "&eЦей акаунт уже прив'язано до &b%ACCOUNT%&e! Якшо це ваш, зайдіть на нього і відв'яжіть діскорд командою &b&n/discord unlink"
+
+synergy-you-have-no-linked-accounts:
+    ru: "&cУ вас нет привязанных аккаунтов! Привяжите с помощью &b&n/discord link <usertag>"
+    uk: "&cУ вас немає прив'язанних акаунтів! Прив'яжіть командою &b&n/discord link <usertag>"
+
+synergy-link-minecraft-unlinked:
+    ru: "&aВы отвязали ваш аккаунт. Привяжите снова с помощью &b&n/discord link <usertag>"
+    uk: "&aВи відв'язали ваш акаунт. Прив'яжіть знову завдяки &b&n/discord link <usertag>"
+    
+synergy-link-minecraft-title:
+    en: "Link minecraft your account"
+    ru: "Привязать ваш minecraft аккаунт"
+    uk: "Прив'яжіть ваш minecraft акаунт"
+    
+synergy-link-minecraft-your-username:
+    en: "Your minecraft username"
+    ru: "Ваш ник на сервере minecraft"
+    uk: "Ваш нікнейм на сервері minecraft"
+
+synergy-link-discord-confirmation:
+    ru: "&eПожалуйста, подтвердите привязку к дискорд аккаунту: &b%ACCOUNT% &eкомандой &b&n/discord confirm"
+    uk: "&eБудь ласка, підтвердіть прив'язку до Discord акаунту: &b%ACCOUNT% &eкомандою &b&n/discord confirm"
+
+synergy-link-minecraft-confirmation:
+    en: "Please confirm your account in the game"
+    ru: "Пожалуйста, подтвердите привязку в игре с помощью `/discord confirm`"
+    uk: "Будь ласка, підтвердіть прив'язку в грі завдяки `/discord confirm`"
+
+synergy-discord-link-success:
+    ru: "&aАккаунт &b%ACCOUNT% &aуспешно привязан!"
+    uk: "&aАкаунт &b%ACCOUNT% &aуспішно прив'язано!"
+
+synergy-online-players-list:
+    uk: "Список хліборобів онлайн"
+    ru: "Список игроков онлайн"
+
+synergy-create-post:
+    uk: "Створити новий пост"
+    ru: "Создать новый пост"
+
+synergy-service-unavailable:
+    en: "I can't handle that right now. Please try again later"
+    ru: "Я не могу сейчас с этим справиться, попробуй еще раз позже"
+    uk: "Нині я не можу з цим справитись, спробуйте пізніше"
+
+synergy-discord-embed-new:
+    ru: "Создать новый пост"
+    uk: "Створити новий пост"
+    
+synergy-discord-embed-edit:
+    ru: "Редактировать существующий пост"
+    uk: "Редагувати існуючий пост"
+
+synergy-prune-messages:
+    uk: "Очистити повідомлення у цьому каналі"
+    ru: "Очистить сообщения в этом канале"
+    
+synergy-prune-messages-confirmation:
+    uk: "Це видалить %AMOUNT% повідомлень. Ви впевненні?"
+    ru: "Это удалит %AMOUNT% сообщений. Вы уверены?"
+
+# _  _  __   _  _  ____     __   _  _  __ _ 
+#( \/ )/  \ / )( \(  _ \   /  \ / )( \(  ( \
+# )  /(  O )) \/ ( )   /  (  O )\ /\ //    /
+#(__/  \__/ \____/(__\_)   \__/ (_/\_)\_)__)
+
+your-own-locales:
+    en:
+    - "Your own locales" 

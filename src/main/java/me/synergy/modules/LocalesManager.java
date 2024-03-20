@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -31,13 +32,17 @@ import me.synergy.objects.BreadMaker;
 import me.synergy.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 
-public class Localizations implements Listener {
+public class LocalesManager implements Listener {
 
-	public Localizations() {
+	private static Map<String, HashMap<String, String>> LOCALES;
+	
+	public LocalesManager() {
 	}
 
 	public void initialize() {
 		try {
+			loadLocales();
+			
 			if (!Synergy.getConfig().getBoolean("localizations.enabled")) {
 				return;
 			}
@@ -46,11 +51,10 @@ public class Localizations implements Listener {
 				return;
 			}
 			
-			Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigotInstance());
-			loadLocales();
-	
-			Synergy.getSpigotInstance().getProtocolManager().addPacketListener(
-				new PacketAdapter(Synergy.getSpigotInstance(), ListenerPriority.MONITOR, PacketType.Play.Server.SET_SLOT, PacketType.Play.Server.WINDOW_ITEMS) {
+			Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
+
+			Synergy.getSpigot().getProtocolManager().addPacketListener(
+				new PacketAdapter(Synergy.getSpigot(), ListenerPriority.MONITOR, PacketType.Play.Server.SET_SLOT, PacketType.Play.Server.WINDOW_ITEMS) {
 					@Override
 		            public void onPacketSending(PacketEvent event) {
 
@@ -107,15 +111,15 @@ public class Localizations implements Listener {
 				}
 			);
 
-			Synergy.getSpigotInstance().getProtocolManager().addPacketListener(
-				    new PacketAdapter(Synergy.getSpigotInstance(), ListenerPriority.MONITOR, PacketType.Play.Server.SYSTEM_CHAT) {
+			Synergy.getSpigot().getProtocolManager().addPacketListener(
+				    new PacketAdapter(Synergy.getSpigot(), ListenerPriority.MONITOR, PacketType.Play.Server.SYSTEM_CHAT) {
 				        @Override
 				        public void onPacketSending(PacketEvent event) {
 				            try {
 				                PacketContainer packet = event.getPacket();
 				                BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
 				                String language = bread.getLanguage();
-		                        HashMap<String, String> locales = Synergy.getSpigotInstance().getLocales().get(language);
+		                        HashMap<String, String> locales = getLocales().get(language);
 		                        if (locales != null) {
 					                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
 					                for (WrappedChatComponent component : components) {
@@ -146,7 +150,7 @@ public class Localizations implements Listener {
     
 	public String translateString(String string, String language) {
 		if (Synergy.getConfig().getBoolean("localizations.enabled")) {
-			HashMap<String, String> locales = Synergy.getSpigotInstance().getLocales().get(language);
+			HashMap<String, String> locales = getLocales().get(language);
 			locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
 	                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new ));
 			
@@ -159,39 +163,41 @@ public class Localizations implements Listener {
 	}
 	
 	public String translateStringColorStripped(String string, String defaultLanguage) {
-		return ChatColor.stripColor(translateString(string, Synergy.getDefaultLanguage()));
+		return ChatColor.stripColor(translateString(string, getDefaultLanguage()));
 	}
 	
 	public void loadLocales() {
 		
-		if (!new File(Synergy.getSpigotInstance().getDataFolder(), "locales.yml").exists()) {
+		LOCALES = new HashMap<String, HashMap<String, String>>();
+		
+		if (!new File(Synergy.getSpigot().getDataFolder(), "locales.yml").exists()) {
 			Synergy.getLogger().info("Creating locales file...");
 			try {
-				Synergy.getSpigotInstance().saveResource("locales.yml", false);
+				Synergy.getSpigot().saveResource("locales.yml", false);
 			} catch (Exception c) { c.printStackTrace(); }
 		}
 		
-        File localesFile = new File(Synergy.getSpigotInstance().getDataFolder(), "locales.yml");
+        File localesFile = new File(Synergy.getSpigot().getDataFolder(), "locales.yml");
         if (localesFile.exists()) {
             try {
-            	Synergy.getSpigotInstance().getLocalesFile().load(localesFile);
+            	Synergy.getSpigot().getLocalesFile().load(localesFile);
             } catch (IOException | InvalidConfigurationException e) {
                 e.printStackTrace();
             }
         }
 		
 	    int count = 0;
-	    for (String key : Synergy.getSpigotInstance().getLocalesFile().getKeys(false)) {
-	        ConfigurationSection subSection = Synergy.getSpigotInstance().getLocalesFile().getConfigurationSection(key);
+	    for (String key : Synergy.getSpigot().getLocalesFile().getKeys(false)) {
+	        ConfigurationSection subSection = Synergy.getSpigot().getLocalesFile().getConfigurationSection(key);
 	        if (subSection != null) {
 	            for (String language : subSection.getKeys(false)) {
 	                if (subSection.isString(language)) {
 	                    String translation = subSection.getString(language);
-	                    HashMap<String, String> translationMap = Synergy.getSpigotInstance().getLocales().getOrDefault(language, new HashMap<>());
+	                    HashMap<String, String> translationMap = getLocales().getOrDefault(language, new HashMap<>());
 	                    translation = translation.replace("%nl%", System.lineSeparator());
 	                    translationMap.put(key, Synergy.getUtils().processColors(translation));
 	                    count++;
-	                    Synergy.getSpigotInstance().getLocales().put(language, translationMap);
+	                    getLocales().put(language, translationMap);
 	                } else if (subSection.isList(language)) {
 	                    List<String> translations = subSection.getStringList(language);
 	                    StringBuilder sb = new StringBuilder();
@@ -204,10 +210,10 @@ public class Localizations implements Listener {
 	                    }
 	                    String combinedTranslations = sb.toString();
 	                    combinedTranslations = combinedTranslations.replace("%nl%", System.lineSeparator());
-	                    HashMap<String, String> translationMap = Synergy.getSpigotInstance().getLocales().getOrDefault(language, new HashMap<>());
+	                    HashMap<String, String> translationMap = getLocales().getOrDefault(language, new HashMap<>());
 	                    translationMap.put(key, combinedTranslations);
 	                    count++;
-	                    Synergy.getSpigotInstance().getLocales().put(language, translationMap);
+	                    getLocales().put(language, translationMap);
 	                } else {
 	                    // Other types
 	                }
@@ -216,6 +222,17 @@ public class Localizations implements Listener {
 	    }
 	    Synergy.getLogger().info("There were "+count+" translations initialized!");
 	}
-
-
+	
+	public Set<String> getLanguages() {
+		return getLocales().keySet();
+	}
+	
+	public Map<String, HashMap<String, String>> getLocales() {
+		return LOCALES;
+	}
+	
+    public String getDefaultLanguage() {
+        return Synergy.getConfig().getString("localizations.default-language");
+    }
+	
 }

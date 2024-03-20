@@ -21,7 +21,7 @@ public class Logger {
   
   public void info(String string, boolean broadcast) {
     if (Synergy.isSpigot()) {
-      Synergy.getSpigotInstance().getLogger().info(string);
+      Synergy.getSpigot().getLogger().info(string);
       if (broadcast) {
         opLog(string);
       }
@@ -33,7 +33,7 @@ public class Logger {
   
   public void warning(String string) {
     if (Synergy.isSpigot()) {
-      Synergy.getSpigotInstance().getLogger().warning(Synergy.translateString(string)); 
+      Synergy.getSpigot().getLogger().warning(Synergy.translateString(string)); 
     }
     if (Synergy.isRunningVelocity()) {
     	Velocity.getLogger().warn(string); 
@@ -42,7 +42,7 @@ public class Logger {
   
   public void error(String string) {
     if (Synergy.isSpigot())
-      Synergy.getSpigotInstance().getLogger().severe(Synergy.translateString(string)); 
+      Synergy.getSpigot().getLogger().severe(Synergy.translateString(string)); 
     if (Synergy.isRunningVelocity()) {
     	Velocity.getLogger().error(string); 
     }
