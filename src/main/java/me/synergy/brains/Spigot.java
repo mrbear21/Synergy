@@ -1,10 +1,7 @@
 package me.synergy.brains;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -25,13 +22,14 @@ import me.synergy.commands.SynergyCommand;
 import me.synergy.commands.VoteCommand;
 import me.synergy.events.SynergyEvent;
 import me.synergy.handlers.MOTDListener;
+import me.synergy.handlers.PlaceholdersListener;
 import me.synergy.handlers.PlayerJoinListener;
 import me.synergy.handlers.VoteListener;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
 import me.synergy.modules.Discord;
-import me.synergy.modules.Localizations;
+import me.synergy.modules.LocalesManager;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
@@ -41,7 +39,6 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
     private static Spigot INSTANCE;
     private FileConfiguration LOCALESFILE;
     private FileConfiguration DATAFILE;
-    private Map<String, HashMap<String, String>> LOCALES;
     private ProtocolManager PROTOCOLMANAGER;
     private static Economy econ;
     private static Permission perms;
@@ -58,12 +55,11 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         PROTOCOLMANAGER = ProtocolLibrary.getProtocolManager();
         DATAFILE = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "data.yml"));
         LOCALESFILE = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "locales.yml"));
-        LOCALES = new HashMap<String, HashMap<String, String>>();
 
         new Config().initialize();
         new SynergyCommand().initialize();
         new VoteCommand().initialize();
-        new Localizations().initialize();
+        new LocalesManager().initialize();
         new ChatManager().initialize();
         new Discord().initialize();
         new VoteListener().initialize();
@@ -76,6 +72,10 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         setupEconomy();
         setupPermissions();
         setupChat();
+        
+		if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
+			new PlaceholdersListener().register();
+		}
         
         getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
     }
@@ -144,18 +144,13 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
         String token = in.readUTF();
         String identifier = in.readUTF();
-        String player = in.readUTF();
+        UUID uuid = UUID.nameUUIDFromBytes(in.readUTF().getBytes());
         @SuppressWarnings("unused")
 		String waitForPlayer = in.readUTF();
-        List<String> argsList = new ArrayList<>();
-        try { while (true) {
-                argsList.add(in.readUTF());
-            }
-        } catch (Exception ignored) {}
-        String[] args = argsList.toArray(new String[0]);
+		String options = in.readUTF();
         
         if (token.equals(Synergy.getSynergyToken())) {
-        	Bukkit.getServer().getPluginManager().callEvent(new SynergyEvent(identifier, player, args));
+        	Bukkit.getServer().getPluginManager().callEvent(new SynergyEvent(identifier, uuid, options));
         }
     }
 
@@ -164,10 +159,6 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         getLogger().info("Synergy has stopped it's service!");
     }
 
-	public Map<String, HashMap<String, String>> getLocales() {
-		return LOCALES;
-	}
-	
 	public FileConfiguration getLocalesFile() {
 		return LOCALESFILE;
 	}
@@ -178,6 +169,21 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 	
 	public static Spigot getInstance() {
 		return INSTANCE;
+	}
+
+	public String getPlayerName(UUID uniqueId) {
+		return uniqueId == null ? null : Bukkit.getOfflinePlayer(uniqueId) == null ? null : Bukkit.getOfflinePlayer(uniqueId).getName();
+	}
+
+	@SuppressWarnings("deprecation")
+	public UUID getUUIDFromName(String username) {
+		return username == null ? null : Bukkit.getOfflinePlayer(username) == null ? null : Bukkit.getOfflinePlayer(username).getUniqueId();
+	}
+	
+	public String getPlayerLanguage(UUID uniqueId) {
+		Player player = Bukkit.getPlayer(uniqueId);
+		String language = player.getLocale().split("_")[0];
+		return Synergy.getLocalesManager().getLanguages().contains(language) ? language : "en";
 	}
 
 }

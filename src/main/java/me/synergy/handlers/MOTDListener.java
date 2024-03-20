@@ -9,7 +9,7 @@ import me.synergy.brains.Synergy;
 public class MOTDListener implements Listener{
 	
     public void initialize() {
-        Synergy.getSpigotInstance().getServer().getPluginManager().registerEvents(this, Synergy.getSpigotInstance());
+        Synergy.getSpigot().getServer().getPluginManager().registerEvents(this, Synergy.getSpigot());
     }
 	
 	@EventHandler

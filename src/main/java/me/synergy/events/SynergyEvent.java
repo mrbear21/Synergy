@@ -1,6 +1,12 @@
 package me.synergy.events;
 
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -9,39 +15,39 @@ import org.bukkit.plugin.Plugin;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import me.synergy.brains.Synergy;
+import me.synergy.objects.BreadMaker;
 
 public class SynergyEvent extends Event implements Listener {
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
     private String identifier;
 
-    private String[] args;
+    private Map<String, String> options = new HashMap<>();
 
-    private String player;
+    private UUID uuid;
 
     private boolean waitForPlayer = false;
-
-    public SynergyEvent(String identifier, String[] args) {
-        this.identifier = identifier;
-        this.args = args;
-    }
 
     public SynergyEvent(String identifier) {
         this.identifier = identifier;
     }
 
-    public SynergyEvent(String identifier, String player, String[] args) {
+    public SynergyEvent(String identifier, UUID uuid, String options) {
         this.identifier = identifier;
-        this.args = args;
-        this.player = player;
-    }
+        this.uuid = uuid;
+        this.options = getOptionsAsMap(options);
 
-    public SynergyEvent() {}
+	}
 
-    public void initialize() {
-        Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigotInstance());
+	public SynergyEvent() {
+	}
+
+	public void initialize() {
+        Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
     }
 
     public static HandlerList getHandlerList() {
@@ -56,36 +62,25 @@ public class SynergyEvent extends Event implements Listener {
         return this.identifier;
     }
 
-    public String[] getArgs() {
-        return (this.args.length > 0) ? this.args : new String[0];
-    }
-
-    public String getArgument() {
-        return getArgs().length > 0 ? getArgs()[0] : "N/A";
-    }
-
-    public String getPlayer() {
-        return this.player;
+    public String getOption(String option) {
+        return options.get(option);
     }
 
     public boolean getWaitForPlayerIfOffline() {
         return this.waitForPlayer;
     }
 
-    public SynergyEvent setArguments(String[] args) {
-        this.args = args;
+	public SynergyEvent setUniqueId(UUID UUID) {
+		this.uuid = UUID;
         return this;
-    }
+	}
 
-    public SynergyEvent setArgument(String args) {
-        this.args = new String[] {
-            args
-        };
-        return this;
-    }
-
-    public SynergyEvent setPlayer(String player) {
-        this.player = player;
+	public UUID getUniqueId() {
+		return uuid;
+	}
+    
+    public SynergyEvent setOption(String option, String value) {
+        this.options.put(option, value);
         return this;
     }
 
@@ -94,31 +89,50 @@ public class SynergyEvent extends Event implements Listener {
         return this;
     }
 
+    private String getOptionsAsJson() {
+        Gson gson = new Gson();
+        return gson.toJson(options);
+    }
+    
+    private Map<String, String> getOptionsAsMap(String options) {
+        Gson gson = new Gson();
+        Type type = new TypeToken<Map<String, String>>(){}.getType();
+        return gson.fromJson(options, type);
+    }
+    
     public void send() {
         if (Synergy.getConfig().getBoolean("synergy-plugin-messaging.enabled")) {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
             out.writeUTF(identifier);
-            out.writeUTF(player);
-            out.writeUTF(waitForPlayer+"");
-            for (String arg: args) {
-                out.writeUTF(arg);
-            }
-            Bukkit.getServer().sendPluginMessage(Synergy.getSpigotInstance(), "net:synergy", out.toByteArray());
-        } else if (getWaitForPlayerIfOffline() && Bukkit.getPlayer(this.player) == null) {
-            ConfigurationSection objs = Synergy.getDataManager().getConfigurationSection("synergy-event-waiting." + this.player + "." + this.identifier);
+            out.writeUTF(uuid.toString());
+            out.writeUTF(String.valueOf(waitForPlayer));
+            out.writeUTF(getOptionsAsJson());
+
+            Bukkit.getServer().sendPluginMessage(Synergy.getSpigot(), "net:synergy", out.toByteArray());
+        } else if (getWaitForPlayerIfOffline() && Bukkit.getPlayer(this.uuid) == null) {
+            ConfigurationSection objs = Synergy.getDataManager().getConfigurationSection("synergy-event-waiting." + this.uuid.toString() + "." + this.identifier);
             int obj = (objs != null) ? (objs.getKeys(false).size() + 1) : 1;
-            Synergy.getDataManager().getConfig().set("synergy-event-waiting."+this.player+"."+this.identifier+"." + obj, this.args);
+            Synergy.getDataManager().getConfig().set("synergy-event-waiting."+this.uuid.toString()+"."+this.identifier+"." + obj, getOptionsAsJson());
             Synergy.getDataManager().saveConfig();
         } else {
-            triggerEvent(this.identifier, this.player, this.args);
+            triggerEvent();
         }
     }
     
-    public void triggerEvent(final String identifier, final String player, final String[] args) {
-        Bukkit.getScheduler().runTask((Plugin) Synergy.getSpigotInstance(), new Runnable() {
+    public void triggerEvent() {
+        Bukkit.getScheduler().runTask((Plugin) Synergy.getSpigot(), new Runnable() {
             public void run() {
-                Bukkit.getServer().getPluginManager().callEvent(new SynergyEvent(identifier, player, args));
+                Bukkit.getServer().getPluginManager().callEvent(new SynergyEvent(identifier, uuid, getOptionsAsJson()));
             }
         });
     }
+
+	public BreadMaker getBread() {
+		return new BreadMaker(getUniqueId());
+	}
+
+	public OfflinePlayer getOfflinePlayer() {
+		return getUniqueId() == null ? null : Bukkit.getOfflinePlayer(getUniqueId());
+	}
+
 }

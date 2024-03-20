@@ -19,7 +19,7 @@ public class VoteCommand implements CommandExecutor {
         if (!Synergy.getConfig().getBoolean("votifier.enabled")) {
         	return;
         }
-        Synergy.getSpigotInstance().getCommand("vote").setExecutor(this);
+        Synergy.getSpigot().getCommand("vote").setExecutor(this);
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

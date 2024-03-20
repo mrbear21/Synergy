@@ -67,7 +67,19 @@ public class Config {
             addDefault("discord.hightlights.comments", false);
             addDefault("discord.hightlights.channels", new String[] {"00000000000000000"});
             addDefault("discord.hightlights.reaction-emoji", "♥");
-            
+
+            addDefault("chat-manager.custom-emojis.<3", "❤");
+            addDefault("chat-manager.custom-emojis.:flip:", "(╯°益°）╯︵ ┻━┻");
+            addDefault("chat-manager.custom-emojis.:v:", "✔");
+            addDefault("chat-manager.custom-emojis.:x:", "✘");
+            addDefault("chat-manager.custom-emojis.(c)", "©");
+            addDefault("chat-manager.custom-emojis.:hi:", "(´• ω •`)ﾉ");
+            addDefault("chat-manager.custom-emojis.:love:", "╰(❤ω❤)╯");
+            addDefault("chat-manager.custom-emojis.:cry:", "o(╥﹏╥)o");
+            addDefault("chat-manager.custom-emojis.(r)", "®");
+            addDefault("chat-manager.custom-emojis.:hugs:", "⊂(￣▽￣)⊃");
+            addDefault("chat-manager.custom-emojis.:hid:", "┬┴┤･ω･)ﾉ");
+
             addDefault("web-server.enabled", false);
             addDefault("web-server.port", 8192);
             
@@ -96,7 +108,7 @@ public class Config {
                 addDefault("chat-manager.colors.discord_admin-chat", "&c");
                 addDefault("chat-manager.format", "%COLOR%[%CHAT%] %DISPLAYNAME%%COLOR%: %MESSAGE%");
                 
-                Synergy.getSpigotInstance().getConfig().options().copyDefaults(true);
+                Synergy.getSpigot().getConfig().options().copyDefaults(true);
                 Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " file has been initialized!");
                 
             }
@@ -121,10 +133,10 @@ public class Config {
     private void loadConfig() {
         try {
             if (Synergy.isSpigot()) {
-                if (!(new File(Synergy.getSpigotInstance().getDataFolder(), "config.yml")).exists()) {
+                if (!(new File(Synergy.getSpigot().getDataFolder(), "config.yml")).exists()) {
                     Synergy.getLogger().info("Creating config file...");
                     try {
-                        Synergy.getSpigotInstance().saveResource("config.yml", false);
+                        Synergy.getSpigot().saveResource("config.yml", false);
                     } catch (Exception c) {
                         c.printStackTrace();
                     }
@@ -159,7 +171,7 @@ public class Config {
     private void saveConfig() {
         try {
             if (Synergy.isSpigot()) {
-                Synergy.getSpigotInstance().saveConfig();
+                Synergy.getSpigot().saveConfig();
             } else {
                 OutputStream output = new FileOutputStream(this.configFile);
                 DumperOptions options = new DumperOptions();
@@ -175,7 +187,7 @@ public class Config {
     @SuppressWarnings("unchecked")
     public Object get(String key) {
         if (Synergy.isSpigot()) {
-            return Synergy.getSpigotInstance().getConfig().get(key);
+            return Synergy.getSpigot().getConfig().get(key);
         } else {
             String[] keys = key.split("\\.");
             Map<String, Object> currentMap = configValues;
@@ -194,7 +206,7 @@ public class Config {
     @SuppressWarnings("unchecked")
     public void set(String key, Object value) {
         if (Synergy.isSpigot()) {
-            Synergy.getSpigotInstance().getConfig().set(key, value);
+            Synergy.getSpigot().getConfig().set(key, value);
         } else {
             String[] keys = key.split("\\.");
             Map<String, Object> currentMap = configValues;
@@ -213,7 +225,7 @@ public class Config {
 
     private void addDefault(String key, String[] value) {
         if (Synergy.isSpigot()) {
-            Synergy.getSpigotInstance().getConfig().addDefault(key, value);
+            Synergy.getSpigot().getConfig().addDefault(key, value);
         } else if (get(key) == null) {
             set(key, value);
         }
@@ -221,7 +233,7 @@ public class Config {
 
     private void addDefault(String key, String value) {
         if (Synergy.isSpigot()) {
-            Synergy.getSpigotInstance().getConfig().addDefault(key, value);
+            Synergy.getSpigot().getConfig().addDefault(key, value);
         } else if (get(key) == null) {
             set(key, value);
         }
@@ -229,7 +241,7 @@ public class Config {
 
     private void addDefault(String key, double value) {
         if (Synergy.isSpigot()) {
-            Synergy.getSpigotInstance().getConfig().addDefault(key, Double.valueOf(value));
+            Synergy.getSpigot().getConfig().addDefault(key, Double.valueOf(value));
         } else if (get(key) == null) {
             set(key, Double.valueOf(value));
         }
@@ -237,7 +249,7 @@ public class Config {
 
     private void addDefault(String key, boolean value) {
         if (Synergy.isSpigot()) {
-            Synergy.getSpigotInstance().getConfig().addDefault(key, Boolean.valueOf(value));
+            Synergy.getSpigot().getConfig().addDefault(key, Boolean.valueOf(value));
         } else if (get(key) == null) {
             set(key, Boolean.valueOf(value));
         }
@@ -245,7 +257,7 @@ public class Config {
 
     private void addDefault(String key, int value) {
         if (Synergy.isSpigot()) {
-            Synergy.getSpigotInstance().getConfig().addDefault(key, Integer.valueOf(value));
+            Synergy.getSpigot().getConfig().addDefault(key, Integer.valueOf(value));
         } else if (get(key) == null) {
             set(key, Integer.valueOf(value));
         }
@@ -253,21 +265,21 @@ public class Config {
 
     public boolean getBoolean(String key) {
         if (Synergy.isSpigot())
-            return Synergy.getSpigotInstance().getConfig().getBoolean(key);
+            return Synergy.getSpigot().getConfig().getBoolean(key);
         Object value = get(key);
         return value != null ? (Boolean) value : null;
     }
 
     public Integer getInt(String key) {
         if (Synergy.isSpigot())
-            return Integer.valueOf(Synergy.getSpigotInstance().getConfig().getInt(key));
+            return Integer.valueOf(Synergy.getSpigot().getConfig().getInt(key));
         Object value = get(key);
         return value != null ? (int) value : null;
     }
 
     public String getString(String key) {
         if (Synergy.isSpigot())
-            return Synergy.getSpigotInstance().getConfig().getString(key);
+            return Synergy.getSpigot().getConfig().getString(key);
         Object value = get(key);
         return value != null ? (String) value : null;
     }
@@ -278,7 +290,7 @@ public class Config {
 
     public double getDouble(String key) {
         if (Synergy.isSpigot())
-            return Synergy.getSpigotInstance().getConfig().getDouble(key);
+            return Synergy.getSpigot().getConfig().getDouble(key);
         Object value = get(key);
         return value != null ? (double) value : null;
     }
@@ -286,7 +298,7 @@ public class Config {
     @SuppressWarnings("unchecked")
     public List <String> getStringList(String key) {
         if (Synergy.isSpigot())
-            return Synergy.getSpigotInstance().getConfig().getStringList(key);
+            return Synergy.getSpigot().getConfig().getStringList(key);
         Object value = get(key);
         return (value != null) ? (List <String>) value : null;
     }
@@ -297,7 +309,7 @@ public class Config {
 
 	public ConfigurationSection getConfigurationSection(String path) {
         if (Synergy.isSpigot())
-            return Synergy.getSpigotInstance().getConfig().getConfigurationSection(path);
+            return Synergy.getSpigot().getConfig().getConfigurationSection(path);
 		return null;
 	}
 }

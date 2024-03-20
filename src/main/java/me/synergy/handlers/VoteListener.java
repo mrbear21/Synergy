@@ -1,5 +1,7 @@
 package me.synergy.handlers;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
@@ -11,6 +13,7 @@ import com.vexsoftware.votifier.model.VotifierEvent;
 
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
+import me.synergy.objects.BreadMaker;
 
 public class VoteListener implements Listener {
 
@@ -26,7 +29,7 @@ public class VoteListener implements Listener {
             Synergy.getLogger().warning("NuVotifier is required to initialize " + getClass().getSimpleName() + " module!");
             return;
         }
-        Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigotInstance());
+        Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
         Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
     }
 
@@ -36,21 +39,23 @@ public class VoteListener implements Listener {
             return;
         }
         
-        String player = event.getPlayer();
-        String service = event.getArgument();
+        UUID uuid = event.getUniqueId();
+        String service = event.getOption("service");
+        BreadMaker bread = event.getBread();
         
-        if (Bukkit.getPlayer(player) != null) {
-            Bukkit.getPlayer(player).sendMessage(Synergy.translateString(Synergy.getConfig().getString("votifier.message")).replace("%SERVICE%", service));
+        if (Bukkit.getPlayer(uuid) != null) {
+            Bukkit.getPlayer(uuid).sendMessage(Synergy.translateString(Synergy.getConfig().getString("votifier.message")).replace("%SERVICE%", service));
         }
         
         for (String command: Synergy.getConfig().getStringList("votifier.rewards")) {
-            Bukkit.dispatchCommand((CommandSender) Bukkit.getServer().getConsoleSender(), command.replace("%PLAYER%", player));
+            Bukkit.dispatchCommand((CommandSender) Bukkit.getServer().getConsoleSender(), command.replace("%PLAYER%", bread.getName()));
         }
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onVotifierEvent(VotifierEvent event) {
         Vote vote = event.getVote();
-        Synergy.createSynergyEvent("votifier").setPlayer(vote.getUsername()).setWaitForPlayerIfOffline(true).setArgument(vote.getServiceName()).send();
+        UUID uuid = UUID.nameUUIDFromBytes(vote.getUsername().getBytes());
+        Synergy.createSynergyEvent("votifier").setUniqueId(uuid).setWaitForPlayerIfOffline(true).setOption("service", vote.getServiceName()).send();
     }
 }

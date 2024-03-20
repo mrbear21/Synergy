@@ -3,8 +3,10 @@ package me.synergy.modules;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -21,15 +23,16 @@ import com.theokanning.openai.completion.CompletionChoice;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
+import me.synergy.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 
 public class ChatManager implements Listener, CommandExecutor {
 
     public void initialize() {
         if (Synergy.getConfig().getBoolean("chat-manager.enabled")) {
-            Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigotInstance());
-            Synergy.getSpigotInstance().getCommand("chat").setExecutor(this);
-            Synergy.getSpigotInstance().getCommand("colors").setExecutor(this);
+            Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
+            Synergy.getSpigot().getCommand("chat").setExecutor(this);
+            Synergy.getSpigot().getCommand("colors").setExecutor(this);
             Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
         }
     }
@@ -38,7 +41,7 @@ public class ChatManager implements Listener, CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		
 		if (label.equalsIgnoreCase("colors")) {
-			ConfigurationSection tags = Synergy.getSpigotInstance().getConfig().getConfigurationSection("chat-manager.custom-color-tags");
+			ConfigurationSection tags = Synergy.getSpigot().getConfig().getConfigurationSection("chat-manager.custom-color-tags");
 			for (String t : tags.getKeys(false)) {
 				sender.sendMessage(Synergy.getUtils().processColors(t)+t);
 			}
@@ -51,20 +54,23 @@ public class ChatManager implements Listener, CommandExecutor {
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
 
-        if (event.isCancelled()) {
-            Synergy.getLogger().info("Chat event cancelled by another plugin");
-        } else {
-            Synergy.createSynergyEvent("chat").setPlayer(event.getPlayer().getName()).setArguments(new String[] {event.getMessage()}).send();
-            Synergy.createSynergyEvent("discord").setPlayer(event.getPlayer().getName()).setArguments(new String[] {event.getMessage()}).send();
+        if (!event.isCancelled()) {
+            event.setCancelled(true);
+
+            Synergy.createSynergyEvent("chat").setUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer()
+            		.getName()).setOption("message", event.getMessage()).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
+            
+            Synergy.createSynergyEvent("discord").setUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer().getName())
+	            .setOption("message", event.getMessage()).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
             
             String botName = Synergy.getDiscord().getBotName();
             if (removeChatTypeSymbol(event.getMessage()).toLowerCase().startsWith(botName.toLowerCase()) && getChatTypeFromMessage(event.getMessage()).equals("global")) {
                 String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
                 String answer = ((CompletionChoice)(new OpenAi()).newPrompt(question).get(0)).getText().replace("\"", "").trim();
-                Synergy.createSynergyEvent("chat").setPlayer(botName.replace(" ", "_")).setArguments(new String[] {"@" + answer}).send();
-                Synergy.createSynergyEvent("discord").setPlayer(botName.replace(" ", "_")).setArguments(new String[] {"!" + answer}).send();
+                answer = answer.isEmpty() ? Synergy.translateString("synergy-service-unavailable") : answer;
+                Synergy.createSynergyEvent("chat").setOption("player", botName).setOption("message", answer).setOption("chat", "discord").send();
+                Synergy.createSynergyEvent("discord").setOption("player", botName).setOption("message", answer).setOption("chat", "global").send();
             }
-            event.setCancelled(true);
         }
 	
     }
@@ -73,15 +79,16 @@ public class ChatManager implements Listener, CommandExecutor {
     public void onSynergyPluginMessage(SynergyEvent event) {
 
         if (event.getIdentifier().equals("system-chat")) {
-        	Bukkit.getPlayer(event.getPlayer()).sendMessage(event.getArgument());
+        	if (Bukkit.getPlayer(event.getUniqueId()) != null) {
+        		Bukkit.getPlayer(event.getUniqueId()).sendMessage(event.getOption("message"));
+        	}
         }
         
         if (event.getIdentifier().equals("chat")) {
         	
-	        String player = event.getPlayer();
-	        String message = removeSynergyTranslationKeys(event.getArgs()[0]);
-	        String chatType = getChatTypeFromMessage(message);
-	        String format = getFormattedChatMessage(player, message);
+        	UUID uuid = event.getUniqueId();
+	        String chatType = event.getOption("chat");
+	        String format = getFormattedChatMessage(event);
 	
 	        for (Player recipient: Bukkit.getOnlinePlayers()) {
 	            switch (chatType) {
@@ -91,7 +98,7 @@ public class ChatManager implements Listener, CommandExecutor {
 	                    playMsgSound(recipient);
 	                    break;
 	                case "local":
-	                    Player sender = Bukkit.getPlayer(player);
+	                    Player sender = Bukkit.getPlayer(uuid);
 	                    if (sender != null && sender.getLocation().distance(recipient.getLocation()) <= getLocalChatRadius()) {
 	                        recipient.sendMessage(format);
 	                        playMsgSound(recipient);
@@ -112,28 +119,32 @@ public class ChatManager implements Listener, CommandExecutor {
     }
 
     public String removeSynergyTranslationKeys(String string) {
-    	for (Entry<String, String> k : Synergy.getSpigotInstance().getLocales().get(Synergy.getDefaultLanguage()).entrySet()) {
+    	for (Entry<String, String> k : Synergy.getLocalesManager().getLocales().get(Synergy.getLocalesManager().getDefaultLanguage()).entrySet()) {
     		string = string.replace(k.getKey(), k.getKey().replace("-", "–"));
     	}
 		return string;
 	}
 
-	private String getFormattedChatMessage(String sender, String message) {
+	private String getFormattedChatMessage(SynergyEvent event) {
         String format = getFormat();
-        String chatType = getChatTypeFromMessage(message);
-        
+        String chatType = event.getOption("chat");
+        String message = removeSynergyTranslationKeys(event.getOption("message"));
+        OfflinePlayer sender = event.getOfflinePlayer();
+        String displayname = sender != null ? sender.getName() : event.getOption("player");
+
         if (chatType.contains("discord")) {
-        	format = format.replace(detectPlayernamePlaceholder(format, "%DISPLAYNAME%"), sender);
+        	format = format.replace(detectPlayernamePlaceholder(format, "%DISPLAYNAME%"), displayname);
         }
         
         if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
-            format = PlaceholderAPI.setPlaceholders(Bukkit.getPlayer(sender), format);
+            format = PlaceholderAPI.setPlaceholders(sender, format);
         }
 
         message = removeChatTypeSymbol(message);
         message = censorBlockedWords(message, getBlockedWorlds());
-
-        format = format.replace("%DISPLAYNAME%", sender);
+        message = new Utils().translateSmiles(message);
+        
+        format = format.replace("%DISPLAYNAME%", displayname);
         format = format.replace("%MESSAGE%", message);
         format = format.replace("%CHAT%", String.valueOf(chatType.charAt(0)).toUpperCase());
         format = format.replace("%COLOR%", getChatColor(chatType));
@@ -209,7 +220,7 @@ public class ChatManager implements Listener, CommandExecutor {
     }
 
 	private List<String> getBlockedWorlds() {
-		return Synergy.getSpigotInstance().getConfig().getStringList("chat-manager.blocked-words");
+		return Synergy.getSpigot().getConfig().getStringList("chat-manager.blocked-words");
 	}
 
 	public String detectPlayernamePlaceholder(String text, String defaultIfNull) {
@@ -251,16 +262,12 @@ public class ChatManager implements Listener, CommandExecutor {
                 return "global";
             case "\\":
                 return "admin";
-            case "$":
-                return "discord_admin";
-            case "@":
-                return "discord";
         }
         return Synergy.getConfig().getBoolean("chat-manager.local-chat") ? "local" : "global";
     }
 
     public String removeChatTypeSymbol(String message) {
-        if (Arrays.asList(new String[] {"!", "\\", "$", "@"}).contains(String.valueOf(message.charAt(0)))) {
+        if (message.length() > 0 && Arrays.asList(new String[] {"!", "\\"}).contains(String.valueOf(message.charAt(0)))) {
         	return message.substring(1);
         }
         return message;

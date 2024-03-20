@@ -38,9 +38,9 @@ public class Utils {
 
 
     public String customColorCodes(String sentence) {
-        Set < String > codes = Synergy.getSpigotInstance().getConfig().getConfigurationSection("chat-manager.custom-color-tags").getKeys(false);
+        Set < String > codes = Synergy.getSpigot().getConfig().getConfigurationSection("chat-manager.custom-color-tags").getKeys(false);
         for (String c: codes) {
-            sentence = sentence.replace(c, Synergy.getSpigotInstance().getConfig().getString("chat-manager.custom-color-tags." + c));
+            sentence = sentence.replace(c, Synergy.getSpigot().getConfig().getString("chat-manager.custom-color-tags." + c));
         }
         return sentence;
     }
@@ -71,4 +71,11 @@ public class Utils {
         parts.add(currentPart.toString());
         return parts.toArray(new String[0]);
     }
+    
+	public String translateSmiles(String string) {
+		for (String e : Synergy.getConfig().getConfigurationSection("chat-manager.custom-emojis").getKeys(false)) {
+			string = string.replace(e, Synergy.getConfig().getString("chat-manager.custom-emojis."+e));
+		}
+		return string;
+	}
 }

@@ -1,15 +1,13 @@
 package me.synergy.brains;
 
-import java.util.Set;
+import java.util.UUID;
 
 import me.synergy.events.SynergyEvent;
-//import me.synergy.events.SynergyVelocityEvent;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
 import me.synergy.modules.Discord;
-import me.synergy.modules.Localizations;
-import me.synergy.modules.VaultAPI;
+import me.synergy.modules.LocalesManager;
 import me.synergy.objects.BreadMaker;
 import me.synergy.utils.Logger;
 import me.synergy.utils.Utils;
@@ -21,13 +19,13 @@ public class Synergy {
         return getConfig().getString("synergy-plugin-messaging.token");
     }
 
-    public static Spigot getSpigotInstance() {
+    public static Spigot getSpigot() {
         return Spigot.getInstance();
     }
 
-    //public static Velocity getVelocityInstance() {
-    //    return Velocity.getInstance();
-    //}
+    public static Velocity getVelocity() {
+        return Velocity.getInstance();
+    }
 
     public static boolean isSpigot() {
         try {
@@ -43,19 +41,11 @@ public class Synergy {
     }
 
     public static String translateString(String string) {
-        return isSpigot() ? getLocalizations().translateString(string, getDefaultLanguage()) : string;
+        return isSpigot() ? getLocalesManager().translateString(string, getLocalesManager().getDefaultLanguage()) : string;
     }
     
     public static String translateStringColorStripped(String string) {
-    	return isSpigot() ? getLocalizations().translateStringColorStripped(string, getDefaultLanguage()) : string;
-    }
-
-	public static String translateString(String string, String name) {
-		return isSpigot() ? getLocalizations().translateString(string, new BreadMaker(name).getLanguage()) : string;
-	}
-    
-    public static String getDefaultLanguage() {
-        return getConfig().getString("localizations.default-language");
+    	return isSpigot() ? getLocalesManager().translateStringColorStripped(string, getLocalesManager().getDefaultLanguage()) : string;
     }
 
     public static String getServerName() {
@@ -64,10 +54,6 @@ public class Synergy {
 
     public static SynergyEvent createSynergyEvent(String identifier) {
         return new SynergyEvent(identifier);
-    }
-
-    public static void sendMessage(String player, String message) {
-        createSynergyEvent("system-chat").setPlayer(player).setArgument(message).send();
     }
     
     //public static SynergyVelocityEvent createSynergyVelocityEvent(String identifier) {
@@ -82,14 +68,9 @@ public class Synergy {
         return new ChatManager();
     }
 
-    public static Localizations getLocalizations() {
-        return new Localizations();
+    public static LocalesManager getLocalesManager() {
+        return new LocalesManager();
     }
-
-    public static SynergyEvent buildSynergyMessage(String identifier) {
-        return new SynergyEvent(identifier);
-    }
-
     public static Config getConfig() {
         return new Config();
     }
@@ -102,29 +83,24 @@ public class Synergy {
         return new Logger();
     }
 
-    public static BreadMaker getBread(String player) {
-        return new BreadMaker(player);
+    public static BreadMaker getBread(UUID uuid) {
+        return new BreadMaker(uuid);
     }
 
     public static boolean isDependencyAvailable(String plugin) {
-        return isSpigot() ? getSpigotInstance().getServer().getPluginManager().isPluginEnabled(plugin) : false;
-    }
-
-    public static void debug(String string) {
-        getLogger().info(string, true);
-    }
-
-    public static VaultAPI getVault() {
-        return new VaultAPI();
+        return isSpigot() ? getSpigot().getServer().getPluginManager().isPluginEnabled(plugin) : false;
     }
 
 	public static DataManager getDataManager() {
 		return new DataManager();
 	}
 
-	public static Set<String> getLanguages() {
-		return getSpigotInstance().getLocales().keySet();
+	public static UUID getUUIDFromName(String username) {
+		return isSpigot() ? getSpigot().getUUIDFromName(username) : null;
 	}
 
+    public static void debug(String string) {
+        getLogger().info(string, true);
+    }
 	
 }
