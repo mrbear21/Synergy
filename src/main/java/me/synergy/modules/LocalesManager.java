@@ -8,6 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -124,6 +126,9 @@ public class LocalesManager implements Listener {
 					                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
 					                for (WrappedChatComponent component : components) {
 					                    if (component != null) {
+					                    	
+					                    	component.setJson(processLangTags(component.getJson(), language));
+					                    	
 					                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
 					                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 					                        locales.entrySet().forEach(l ->
@@ -138,8 +143,6 @@ public class LocalesManager implements Listener {
 				        }
 				    }
 				);
-
-
 
 			Synergy.getLogger().info(this.getClass().getSimpleName()+" module has been initialized!");
 		} catch (Exception c) {
@@ -165,6 +168,34 @@ public class LocalesManager implements Listener {
 	public String translateStringColorStripped(String string, String defaultLanguage) {
 		return ChatColor.stripColor(translateString(string, getDefaultLanguage()));
 	}
+	
+    public static String processLangTags(String input, String language) {
+
+        String keyPattern = "<lang>(.*?)</lang>";
+        Pattern pattern = Pattern.compile(keyPattern);
+        Matcher matcher = pattern.matcher(input);
+
+        StringBuffer outputBuffer = new StringBuffer();
+        while (matcher.find()) {
+            String translationKeyWithArgs = matcher.group(1);
+            String translationKey = translationKeyWithArgs.replaceAll("<arg>(.*?)</arg>", "");
+            LocalesManager localesManager = Synergy.getLocalesManager();
+            HashMap<String, String> locales = localesManager.getLocales().getOrDefault(language, new HashMap<String, String>());
+            String translatedText = locales.getOrDefault(translationKey, localesManager.getLocales().get(localesManager.getDefaultLanguage()).getOrDefault(translationKey, "Translation not found for key: " + translationKey));
+            if (translatedText != null) {
+                String argsPattern = "<arg>(.*?)</arg>";
+                Pattern argsPatternPattern = Pattern.compile(argsPattern);
+                Matcher argsMatcher = argsPatternPattern.matcher(translationKeyWithArgs);
+                while (argsMatcher.find()) {
+                    String arg = argsMatcher.group(1);
+                    translatedText = translatedText.replaceFirst("%ARGUMENT%", arg);
+                }
+                matcher.appendReplacement(outputBuffer, translatedText);
+            }
+        }
+        matcher.appendTail(outputBuffer);
+        return outputBuffer.toString();
+    }
 	
 	public void loadLocales() {
 		

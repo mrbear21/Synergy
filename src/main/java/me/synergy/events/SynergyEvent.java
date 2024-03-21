@@ -70,12 +70,12 @@ public class SynergyEvent extends Event implements Listener {
         return this.waitForPlayer;
     }
 
-	public SynergyEvent setUniqueId(UUID UUID) {
+	public SynergyEvent setPlayerUniqueId(UUID UUID) {
 		this.uuid = UUID;
         return this;
 	}
 
-	public UUID getUniqueId() {
+	public UUID getPlayerUniqueId() {
 		return uuid;
 	}
     
@@ -128,11 +128,11 @@ public class SynergyEvent extends Event implements Listener {
     }
 
 	public BreadMaker getBread() {
-		return new BreadMaker(getUniqueId());
+		return new BreadMaker(getPlayerUniqueId());
 	}
 
 	public OfflinePlayer getOfflinePlayer() {
-		return getUniqueId() == null ? null : Bukkit.getOfflinePlayer(getUniqueId());
+		return getPlayerUniqueId() == null ? null : Bukkit.getOfflinePlayer(getPlayerUniqueId());
 	}
 
 }

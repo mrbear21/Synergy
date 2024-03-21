@@ -57,10 +57,10 @@ public class ChatManager implements Listener, CommandExecutor {
         if (!event.isCancelled()) {
             event.setCancelled(true);
 
-            Synergy.createSynergyEvent("chat").setUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer()
+            Synergy.createSynergyEvent("chat").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer()
             		.getName()).setOption("message", event.getMessage()).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
             
-            Synergy.createSynergyEvent("discord").setUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer().getName())
+            Synergy.createSynergyEvent("discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer().getName())
 	            .setOption("message", event.getMessage()).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
             
             String botName = Synergy.getDiscord().getBotName();
@@ -79,14 +79,14 @@ public class ChatManager implements Listener, CommandExecutor {
     public void onSynergyPluginMessage(SynergyEvent event) {
 
         if (event.getIdentifier().equals("system-chat")) {
-        	if (Bukkit.getPlayer(event.getUniqueId()) != null) {
-        		Bukkit.getPlayer(event.getUniqueId()).sendMessage(event.getOption("message"));
+        	if (Bukkit.getPlayer(event.getPlayerUniqueId()) != null) {
+        		Bukkit.getPlayer(event.getPlayerUniqueId()).sendMessage(event.getOption("message"));
         	}
         }
         
         if (event.getIdentifier().equals("chat")) {
         	
-        	UUID uuid = event.getUniqueId();
+        	UUID uuid = event.getPlayerUniqueId();
 	        String chatType = event.getOption("chat");
 	        String format = getFormattedChatMessage(event);
 	
@@ -143,6 +143,7 @@ public class ChatManager implements Listener, CommandExecutor {
         message = removeChatTypeSymbol(message);
         message = censorBlockedWords(message, getBlockedWorlds());
         message = new Utils().translateSmiles(message);
+        message = message.replace("</lang>", "<lang>");
         
         format = format.replace("%DISPLAYNAME%", displayname);
         format = format.replace("%MESSAGE%", message);

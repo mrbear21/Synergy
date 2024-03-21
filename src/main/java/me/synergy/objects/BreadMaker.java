@@ -23,7 +23,7 @@ public class BreadMaker {
 	}
 
 	public void sendMessage(String message) {
-		Synergy.createSynergyEvent("system-chat").setUniqueId(uuid).setOption("message", translateString(message)).send();
+		Synergy.createSynergyEvent("system-chat").setPlayerUniqueId(uuid).setOption("message", message).send();
 	}
 	
 	public String translateString(String string) {
@@ -37,5 +37,12 @@ public class BreadMaker {
 	public String getName() {
 		return Synergy.isSpigot() ? Synergy.getSpigot().getPlayerName(getUniqueId()) : null;
 	}
+	
+	public DataObject getData(String option) {
+		return Synergy.getDataManager().getData("players."+"."+getUniqueId()+"."+option);
+	}
 
+	public void setData(String option, String value) {
+		 Synergy.getDataManager().setData("players."+"."+getUniqueId()+"."+option, value);
+	}
 }

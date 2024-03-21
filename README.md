@@ -20,7 +20,7 @@ Basic tools and server messaging plugin for minecraft servers. The plugin can be
 <dependency>
   <groupId>archi.quest</groupId>
   <artifactId>synergy</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.2-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -32,7 +32,7 @@ https://github.com/mrbear21/Synergy/wiki/Permissions
 //The event will be sent to the proxy server
 @Override
 public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-	Synergy.createSynergyEvent("broadcast-message").setArguments(args).send();      
+	Synergy.createSynergyEvent("broadcast-message").setOption("message", String.join(" ", args)).send();      
 	return true;
 }
 
@@ -43,7 +43,7 @@ public void onSynergyEvent(SynergyEvent e) {
 	if (!e.getIdentifier().equals("broadcast-message")) {
 		return;
 	}
-	Bukkit.broadcastMessage(String.join(" ", e.getArgs()));
+	Bukkit.broadcastMessage(e.getOption("message")));
 }
 ```
 
@@ -60,27 +60,31 @@ login-wrong-password:
 localized-unknown-command-message:
     en: "Unknown command. Type '/help' for help."
     uk: "Невідома команда. Введіть '/help' для допомоги"
-
+	
 ```
 ## And replace texts in third-party plugins' messages files with Synergy translation keys
 Authme's messages_en.yml
 ```
 login:
-  command_usage: 'login-command-usage'
-  wrong_password: 'login-wrong-password'
+  command_usage: '<lang>login-command-usage</lang>'
+  wrong_password: '<lang>login-wrong-password</lang>'
 ...
 ```
 Spigot.yml
 ```
 messages:
-  unknown-command: 'localized-unknown-command-message'
-...
+  unknown-command: '<lang>localized-unknown-command-message</lang>'
+```
+
+## Placeholders
+```
+%synergy_<translation_key>%
 ```
 
 # Convenient storage of player data
 
 ```
-BreadMaker bread = Synergy.getBread("player");
+BreadMaker bread = Synergy.getBread(uuid);
 //Get player data
 bread.getData("level").getAsInt()
 bread.getData("language").getAsString()

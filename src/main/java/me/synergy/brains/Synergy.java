@@ -95,8 +95,8 @@ public class Synergy {
 		return new DataManager();
 	}
 
-	public static UUID getUUIDFromName(String username) {
-		return isSpigot() ? getSpigot().getUUIDFromName(username) : null;
+	public static UUID getUniqueIdFromName(String username) {
+		return isSpigot() ? getSpigot().getUniqueIdFromName(username) : null;
 	}
 
     public static void debug(String string) {

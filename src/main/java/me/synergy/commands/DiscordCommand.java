@@ -41,6 +41,10 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     	Player player = (Player) sender;
+    	if (!player.hasPermission("synergy.discord")) {
+    		sender.sendMessage("synergy-no-permission");
+    		return true;
+    	}
         if (args.length == 0) {
             sender.sendMessage(Synergy.translateStringColorStripped("synergy-discord-invite").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
             return true;
@@ -51,13 +55,13 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
     	    		sender.sendMessage("synergy-discord-link-cmd-usage");
     	    		return true;
     	    	}
-            	Synergy.createSynergyEvent("make-discord-link").setUniqueId(player.getUniqueId()).setOption("tag", args[1]).send();
+            	Synergy.createSynergyEvent("make-discord-link").setPlayerUniqueId(player.getUniqueId()).setOption("tag", args[1]).send();
                 break;
             case "confirm":
-            	Synergy.createSynergyEvent("confirm-discord-link").setUniqueId(player.getUniqueId()).send();
+            	Synergy.createSynergyEvent("confirm-discord-link").setPlayerUniqueId(player.getUniqueId()).send();
                 break;
             case "unlink":
-            	Synergy.createSynergyEvent("remove-discord-link").setUniqueId(player.getUniqueId()).send();
+            	Synergy.createSynergyEvent("remove-discord-link").setPlayerUniqueId(player.getUniqueId()).send();
                 break;
         }
         return true;

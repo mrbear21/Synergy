@@ -3,9 +3,10 @@ package me.synergy.commands;
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -26,17 +27,23 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-    	return Synergy.getLocalesManager().getLanguages().stream().collect(Collectors.toList());
+        Set<String> languages = new HashSet<>(Synergy.getLocalesManager().getLanguages());
+        languages.add("auto");
+        return new ArrayList<>(languages);
     }
     
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     	Player player = (Player) sender;
     	BreadMaker bread = new BreadMaker(player.getUniqueId());
     	Set<String> languages = Synergy.getLocalesManager().getLanguages();
-    	if (args.length > 0 && languages.contains(args[0])) {
-    		Synergy.getDataManager().setData("players."+player.getUniqueId()+".language", args[0]);
+    	if (args.length > 0 && languages.contains(args[0].toLowerCase())) {
+    		bread.setData("language", args[0]);
     		bread.sendMessage(bread.translateString("synergy-selected-language").replace("%LANGUAGE%", args[0]));
     		return true;
+    	} else if (args[0].equalsIgnoreCase("auto")) {
+    		bread.setData("language", null);
+    		bread.sendMessage(bread.translateString("synergy-selected-language").replace("%LANGUAGE%", args[0]));
+    		
     	}
 		sender.sendMessage("synergy-command-usage /language "+languages);
         return true;

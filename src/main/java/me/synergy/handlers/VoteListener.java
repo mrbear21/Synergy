@@ -39,7 +39,7 @@ public class VoteListener implements Listener {
             return;
         }
         
-        UUID uuid = event.getUniqueId();
+        UUID uuid = event.getPlayerUniqueId();
         String service = event.getOption("service");
         BreadMaker bread = event.getBread();
         
@@ -55,7 +55,7 @@ public class VoteListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onVotifierEvent(VotifierEvent event) {
         Vote vote = event.getVote();
-        UUID uuid = UUID.nameUUIDFromBytes(vote.getUsername().getBytes());
-        Synergy.createSynergyEvent("votifier").setUniqueId(uuid).setWaitForPlayerIfOffline(true).setOption("service", vote.getServiceName()).send();
+        UUID uuid = Synergy.getUniqueIdFromName(vote.getUsername());
+        Synergy.createSynergyEvent("votifier").setPlayerUniqueId(uuid).setWaitForPlayerIfOffline(true).setOption("service", vote.getServiceName()).send();
     }
 }

@@ -176,7 +176,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 	}
 
 	@SuppressWarnings("deprecation")
-	public UUID getUUIDFromName(String username) {
+	public UUID getUniqueIdFromName(String username) {
 		return username == null ? null : Bukkit.getOfflinePlayer(username) == null ? null : Bukkit.getOfflinePlayer(username).getUniqueId();
 	}
 	

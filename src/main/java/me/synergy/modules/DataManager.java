@@ -2,22 +2,16 @@ package me.synergy.modules;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import me.synergy.brains.Synergy;
+import me.synergy.objects.DataObject;
 
 public class DataManager {
 
-	private Object data;
-	
-	public DataManager(Object data) {
-		this.data = data;
-	}
-	
 	public DataManager() {
 	}
 
@@ -34,12 +28,11 @@ public class DataManager {
         if (dataFile.exists()) {
             try {
             	Synergy.getSpigot().getDataFile().load(dataFile);
+    			Synergy.getSpigot().getDataFile().save(dataFile);
             } catch (IOException | InvalidConfigurationException e) {
                 e.printStackTrace();
             }
         }
-        
-        saveConfig();
 	}
 	
 	public void setData(String key, String value) {
@@ -52,26 +45,10 @@ public class DataManager {
 		}
 	}
 	
-	public DataManager getData(String key) {
-		return new DataManager(Synergy.getSpigot().getDataFile().get(key));
-	}
-	
-	public String getAsString() {
-		return data != null ? (String) data : null;
-	}
-	
-	public Integer getAsInteger() {
-		return data != null ? (Integer) data : null;
-	}
-	
-	public Boolean getAsBoolean() {
-		return data != null ? (Boolean) data : null;
+	public DataObject getData(String key) {
+		return new DataObject(Synergy.getSpigot().getDataFile().get(key));
 	}
 
-	public UUID getAsUUID() {
-		return data != null ? UUID.fromString(getAsString()) : null;
-	}
-	
 	public ConfigurationSection getConfigurationSection(String path) {
 		return Synergy.getSpigot().getDataFile().get(path) == null ? null : Synergy.getSpigot().getDataFile().getConfigurationSection(path);
 		
@@ -91,7 +68,7 @@ public class DataManager {
 	}
 
 	public boolean isSet(String path) {
-		return Synergy.getSpigot().getDataFile().get(path) != null;
+		return Synergy.getSpigot().getDataFile().isSet(path);
 	}
 
 }
