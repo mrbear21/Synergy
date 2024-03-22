@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -184,6 +185,14 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 		Player player = Bukkit.getPlayer(uniqueId);
 		String language = player.getLocale().split("_")[0];
 		return Synergy.getLocalesManager().getLanguages().contains(language) ? language : "en";
+	}
+
+	public void executeConsoleCommand(String command) {
+		 Bukkit.dispatchCommand((CommandSender) Bukkit.getServer().getConsoleSender(), command);
+	}
+
+	public Player getPlayerByUniqueId(UUID uniqueId) {
+		return Bukkit.getPlayer(uniqueId);
 	}
 
 }

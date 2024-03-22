@@ -73,7 +73,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
     	
     	if (event.getIdentifier().equals("make-discord-link")) {
     		UUID uuid = event.getPlayerUniqueId();
-    		String discordTag = event.getOption("tag");
+    		String discordTag = event.getOption("tag").getAsString();
     		Synergy.getDiscord().makeDiscordLink(uuid, discordTag);
     	}
     	
@@ -84,7 +84,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
     	
         if (event.getIdentifier().equals("create-discord-link")) {
         	UUID uuid = event.getPlayerUniqueId();
-            String discordId = event.getOption("id");
+            String discordId = event.getOption("id").getAsString();
             Synergy.getDiscord().createDiscordLink(uuid, discordId);
         }
     	
@@ -93,12 +93,20 @@ public class DiscordListener extends ListenerAdapter implements Listener {
     		Synergy.getDiscord().removeDiscordLink(uuid);
     	}
     	
+        if (event.getIdentifier().equals("discord-announcement")) {
+        	 String announcementschat = Synergy.getConfig().getString("discord.channels.announcements-channel");
+        	 if (announcementschat.length() == 19) {
+        		 MessageEmbed announcement = info(Synergy.translateStringColorStripped(event.getOption("message").getAsString()).replace("%ARGUMENT%", event.getOption("argument").getAsString()));
+        		 Synergy.getDiscord().getJda().getTextChannelById(announcementschat).sendMessageEmbeds(announcement).queue();
+        	 }
+        }
+    	
         if (event.getIdentifier().equals("discord")) {
         	
-	        String displayname = event.getOption("player");
-	        String message = event.getOption("message");
+	        String displayname = event.getOption("player").getAsString();
+	        String message = event.getOption("message").getAsString();
 	        message = new Utils().translateSmiles(message);
-	        String chat = event.getOption("chat");
+	        String chat = event.getOption("chat").getAsString();
 
 	        String globalchat = Synergy.getConfig().getString("discord.channels.global-chat-channel");
 	        String adminchat = Synergy.getConfig().getString("discord.channels.admin-chat-channel");
@@ -123,7 +131,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
         }
     
         if (event.getIdentifier().equals("sync-roles-from-mc-to-discord")) {
-        	Synergy.getDiscord().syncRolesFromMcToDiscord(event.getPlayerUniqueId(), event.getOption("group"));
+        	Synergy.getDiscord().syncRolesFromMcToDiscord(event.getPlayerUniqueId(), event.getOption("group").getAsString());
         }
 
         if (event.getIdentifier().equals("sync-roles-from-discord-to-mc")) {
@@ -142,9 +150,9 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 
         if (event.getIdentifier().equals("set-player-group")) {
             if (Synergy.getConfig().getBoolean("discord.synchronization.use-vault")) {
-                Synergy.getSpigot().getPermissions().playerAddGroup(Bukkit.getPlayer(event.getPlayerUniqueId()), event.getOption("group"));
+                Synergy.getSpigot().getPermissions().playerAddGroup(Bukkit.getPlayer(event.getPlayerUniqueId()), event.getOption("group").getAsString());
             } else {
-                Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Synergy.getConfig().getString("discord.synchronization.custom-command-add").replace("%PLAYER%", event.getBread().getName()).replace("%GROUP%", event.getOption("group")));
+                Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Synergy.getConfig().getString("discord.synchronization.custom-command-add").replace("%PLAYER%", event.getBread().getName()).replace("%GROUP%", event.getOption("group").getAsString()));
             }
         }
     }

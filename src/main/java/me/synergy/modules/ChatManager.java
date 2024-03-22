@@ -23,6 +23,8 @@ import com.theokanning.openai.completion.CompletionChoice;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
+import me.synergy.objects.BreadMaker;
+import me.synergy.utils.GradientText;
 import me.synergy.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 
@@ -80,14 +82,20 @@ public class ChatManager implements Listener, CommandExecutor {
 
         if (event.getIdentifier().equals("system-chat")) {
         	if (Bukkit.getPlayer(event.getPlayerUniqueId()) != null) {
-        		Bukkit.getPlayer(event.getPlayerUniqueId()).sendMessage(event.getOption("message"));
+        		Bukkit.getPlayer(event.getPlayerUniqueId()).sendMessage(event.getOption("message").getAsString());
+        	}
+        }
+        if (event.getIdentifier().equals("announcement")) {
+        	for (Player p : Bukkit.getOnlinePlayers()) {
+        		BreadMaker bread = Synergy.getBread(p.getUniqueId());
+        		bread.sendMessage(bread.translateString(event.getOption("message").getAsString()).replace("%ARGUMENT%", event.getOption("argument").getAsString()));
         	}
         }
         
         if (event.getIdentifier().equals("chat")) {
         	
         	UUID uuid = event.getPlayerUniqueId();
-	        String chatType = event.getOption("chat");
+	        String chatType = event.getOption("chat").getAsString();
 	        String format = getFormattedChatMessage(event);
 	
 	        for (Player recipient: Bukkit.getOnlinePlayers()) {
@@ -127,10 +135,10 @@ public class ChatManager implements Listener, CommandExecutor {
 
 	private String getFormattedChatMessage(SynergyEvent event) {
         String format = getFormat();
-        String chatType = event.getOption("chat");
-        String message = removeSynergyTranslationKeys(event.getOption("message"));
+        String chatType = event.getOption("chat").getAsString();
+        String message = removeSynergyTranslationKeys(event.getOption("message").getAsString());
         OfflinePlayer sender = event.getOfflinePlayer();
-        String displayname = sender != null ? sender.getName() : event.getOption("player");
+        String displayname = sender != null ? sender.getName() : event.getOption("player").getAsString();
 
         if (chatType.contains("discord")) {
         	format = format.replace(detectPlayernamePlaceholder(format, "%DISPLAYNAME%"), displayname);
@@ -144,6 +152,7 @@ public class ChatManager implements Listener, CommandExecutor {
         message = censorBlockedWords(message, getBlockedWorlds());
         message = new Utils().translateSmiles(message);
         message = message.replace("</lang>", "<lang>");
+        //message = GradientText.applyGradient(message);
         
         format = format.replace("%DISPLAYNAME%", displayname);
         format = format.replace("%MESSAGE%", message);

@@ -50,6 +50,7 @@ public class Config {
             addDefault("discord.channels.admin-chat-channel", "00000000000000000");
             addDefault("discord.channels.console-channel", "00000000000000000");
             addDefault("discord.channels.log-channel", "00000000000000000");
+            addDefault("discord.channels.announcements-channel", "00000000000000000");
             addDefault("discord.synchronization.sync-roles-from-discord-to-mc", false);
             addDefault("discord.synchronization.sync-roles-form-mc-to-discord", false);
             addDefault("discord.synchronization.use-vault", true);

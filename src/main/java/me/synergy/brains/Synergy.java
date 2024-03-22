@@ -102,5 +102,11 @@ public class Synergy {
     public static void debug(String string) {
         getLogger().info(string, true);
     }
+
+	public static void executeConsoleCommand(String command) {
+		if (isSpigot()) {
+			getSpigot().executeConsoleCommand(command);
+		}
+	}
 	
 }

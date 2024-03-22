@@ -3,7 +3,6 @@ package me.synergy.handlers;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -39,16 +38,18 @@ public class VoteListener implements Listener {
             return;
         }
         
-        UUID uuid = event.getPlayerUniqueId();
-        String service = event.getOption("service");
+        String service = event.getOption("service").getAsString();
         BreadMaker bread = event.getBread();
         
-        if (Bukkit.getPlayer(uuid) != null) {
-            Bukkit.getPlayer(uuid).sendMessage(Synergy.translateString(Synergy.getConfig().getString("votifier.message")).replace("%SERVICE%", service));
+        if (bread.isOnline()) {
+        	bread.sendMessage(bread.translateString(Synergy.getConfig().getString("votifier.message")).replace("%SERVICE%", service));
+        	Synergy.createSynergyEvent("announcement").setOption("message", "synergy-player-voted").setOption("argument", bread.getName()).send();
+        } else {
+        	Synergy.createSynergyEvent("discord-announcement").setOption("message", "synergy-player-voted").setOption("argument", bread.getName()).send();
         }
         
         for (String command: Synergy.getConfig().getStringList("votifier.rewards")) {
-            Bukkit.dispatchCommand((CommandSender) Bukkit.getServer().getConsoleSender(), command.replace("%PLAYER%", bread.getName()));
+        	Synergy.executeConsoleCommand(command.replace("%PLAYER%", bread.getName()));
         }
     }
 
@@ -56,6 +57,6 @@ public class VoteListener implements Listener {
     public void onVotifierEvent(VotifierEvent event) {
         Vote vote = event.getVote();
         UUID uuid = Synergy.getUniqueIdFromName(vote.getUsername());
-        Synergy.createSynergyEvent("votifier").setPlayerUniqueId(uuid).setWaitForPlayerIfOffline(true).setOption("service", vote.getServiceName()).send();
+        Synergy.createSynergyEvent("votifier").setPlayerUniqueId(uuid).setOption("service", vote.getServiceName()).send();
     }
 }

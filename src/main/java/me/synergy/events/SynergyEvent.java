@@ -20,6 +20,7 @@ import com.google.gson.reflect.TypeToken;
 
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
+import me.synergy.objects.DataObject;
 
 public class SynergyEvent extends Event implements Listener {
     private static final HandlerList HANDLER_LIST = new HandlerList();
@@ -62,8 +63,8 @@ public class SynergyEvent extends Event implements Listener {
         return this.identifier;
     }
 
-    public String getOption(String option) {
-        return options.get(option);
+    public DataObject getOption(String option) {
+        return new DataObject(options.get(option));
     }
 
     public boolean getWaitForPlayerIfOffline() {

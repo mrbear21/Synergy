@@ -45,4 +45,11 @@ public class BreadMaker {
 	public void setData(String option, String value) {
 		 Synergy.getDataManager().setData("players."+"."+getUniqueId()+"."+option, value);
 	}
+
+	public boolean isOnline() {
+		if (Synergy.isSpigot()) {
+			return getUniqueId() == null ? false : Synergy.getSpigot().getPlayerByUniqueId(getUniqueId()) != null ? Synergy.getSpigot().getPlayerByUniqueId(getUniqueId()).isOnline() : false;
+		}
+		return false;
+	}
 }
