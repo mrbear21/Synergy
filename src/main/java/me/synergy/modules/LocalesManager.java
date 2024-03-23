@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -128,10 +129,8 @@ public class LocalesManager implements Listener {
 					                    	
 					                    	component.setJson(processLangTags(component.getJson(), language));
 					                    	
-					                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
-					                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-					                        locales.entrySet().forEach(l ->
-					                                component.setJson(component.getJson().replace(l.getKey(), l.getValue())));
+					                    	component.setJson(translateString(component.getJson(), language));
+					                       
 					                        packet.getChatComponents().write(components.indexOf(component), component);    
 				                        }
 				                    }
@@ -149,7 +148,7 @@ public class LocalesManager implements Listener {
 			c.printStackTrace();
 		}
     }
-    
+	
 	public String translateString(String string, String language) {
 		if (Synergy.getConfig().getBoolean("localizations.enabled")) {
 			HashMap<String, String> locales = getLocales().get(language);
@@ -161,11 +160,12 @@ public class LocalesManager implements Listener {
 			}
 		}
 		string = string.replace("%nl%", System.lineSeparator());
+		string = string.replace("%RANDOM%", String.valueOf(new Random().nextInt(99)));
 		return string;
 	}
 	
 	public String translateStringColorStripped(String string, String defaultLanguage) {
-		return ChatColor.stripColor(translateString(string, getDefaultLanguage()));
+		return ChatColor.stripColor(translateString(string, defaultLanguage));
 	}
 	
     public static String processLangTags(String input, String language) {

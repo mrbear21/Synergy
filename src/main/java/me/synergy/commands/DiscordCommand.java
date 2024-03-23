@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import me.synergy.brains.Synergy;
+import me.synergy.objects.BreadMaker;
 
 public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
 
@@ -41,18 +42,19 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     	Player player = (Player) sender;
+    	BreadMaker bread = Synergy.getBread(player.getUniqueId());
     	if (!player.hasPermission("synergy.discord")) {
-    		sender.sendMessage("synergy-no-permission");
+    		bread.sendMessage("synergy-no-permission");
     		return true;
     	}
         if (args.length == 0) {
-            sender.sendMessage(Synergy.translateStringColorStripped("synergy-discord-invite").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	bread.sendMessage(bread.translateString("synergy-discord-invite").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
             return true;
         }
         switch (args[0]) {
             case "link":
     	    	if (args.length < 2) {
-    	    		sender.sendMessage("synergy-discord-link-cmd-usage");
+    	    		bread.sendMessage("synergy-discord-link-cmd-usage");
     	    		return true;
     	    	}
             	Synergy.createSynergyEvent("make-discord-link").setPlayerUniqueId(player.getUniqueId()).setOption("tag", args[1]).send();

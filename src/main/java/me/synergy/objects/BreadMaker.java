@@ -30,6 +30,10 @@ public class BreadMaker {
 		return Synergy.isSpigot() ? Synergy.getLocalesManager().translateString(string, getLanguage()) : string;
 	}
 	
+    public String translateStringColorStripped(String string) {
+    	return Synergy.isSpigot() ? Synergy.getLocalesManager().translateStringColorStripped(string, getLanguage()) : string;
+    }
+	
 	public UUID getUniqueId() {
 		return uuid;
 	}
