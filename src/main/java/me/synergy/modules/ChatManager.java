@@ -3,6 +3,7 @@ package me.synergy.modules;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -24,7 +25,6 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.objects.BreadMaker;
-import me.synergy.utils.GradientText;
 import me.synergy.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 
@@ -45,7 +45,7 @@ public class ChatManager implements Listener, CommandExecutor {
 		if (label.equalsIgnoreCase("colors")) {
 			ConfigurationSection tags = Synergy.getSpigot().getConfig().getConfigurationSection("chat-manager.custom-color-tags");
 			for (String t : tags.getKeys(false)) {
-				sender.sendMessage(Synergy.getUtils().processColors(t)+t);
+				sender.sendMessage(Utils.processColors(t)+t);
 			}
 		}
 		
@@ -63,11 +63,11 @@ public class ChatManager implements Listener, CommandExecutor {
             		.getName()).setOption("message", event.getMessage()).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
             
             Synergy.createSynergyEvent("discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer().getName())
-	            .setOption("message", event.getMessage()).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
+	            .setOption("message", Utils.stripColorTags(event.getMessage())).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
             
             String botName = Synergy.getDiscord().getBotName();
             if (removeChatTypeSymbol(event.getMessage()).toLowerCase().startsWith(botName.toLowerCase()) && getChatTypeFromMessage(event.getMessage()).equals("global")) {
-                String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
+                String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Utils.removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
                 String answer = ((CompletionChoice)(new OpenAi()).newPrompt(question).get(0)).getText().replace("\"", "").trim();
                 answer = answer.isEmpty() ? Synergy.translateString("synergy-service-unavailable") : answer;
                 Synergy.createSynergyEvent("chat").setOption("player", botName).setOption("message", answer).setOption("chat", "discord").send();
@@ -114,7 +114,7 @@ public class ChatManager implements Listener, CommandExecutor {
 	                    break;
 	                case "admin":
 	                case "discord_admin":
-	                    if ((chatType.equals("admin") && recipient.hasPermission("synergy.adminchat")) || chatType.startsWith("discord")) {
+	                    if ((chatType.equals("admin") && recipient.hasPermission("synergy.chat.admin")) || chatType.startsWith("discord")) {
 	                        recipient.sendMessage(format);
 	                        playMsgSound(recipient);
 	                    }
@@ -136,118 +136,39 @@ public class ChatManager implements Listener, CommandExecutor {
 	private String getFormattedChatMessage(SynergyEvent event) {
         String format = getFormat();
         String chatType = event.getOption("chat").getAsString();
-        String message = removeSynergyTranslationKeys(event.getOption("message").getAsString());
+        String message = event.getOption("message").getAsString();
         OfflinePlayer sender = event.getOfflinePlayer();
         String displayname = sender != null ? sender.getName() : event.getOption("player").getAsString();
 
         if (chatType.contains("discord")) {
-        	format = format.replace(detectPlayernamePlaceholder(format, "%DISPLAYNAME%"), displayname);
+        	format = format.replace(Utils.detectPlayernamePlaceholder(format, "%DISPLAYNAME%"), displayname);
         }
         
         if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
             format = PlaceholderAPI.setPlaceholders(sender, format);
         }
 
+        message = removeSynergyTranslationKeys(message);
         message = removeChatTypeSymbol(message);
-        message = censorBlockedWords(message, getBlockedWorlds());
-        message = new Utils().translateSmiles(message);
         message = message.replace("</lang>", "<lang>");
-        //message = GradientText.applyGradient(message);
+        if (sender == null || !event.getBread().hasPermission("synergy.chat.color")) {
+        	message = Utils.stripColorTags(message);
+        }      
+        message = Utils.translateSmiles(message);
+        message = Utils.censorBlockedWords(message, getBlockedWorlds());
         
         format = format.replace("%DISPLAYNAME%", displayname);
         format = format.replace("%MESSAGE%", message);
         format = format.replace("%CHAT%", String.valueOf(chatType.charAt(0)).toUpperCase());
         format = format.replace("%COLOR%", getChatColor(chatType));
-
-        format = Synergy.getUtils().processColors(format);
+        format = format.replace("%RANDOM%", String.valueOf(new Random().nextInt(99)));
+        format = Utils.processColors(format);
         
         return format;
     }
 
-    public String censorBlockedWords(String sentence, List < String > blockedWords) {
-        double tolerance = Synergy.getConfig().getDouble("chat-manager.blocked-words-tolerance-percentage");
-        for (String blockedWord: blockedWords) {
-            String match = "";
-            int start = 0, end = 0;
-            for (int i = 0; i < sentence.length(); i++) {
-                if (Character.isAlphabetic(sentence.charAt(i))) {
-                    if (blockedWord.charAt(0) == sentence.charAt(i) || blockedWord.startsWith(String.valueOf(match) + sentence.charAt(i)) || (match.length() > 0 && match.charAt(match.length()-1) == sentence.charAt(i))) {
-                        if (match.isEmpty())
-                            start = i;
-                        match = String.valueOf(match) + sentence.charAt(i);
-                        end = i;
-                    } else {
-                        match = "";
-                    }
-                    if (blockedWord.equals(match)) {
-                        String word = findWordInRange(sentence, start, end);
-                        double percentage = (double) match.length() / (double) word.length() * 100;
-                        if (tolerance < percentage || !word.contains(blockedWord)) 
-                            sentence = censorPartOfSentence(sentence, start, end); 
-                    }
-                }
-            }
-        }
-        return sentence;
-    }
-
-    public static String findWordInRange(String sentence, int start, int end) {
-        String[] words = sentence.split("\\s+");
-        for (String word : words) {
-            int wordStart = sentence.indexOf(word);
-            int wordEnd = wordStart + word.length() - 1;
-            
-            if (start >= wordStart && end <= wordEnd) {
-                return word;
-            }
-        }
-        return sentence.substring(start, end);
-    }
-
-    public static String censorWord(String word) {
-        if (word.length() <= 2) {
-            return word;
-        }
-        char[] charArray = word.toCharArray();
-        for (int i = 1; i < charArray.length - 1; i++) {
-            charArray[i] = '*';
-        }
-        return new String(charArray);
-    }
-
-    
-    public static String censorPartOfSentence(String sentence, int start, int end) {
-        if (end-start < 2) {
-            return sentence;
-        }
-        char[] charArray = sentence.toCharArray();
-        for (int i = 1; i < charArray.length - 1; i++) {
-        	if (i > start && i < end && Character.isAlphabetic(sentence.charAt(i))) {
-        		charArray[i] = '*';
-        	}
-        }
-        return new String(charArray);
-    }
-
 	private List<String> getBlockedWorlds() {
 		return Synergy.getSpigot().getConfig().getStringList("chat-manager.blocked-words");
-	}
-
-	public String detectPlayernamePlaceholder(String text, String defaultIfNull) {
-	    int startIdx = text.indexOf("%");
-	    if (startIdx == -1) {
-	        return defaultIfNull;
-	    }
-	    int nameIdx = text.indexOf("name", startIdx);
-	    if (nameIdx == -1) {
-	        return defaultIfNull;
-	    }
-	    int leftPercentIdx = text.lastIndexOf("%", nameIdx);
-	    int rightPercentIdx = text.indexOf("%", nameIdx + 1);
-	    if (leftPercentIdx == -1 || rightPercentIdx == -1) {
-	        return defaultIfNull;
-	    }
-	    return text.substring(leftPercentIdx, rightPercentIdx + 1);
 	}
 
     public void playMsgSound(Player player) {

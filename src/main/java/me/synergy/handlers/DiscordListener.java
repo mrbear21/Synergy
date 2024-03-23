@@ -105,14 +105,14 @@ public class DiscordListener extends ListenerAdapter implements Listener {
         	
 	        String displayname = event.getOption("player").getAsString();
 	        String message = event.getOption("message").getAsString();
-	        message = new Utils().translateSmiles(message);
+	        message = Utils.translateSmiles(message);
 	        String chat = event.getOption("chat").getAsString();
 
 	        String globalchat = Synergy.getConfig().getString("discord.channels.global-chat-channel");
 	        String adminchat = Synergy.getConfig().getString("discord.channels.admin-chat-channel");
 	        String logchat = Synergy.getConfig().getString("discord.channels.log-channel");
 
-            String[] messageParts = Synergy.getUtils().splitMessage(message);
+            String[] messageParts = Utils.splitMessage(message);
             for (String part: messageParts) {
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setAuthor(displayname, null, Synergy.getDiscord().getBotName().equals(displayname) ? Synergy.getDiscord().getJda().getSelfUser().getAvatarUrl() : ("https://minotar.net/helm/" + displayname));
@@ -208,7 +208,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
                     if ((startsWithBotName && !isGlobalChatChannel) || mentionedBot || isReplyToBot) {
                         message.getChannel().sendTyping().queue();
                         String question = Synergy.getConfig().getString("discord.gpt-bot.personality")
-                            .replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(Synergy.getDiscord().getBotName(), event.getMessage().getContentRaw())
+                            .replace("%MESSAGE%", Utils.removeIgnoringCase(Synergy.getDiscord().getBotName(), event.getMessage().getContentRaw())
                                 .replace(event.getJDA().getSelfUser().getAsMention(), ""));
                         //String.valueOf((event.getMessage().getReferencedMessage() != null) ? event.getMessage().getReferencedMessage().getContentRaw() : "");
                         String answer = new OpenAi().newPrompt(question).get(0).getText().replace("\"", "");
@@ -216,7 +216,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
                     }
 
                     if (startsWithBotName && isGlobalChatChannel) {
-                        String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Synergy.getUtils().removeIgnoringCase(Synergy.getDiscord().getBotName(), message.getContentDisplay()));
+                        String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Utils.removeIgnoringCase(Synergy.getDiscord().getBotName(), message.getContentDisplay()));
                         String answer = (new OpenAi().newPrompt(question).get(0)).getText().replace("\"", "").trim();
                         Synergy.createSynergyEvent("chat").setOption("player", Synergy.getDiscord().getBotName())
                     		.setOption("chat", "discord").setOption("message", answer).send();
@@ -320,7 +320,8 @@ public class DiscordListener extends ListenerAdapter implements Listener {
             EmbedBuilder builder = new EmbedBuilder();
             builder.setAuthor(event.getValue("author") == null ? null : event.getValue("author").getAsString(), null, "https://minotar.net/helm/" + event.getValue("author").getAsString());
             builder.setTitle(event.getValue("title") == null ? null : event.getValue("title").getAsString());
-            builder.setDescription(event.getValue("text") == null ? null : ChatColor.stripColor(new Utils().processColors(Synergy.translateStringColorStripped(event.getValue("text").getAsString()))));
+            new Utils();
+			builder.setDescription(event.getValue("text") == null ? null : ChatColor.stripColor(Utils.processColors(Synergy.translateStringColorStripped(event.getValue("text").getAsString()))));
             builder.setColor(event.getValue("color") == null ? null : Color.decode(event.getValue("color").getAsString()));
             builder.setImage(event.getValue("image") == null ? null : event.getValue("image").getAsString());
             if (message != null) {
@@ -371,7 +372,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
         EmbedBuilder builder = new EmbedBuilder();
         builder.setAuthor(author, null, "https://minotar.net/helm/" + author);
         builder.setTitle(title);
-        builder.setDescription(ChatColor.stripColor(new Utils().processColors(Synergy.translateStringColorStripped(text))));
+		builder.setDescription(ChatColor.stripColor(Utils.processColors(Synergy.translateStringColorStripped(text))));
         builder.setThumbnail(thumbnail);
         builder.setColor(Color.decode(color));
         builder.setImage(image);
@@ -400,7 +401,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 
     public void vote(SlashCommandInteractionEvent event) {
         EmbedBuilder embed = new EmbedBuilder();
-        embed.setTitle(ChatColor.stripColor(new Utils().processColors(Synergy.translateStringColorStripped("synergy-vote-monitorings"))));
+        embed.setTitle(ChatColor.stripColor(Utils.processColors(Synergy.translateStringColorStripped("synergy-vote-monitorings"))));
         embed.setDescription(Synergy.translateStringColorStripped(String.join("\n", Synergy.getConfig().getStringList("votifier.monitorings"))));
         embed.setColor(Color.decode("#f1c40f"));
         event.replyEmbeds(embed.build()).queue();

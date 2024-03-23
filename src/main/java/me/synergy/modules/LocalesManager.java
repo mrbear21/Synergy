@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -132,7 +131,7 @@ public class LocalesManager implements Listener {
 					                        locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
 					                                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 					                        locales.entrySet().forEach(l ->
-					                                component.setJson(component.getJson().replace(l.getKey(), l.getValue()).replace("%RANDOM%", ""+new Random().nextInt(99))));
+					                                component.setJson(component.getJson().replace(l.getKey(), l.getValue())));
 					                        packet.getChatComponents().write(components.indexOf(component), component);    
 				                        }
 				                    }
@@ -226,14 +225,14 @@ public class LocalesManager implements Listener {
 	                    String translation = subSection.getString(language);
 	                    HashMap<String, String> translationMap = getLocales().getOrDefault(language, new HashMap<>());
 	                    translation = translation.replace("%nl%", System.lineSeparator());
-	                    translationMap.put(key, Synergy.getUtils().processColors(translation));
+	                    translationMap.put(key, Utils.processColors(translation));
 	                    count++;
 	                    getLocales().put(language, translationMap);
 	                } else if (subSection.isList(language)) {
 	                    List<String> translations = subSection.getStringList(language);
 	                    StringBuilder sb = new StringBuilder();
 	                    for (String translation : translations) {
-	                        translation = new Utils().processColors(translation);
+	                        translation = Utils.processColors(translation);
 	                        sb.append(translation).append("\n");
 	                    }
 	                    if (sb.length() > 0) {

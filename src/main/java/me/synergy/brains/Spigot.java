@@ -195,4 +195,8 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 		return Bukkit.getPlayer(uniqueId);
 	}
 
+	public boolean playerHasPermission(UUID uniqueId, String node) {
+		return getPlayerByUniqueId(uniqueId) == null ? false : getPlayerByUniqueId(uniqueId).hasPermission(node);
+	}
+
 }

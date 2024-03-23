@@ -10,7 +10,6 @@ import me.synergy.modules.Discord;
 import me.synergy.modules.LocalesManager;
 import me.synergy.objects.BreadMaker;
 import me.synergy.utils.Logger;
-import me.synergy.utils.Utils;
 
 public class Synergy {
     public static String platform;
@@ -73,10 +72,6 @@ public class Synergy {
     }
     public static Config getConfig() {
         return new Config();
-    }
-
-    public static Utils getUtils() {
-        return new Utils();
     }
 
     public static Logger getLogger() {
