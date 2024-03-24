@@ -337,9 +337,12 @@ public class DiscordListener extends ListenerAdapter implements Listener {
     }
 
     public void list(SlashCommandInteractionEvent event) {
-    	BreadMaker bread = Synergy.getBread(Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()));
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setTitle(bread.translateStringColorStripped("synergy-online-players-list"));
+        builder.setTitle(Synergy.translateStringColorStripped("synergy-online-players-list"));
+    	if (Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()) != null) {
+    		BreadMaker bread = Synergy.getBread(Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()));
+            builder.setTitle(bread.translateStringColorStripped("synergy-online-players-list"));
+    	}
         String list = "";
         if (Synergy.isRunningVelocity()) {
             /*    bungee.getProxy().getAllServers().forEach((server) -> {

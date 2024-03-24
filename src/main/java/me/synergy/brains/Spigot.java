@@ -23,7 +23,8 @@ import me.synergy.commands.SynergyCommand;
 import me.synergy.commands.VoteCommand;
 import me.synergy.events.SynergyEvent;
 import me.synergy.handlers.MOTDListener;
-import me.synergy.handlers.PlaceholdersListener;
+import me.synergy.handlers.PlaceholdersBreadDataListener;
+import me.synergy.handlers.PlaceholdersLocalesListener;
 import me.synergy.handlers.PlayerJoinListener;
 import me.synergy.handlers.VoteListener;
 import me.synergy.modules.ChatManager;
@@ -31,6 +32,7 @@ import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
 import me.synergy.modules.Discord;
 import me.synergy.modules.LocalesManager;
+import me.synergy.modules.WebServer;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
@@ -69,13 +71,15 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         new DataManager().initialize();
         new PlayerJoinListener().initialize();
         new LanguageCommand().initialize();
+        new WebServer().initialize();
         
         setupEconomy();
         setupPermissions();
         setupChat();
         
 		if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
-			new PlaceholdersListener().register();
+			new PlaceholdersLocalesListener().register();
+			new PlaceholdersBreadDataListener().register();
 		}
         
         getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
@@ -157,6 +161,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 
     public void onDisable() {
         Synergy.getDiscord().shutdown();
+        new WebServer().shutdown();
         getLogger().info("Synergy has stopped it's service!");
     }
 

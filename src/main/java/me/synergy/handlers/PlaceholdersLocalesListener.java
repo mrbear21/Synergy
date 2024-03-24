@@ -1,16 +1,15 @@
 package me.synergy.handlers;
 
-import java.util.HashMap;
-
 import org.bukkit.entity.Player;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.synergy.brains.Synergy;
+import me.synergy.objects.BreadMaker;
 import net.md_5.bungee.api.ChatColor;
 
-public class PlaceholdersListener extends PlaceholderExpansion {
+public class PlaceholdersLocalesListener extends PlaceholderExpansion {
 
-	public PlaceholdersListener() {
+	public PlaceholdersLocalesListener() {
 	}
 
 	@Override
@@ -26,7 +25,7 @@ public class PlaceholdersListener extends PlaceholderExpansion {
 
 	@Override
 	public String getIdentifier() {
-		return "synergy";
+		return "breadmaker";
 	}
 
 	@Override
@@ -45,11 +44,8 @@ public class PlaceholdersListener extends PlaceholderExpansion {
 	
 	@Override
 	public String onPlaceholderRequest(Player p, String identifier) {
-		HashMap<String, String> locales = Synergy.getLocalesManager().getLocales().get(Synergy.getBread(p.getUniqueId()).getLanguage());
-		if (locales != null && locales.containsKey(identifier)) {
-			return locales.get(identifier);
-		}
-		return identifier;
+		BreadMaker bread = Synergy.getBread(p.getUniqueId());
+		return bread.getData(identifier).getAsString();
 	}
 
 }

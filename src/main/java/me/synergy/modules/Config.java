@@ -82,7 +82,9 @@ public class Config {
             addDefault("chat-manager.custom-emojis.:hid:", "┬┴┤･ω･)ﾉ");
 
             addDefault("web-server.enabled", false);
-            addDefault("web-server.port", 8192);
+            addDefault("web-server.domain", "example.com");
+            addDefault("web-server.custom-texturepacks", false);
+            addDefault("web-server.port", 8153);
             
             addDefault("votifier.enabled", false);
             addDefault("votifier.message", "synergy-voted-successfully");

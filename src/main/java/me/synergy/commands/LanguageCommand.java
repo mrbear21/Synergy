@@ -43,7 +43,7 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
     	} else if (args[0].equalsIgnoreCase("auto")) {
     		bread.setData("language", null);
     		bread.sendMessage(bread.translateString("synergy-selected-language").replace("%LANGUAGE%", args[0]));
-    		
+    		return true;
     	}
 		sender.sendMessage("synergy-command-usage /language "+languages);
         return true;

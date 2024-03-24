@@ -10,6 +10,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
+import me.synergy.modules.WebServer;
 
 public class PlayerJoinListener implements Listener {
 
@@ -53,5 +54,10 @@ public class PlayerJoinListener implements Listener {
         if (Synergy.getDiscord().getDiscordIdByUniqueId(uuid) != null) {
         	Synergy.getDiscord().addVerifiedRole(Synergy.getDiscord().getDiscordIdByUniqueId(uuid));
         }
+        
+        if (Synergy.getConfig().getBoolean("web-server.custom-texturepacks")) {
+        	event.getPlayer().setResourcePack(WebServer.getTexturePackURL());
+        }
+        
     }
 }

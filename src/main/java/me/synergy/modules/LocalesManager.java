@@ -161,6 +161,7 @@ public class LocalesManager implements Listener {
 		}
 		string = string.replace("%nl%", System.lineSeparator());
 		string = string.replace("%RANDOM%", String.valueOf(new Random().nextInt(99)));
+		
 		return string;
 	}
 	
