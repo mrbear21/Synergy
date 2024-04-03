@@ -1,7 +1,6 @@
 package me.synergy.modules;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
@@ -35,6 +34,7 @@ public class ChatManager implements Listener, CommandExecutor {
             Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
             Synergy.getSpigot().getCommand("chat").setExecutor(this);
             Synergy.getSpigot().getCommand("colors").setExecutor(this);
+            Synergy.getSpigot().getCommand("emojis").setExecutor(this);
             Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
         }
     }
@@ -43,12 +43,37 @@ public class ChatManager implements Listener, CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		
 		if (label.equalsIgnoreCase("colors")) {
-			ConfigurationSection tags = Synergy.getSpigot().getConfig().getConfigurationSection("chat-manager.custom-color-tags");
+			ConfigurationSection tags = Synergy.getConfig().getConfigurationSection("chat-manager.custom-color-tags");
 			for (String t : tags.getKeys(false)) {
 				sender.sendMessage(Utils.processColors(t)+t);
 			}
 		}
 		
+		if (label.equalsIgnoreCase("emojis")) {
+		    ConfigurationSection tags = Synergy.getConfig().getConfigurationSection("chat-manager.custom-emojis");
+		    int count = 0;
+		    StringBuilder messageBuilder = new StringBuilder();
+		    int maxEmojiLength = 0;
+		    for (String e : tags.getKeys(false)) {
+		        String emoji = Synergy.getConfig().getString("chat-manager.custom-emojis."+e);
+		        maxEmojiLength = Math.max(maxEmojiLength, e.length() + emoji.length() + 3); // Adding 3 for spacing
+		    }
+		    for (String e : tags.getKeys(false)) {
+		        if (count == 2) {
+		            sender.sendMessage(messageBuilder.toString());
+		            messageBuilder = new StringBuilder();
+		            count = 0;
+		        }
+		        String emoji = Synergy.getConfig().getString("chat-manager.custom-emojis."+e);
+		        int padding = maxEmojiLength - e.length() - emoji.length();
+		        messageBuilder.append(String.format("%s - %s%" + padding + "s", e, emoji, ""));
+		        count++;
+		    }
+		    if (messageBuilder.length() > 0) {
+		        sender.sendMessage(messageBuilder.toString());
+		    }
+		}
+
 		return true;
 	}
 
@@ -59,6 +84,11 @@ public class ChatManager implements Listener, CommandExecutor {
         if (!event.isCancelled()) {
             event.setCancelled(true);
 
+            if (removeChatTypeSymbol(event.getMessage()).isEmpty()) {
+            	event.getPlayer().sendMessage("<lang>synergy-message-cant-be-empty</lang>");
+            	return;
+            }
+            
             Synergy.createSynergyEvent("chat").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer()
             		.getName()).setOption("message", event.getMessage()).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
             
@@ -127,7 +157,7 @@ public class ChatManager implements Listener, CommandExecutor {
     }
 
     public String removeSynergyTranslationKeys(String string) {
-    	for (Entry<String, String> k : Synergy.getLocalesManager().getLocales().get(Synergy.getLocalesManager().getDefaultLanguage()).entrySet()) {
+    	for (Entry<String, String> k : LocalesManager.getLocales().get(LocalesManager.getDefaultLanguage()).entrySet()) {
     		string = string.replace(k.getKey(), k.getKey().replace("-", "–"));
     	}
 		return string;
@@ -155,7 +185,7 @@ public class ChatManager implements Listener, CommandExecutor {
         	message = Utils.stripColorTags(message);
         }      
         message = Utils.translateSmiles(message);
-        message = Utils.censorBlockedWords(message, getBlockedWorlds());
+        message = Utils.censorBlockedWords(message, Utils.getBlockedWorlds());
         
         format = format.replace("%DISPLAYNAME%", displayname);
         format = format.replace("%MESSAGE%", message);
@@ -166,10 +196,6 @@ public class ChatManager implements Listener, CommandExecutor {
         
         return format;
     }
-
-	private List<String> getBlockedWorlds() {
-		return Synergy.getSpigot().getConfig().getStringList("chat-manager.blocked-words");
-	}
 
     public void playMsgSound(Player player) {
         player.playSound(player.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1.0F, 1.0F);

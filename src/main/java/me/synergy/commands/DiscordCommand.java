@@ -44,7 +44,7 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
     	Player player = (Player) sender;
     	BreadMaker bread = Synergy.getBread(player.getUniqueId());
     	if (!player.hasPermission("synergy.discord")) {
-    		bread.sendMessage("synergy-no-permission");
+    		bread.sendMessage("<lang>synergy-no-permission</lang>");
     		return true;
     	}
         if (args.length == 0) {
@@ -54,7 +54,7 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
         switch (args[0]) {
             case "link":
     	    	if (args.length < 2) {
-    	    		bread.sendMessage("synergy-discord-link-cmd-usage");
+    	    		bread.sendMessage("<lang>synergy-discord-link-cmd-usage</lang>");
     	    		return true;
     	    	}
             	Synergy.createSynergyEvent("make-discord-link").setPlayerUniqueId(player.getUniqueId()).setOption("tag", args[1]).send();

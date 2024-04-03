@@ -1,13 +1,18 @@
 package me.synergy.modules;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.event.Listener;
 
@@ -18,8 +23,10 @@ import me.synergy.brains.Synergy;
 public class WebServer implements Listener {
 
     private static HttpServer server;
-    private static String texturePackURL;
-
+    private static int port = Synergy.getConfig().getInt("web-server.port");
+    private static String serverAddress = Synergy.getConfig().getString("web-server.domain");
+    private static String fullAddress = "http://" + serverAddress + ":"+port;
+    
     public void initialize() {
     	if (!Synergy.getConfig().getBoolean("web-server.enabled")) {
     		return;
@@ -27,20 +34,17 @@ public class WebServer implements Listener {
     	
     	Synergy.getSpigot().getServer().getPluginManager().registerEvents(this, Synergy.getSpigot());
         try {
-        	int port = Synergy.getConfig().getInt("web-server.port");
             server = HttpServer.create(new InetSocketAddress(port), 0);
             server.createContext("/", new TexturePackHandler());
             server.setExecutor(null);
             server.start();
             Synergy.getLogger().info("TexturePackDeliveryPlugin web server started on port "+port);
-            String serverAddress = Synergy.getConfig().getString("web-server.domain");
-            setTexturePackURL("http://" + serverAddress + ":"+port+"/texturepack");
         } catch (IOException e) {
         	Synergy.getLogger().warning("Failed to start TexturePackDeliveryPlugin web server: " + e.getMessage());
         }
         loadWebFiles();
         if (Synergy.isSpigot()) {
-        	createResourcePacksFolder();
+        	loadResourcePacksFolder();
         }        
     }
 
@@ -63,10 +67,11 @@ public class WebServer implements Listener {
             }
         }
     }
+
+    private static List<String> texturePacks = new ArrayList<String>();
     
-    private void createResourcePacksFolder() {
-    	File dataFolder = new File("plugins/Synergy");
-        File webFolder = new File(dataFolder, "resourcepacks");
+    private void loadResourcePacksFolder() {
+        File webFolder = new File(Synergy.getDataFolder(), "resourcepacks");
         if (!webFolder.exists()) {
             boolean created = webFolder.mkdirs();
             if (!created) {
@@ -74,29 +79,53 @@ public class WebServer implements Listener {
                 return;
             }
         }
+        addTexturePackURL("/resourcepacks/texturepack.zip");
+        addTexturePackURL("/resourcepacks/texturepack1.zip");
+        
+        try {
+			mergeTexturePacks(getTexturePacks(), "merged_pack.zip");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
+    
+    public static List<String> getTexturePacks() {
+		return texturePacks;
+	}
 
+	public static void addTexturePackURL(String texturePackURL) {
+		WebServer.texturePacks.add(texturePackURL);
+	}
+	
+    public static void mergeTexturePacks(List<String> texturePackPaths, String outputPath) throws IOException {
+        try (FileOutputStream outputStream = new FileOutputStream(outputPath);
+             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+            
+            for (String texturePackPath : texturePackPaths) {
+                Files.copy(Paths.get(Synergy.getDataFolder().getAbsolutePath()+ texturePackPath), bufferedOutputStream);
+            }
+        }
+    }
+	
+    public static String getFullAddress() {
+    	return fullAddress;
+    }
+    
     public void shutdown() {
         if (server != null) {
             server.stop(0);
             Synergy.getLogger().info("TexturePackDeliveryPlugin web server stopped");
         }
     }
-    
-    public static String getTexturePackURL() {
-		return texturePackURL;
-	}
 
-	public static void setTexturePackURL(String texturePackURL) {
-		WebServer.texturePackURL = texturePackURL;
-	}
 
 	private class TexturePackHandler implements com.sun.net.httpserver.HttpHandler {
         @Override
         public void handle(com.sun.net.httpserver.HttpExchange exchange) throws IOException {
             String path = exchange.getRequestURI().getPath();
-            if ("/texturepack".equals(path)) {
-                File texturePackFile = new File(Synergy.getSpigot().getDataFolder(), "resourcepacks/texturepack.zip");
+            if (path.startsWith("/resourcepacks")) {
+                File texturePackFile = new File(Synergy.getDataFolder(), path);
+                Synergy.debug(texturePackFile.getAbsolutePath());
                 if (texturePackFile.exists()) {
                     exchange.sendResponseHeaders(200, texturePackFile.length());
                     OutputStream os = exchange.getResponseBody();

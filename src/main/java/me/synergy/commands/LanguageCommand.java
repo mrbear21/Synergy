@@ -21,15 +21,20 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
 	    	return;
 	    }
         Synergy.getSpigot().getCommand("language").setExecutor(this);
+        Synergy.getSpigot().getCommand("lang").setExecutor(this);
         Synergy.getSpigot().getCommand("language").setTabCompleter(this);
+        Synergy.getSpigot().getCommand("lang").setTabCompleter(this);
         
 	}
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        Set<String> languages = new HashSet<>(Synergy.getLocalesManager().getLanguages());
-        languages.add("auto");
-        return new ArrayList<>(languages);
+    	if (args.length < 2) {
+	        Set<String> languages = new HashSet<>(Synergy.getLocalesManager().getLanguages());
+	        languages.add("auto");
+	        return new ArrayList<>(languages);
+    	}
+    	return null;
     }
     
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -45,7 +50,7 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
     		bread.sendMessage(bread.translateString("synergy-selected-language").replace("%LANGUAGE%", args[0]));
     		return true;
     	}
-		sender.sendMessage("synergy-command-usage /language "+languages);
+		sender.sendMessage("<lang>synergy-command-usage</lang> /language "+languages);
         return true;
     }
 }

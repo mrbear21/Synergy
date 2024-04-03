@@ -1,5 +1,6 @@
 package me.synergy.brains;
 
+import java.io.File;
 import java.util.UUID;
 
 import me.synergy.events.SynergyEvent;
@@ -40,11 +41,11 @@ public class Synergy {
     }
 
     public static String translateString(String string) {
-        return isSpigot() ? getLocalesManager().translateString(string, getLocalesManager().getDefaultLanguage()) : string;
+        return isSpigot() ? LocalesManager.translateString(string, LocalesManager.getDefaultLanguage()) : string;
     }
     
     public static String translateStringColorStripped(String string) {
-    	return isSpigot() ? getLocalesManager().translateStringColorStripped(string, getLocalesManager().getDefaultLanguage()) : string;
+    	return isSpigot() ? LocalesManager.translateStringColorStripped(string, LocalesManager.getDefaultLanguage()) : string;
     }
 
     public static String getServerName() {
@@ -102,6 +103,11 @@ public class Synergy {
 		if (isSpigot()) {
 			getSpigot().executeConsoleCommand(command);
 		}
+	}
+
+	public static File getDataFolder() {
+		File dataFolder = new File("plugins/Synergy");
+		return dataFolder;
 	}
 	
 }

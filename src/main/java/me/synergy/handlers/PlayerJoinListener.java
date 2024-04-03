@@ -56,7 +56,7 @@ public class PlayerJoinListener implements Listener {
         }
         
         if (Synergy.getConfig().getBoolean("web-server.custom-texturepacks")) {
-        	event.getPlayer().setResourcePack(WebServer.getTexturePackURL());
+        	event.getPlayer().setResourcePack(WebServer.getFullAddress()+"merged_pack.zip");
         }
         
     }

@@ -232,11 +232,11 @@ public class Discord {
         for (String l: Synergy.getDataManager().getConfigurationSection("discord.links").getKeys(false)) {
             if (Synergy.getDataManager().getData("discord.links." + l).getAsUUID().equals(uuid)) {
                 Synergy.getDataManager().setData("discord.links." + l, null);
-                bread.sendMessage("synergy-link-minecraft-unlinked");
+                bread.sendMessage("<lang>synergy-link-minecraft-unlinked</lang>");
                 return;
             }
         }
-        bread.sendMessage("synergy-you-have-no-linked-accounts");
+        bread.sendMessage("<lang>synergy-you-have-no-linked-accounts</lang>");
     }
 
     public void createDiscordLink(UUID uuid, String discordId) {
@@ -254,7 +254,7 @@ public class Discord {
 	    	createDiscordLink(uuid, discordid);
 	    	bread.setData("confirm-discord", null);
 		} else {
-			bread.sendMessage("synergy-confirmation-nothing-to-confirm");
+			bread.sendMessage("<lang>synergy-confirmation-nothing-to-confirm</lang>");
 		}
     }
     
@@ -279,7 +279,7 @@ public class Discord {
         	            }
         	            
         	            PrivateChannel privateChannel = user.openPrivateChannel().complete();
-        	            String message = bread.translateStringColorStripped("synergy-discord-confirm-link").replace("%ACCOUNT%", bread.getName());
+        	            String message = bread.translateStringColorStripped("<lang>synergy-discord-confirm-link</lang>").replace("%ACCOUNT%", bread.getName());
         	            
         	            MessageHistory history = privateChannel.getHistory();
         	            Message lastMessage = history.retrievePast(1).complete().size() == 0 ? null : history.retrievePast(1).complete().get(0);
@@ -288,7 +288,7 @@ public class Discord {
         	                if (privateChannel.canTalk()) {
         	                    privateChannel.sendMessage(message)
         	                            .addActionRow(
-        	                                    Button.success(user.getId() + ":confirm:" + uuid, bread.translateStringColorStripped("synergy-confirm-action")))
+        	                                    Button.success(user.getId() + ":confirm:" + uuid, bread.translateStringColorStripped("<lang>synergy-confirm-action</lang>")))
         	                            .queue();
         	                    bread.sendMessage(bread.translateString("synergy-discord-link-check-pm").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	                } else {
@@ -303,7 +303,7 @@ public class Discord {
         	}
         } catch (Exception c) {
         	c.printStackTrace();
-        	bread.sendMessage(bread.translateStringColorStripped("synergy-discord-use-link-cmd").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	bread.sendMessage(bread.translateStringColorStripped("<lang>synergy-discord-use-link-cmd</lang>").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         }
     }
     

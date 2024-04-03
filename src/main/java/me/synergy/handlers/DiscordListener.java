@@ -106,6 +106,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 	        String displayname = event.getOption("player").getAsString();
 	        String message = event.getOption("message").getAsString();
 	        message = Utils.translateSmiles(message);
+	        message = Utils.censorBlockedWords(message, Utils.getBlockedWorlds());
 	        String chat = event.getOption("chat").getAsString();
 
 	        String globalchat = Synergy.getConfig().getString("discord.channels.global-chat-channel");
@@ -180,7 +181,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 
             if (channelId.equals(Synergy.getConfig().getString("discord.channels.global-chat-channel"))) {
                 if (uuid == null) {
-                	event.getChannel().sendMessageEmbeds(warning(Synergy.translateStringColorStripped("synergy-you-have-to-link-account"))).queue();
+                	event.getChannel().sendMessageEmbeds(warning(Synergy.translateStringColorStripped("<lang>synergy-you-have-to-link-account</lang>"))).queue();
                     return;
                 }
 	            Synergy.createSynergyEvent("chat").setPlayerUniqueId(uuid).setOption("player", event.getAuthor().getEffectiveName())
@@ -190,7 +191,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 
             if (channelId.equals(Synergy.getConfig().getString("discord.channels.admin-chat-channel"))) {
                 if (uuid == null) {
-                	event.getChannel().sendMessageEmbeds(warning(Synergy.translateStringColorStripped("synergy-you-have-to-link-account"))).queue();
+                	event.getChannel().sendMessageEmbeds(warning(Synergy.translateStringColorStripped("<lang>synergy-you-have-to-link-account</lang>"))).queue();
                     return;
                 }
                 Synergy.createSynergyEvent("chat").setPlayerUniqueId(uuid).setOption("player", event.getAuthor().getEffectiveName())
@@ -226,7 +227,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 
                 } catch (Exception c) {
                     Synergy.getLogger().error(c.getMessage());
-                    event.getMessage().replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-service-unavailable"))).queue();
+                    event.getMessage().replyEmbeds(warning(Synergy.translateStringColorStripped("<lang>synergy-service-unavailable</lang>"))).queue();
                 }
             }
 
@@ -234,7 +235,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
                 Synergy.getConfig().getStringList("discord.hightlights.channels").contains(channelId) &&
                 message.getAttachments().size() > 0) {
                 message.addReaction((Emoji) Emoji.fromUnicode(Synergy.getConfig().getString("discord.hightlights.reaction-emoji"))).complete();
-                message.createThreadChannel(Synergy.translateStringColorStripped("synergy-hightlights-comments")).queue();
+                message.createThreadChannel(Synergy.translateStringColorStripped("<lang>synergy-hightlights-comments</lang>")).queue();
             }
             return;
         }
@@ -255,7 +256,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
             		UUID uuid = UUID.fromString(id[2]);
             		Synergy.getDiscord().createDiscordLink(uuid, authorId);
             		BreadMaker bread = Synergy.getBread(uuid);
-	                event.getUser().openPrivateChannel().complete().sendMessage(bread.translateStringColorStripped("synergy-discord-link-success").replace("%ACCOUNT%", bread.getName())).queue();
+	                event.getUser().openPrivateChannel().complete().sendMessage(bread.translateStringColorStripped("<lang>synergy-discord-link-success</lang>").replace("%ACCOUNT%", bread.getName())).queue();
             	}
                 break;
         }
@@ -286,10 +287,10 @@ public class DiscordListener extends ListenerAdapter implements Listener {
                 	vote(event);
                     break;
                 default:
-                    event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-service-unavailable"))).setEphemeral(true).queue();
+                    event.replyEmbeds(warning(Synergy.translateStringColorStripped("<lang>synergy-service-unavailable</lang>"))).setEphemeral(true).queue();
             }
         } catch (Exception c) {
-            event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-service-unavailable") + " (*" + c.getMessage() + "*)")).setEphemeral(true).queue();
+            event.replyEmbeds(warning(Synergy.translateStringColorStripped("<lang>synergy-service-unavailable</lang>") + " (*" + c.getMessage() + "*)")).setEphemeral(true).queue();
         }
     }
     
@@ -300,21 +301,21 @@ public class DiscordListener extends ListenerAdapter implements Listener {
             BreadMaker bread = new BreadMaker(uuid);
             
             if (uuid == null) {
-                event.replyEmbeds(warning(bread.translateStringColorStripped("synergy-player-doesnt-exist").replace("%ACCOUNT%", Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUniqueId(uuid)).getEffectiveName()))).setEphemeral(true).queue();
+                event.replyEmbeds(warning(bread.translateStringColorStripped("<lang>synergy-player-doesnt-exist</lang>").replace("%ACCOUNT%", Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUniqueId(uuid)).getEffectiveName()))).setEphemeral(true).queue();
                 return;
             }
             if (Synergy.getDiscord().getDiscordIdByUniqueId(uuid) != null) {
-                event.replyEmbeds(warning(bread.translateStringColorStripped("synergy-link-minecraft-already-linked").replace("%ACCOUNT%", Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUniqueId(uuid)).getEffectiveName()))).setEphemeral(true).queue();
+                event.replyEmbeds(warning(bread.translateStringColorStripped("<lang>synergy-link-minecraft-already-linked</lang>").replace("%ACCOUNT%", Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUniqueId(uuid)).getEffectiveName()))).setEphemeral(true).queue();
                 return;
             }
             if (Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()) != null) {
             	UUID account = Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId());
-                event.replyEmbeds(warning(bread.translateStringColorStripped("synergy-link-discord-already-linked").replace("%ACCOUNT%", Synergy.getBread(account).getName()))).setEphemeral(true).queue();
+                event.replyEmbeds(warning(bread.translateStringColorStripped("<lang>synergy-link-discord-already-linked</lang>").replace("%ACCOUNT%", Synergy.getBread(account).getName()))).setEphemeral(true).queue();
                 return;
             }
             
             Synergy.getDataManager().setData("players."+uuid+".confirm-discord", event.getUser().getId());
-            event.replyEmbeds(info(bread.translateStringColorStripped("synergy-link-minecraft-confirmation"))).setEphemeral(true).queue();
+            event.replyEmbeds(info(bread.translateStringColorStripped("<lang>synergy-link-minecraft-confirmation</lang>"))).setEphemeral(true).queue();
             bread.sendMessage(bread.translateString("synergy-link-discord-confirmation").replace("%ACCOUNT%", event.getUser().getEffectiveName()));
         }
         
@@ -338,10 +339,10 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 
     public void list(SlashCommandInteractionEvent event) {
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setTitle(Synergy.translateStringColorStripped("synergy-online-players-list"));
+        builder.setTitle(Synergy.translateStringColorStripped("<lang>synergy-online-players-list</lang>"));
     	if (Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()) != null) {
     		BreadMaker bread = Synergy.getBread(Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()));
-            builder.setTitle(bread.translateStringColorStripped("synergy-online-players-list"));
+            builder.setTitle(bread.translateStringColorStripped("<lang>synergy-online-players-list</lang>"));
     	}
         String list = "";
         if (Synergy.isRunningVelocity()) {
@@ -396,20 +397,20 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 			OfflinePlayer player = Bukkit.getOfflinePlayer(Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()));
 	    	double balance = Synergy.getSpigot().getEconomy().getBalance(player);
 	    	EmbedBuilder embed = new EmbedBuilder();
-	    	embed.addField(bread.translateStringColorStripped("synergy-vault-balance-title"), bread.translateStringColorStripped("synergy-vault-balance-field").replace("%AMOUNT%", String.valueOf((int) balance)), true);
+	    	embed.addField(bread.translateStringColorStripped("<lang>synergy-vault-balance-title</lang>"), bread.translateStringColorStripped("<lang>synergy-vault-balance-field</lang>").replace("%AMOUNT%", String.valueOf((int) balance)), true);
 	    	embed.setThumbnail("https://minotar.net/helm/"+Synergy.getBread(Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId())).getName());
 	    	embed.setColor(Color.decode("#f1c40f"));
-	    	embed.setFooter(bread.translateStringColorStripped("synergy-vault-balance-footer"));
+	    	embed.setFooter(bread.translateStringColorStripped("<lang>synergy-vault-balance-footer</lang>"));
 	    	event.replyEmbeds(embed.build()).queue();
     	} else {
-    		event.replyEmbeds(warning(Synergy.translateStringColorStripped("synergy-you-have-to-link-account"))).queue();
+    		event.replyEmbeds(warning(Synergy.translateStringColorStripped("<lang>synergy-you-have-to-link-account</lang>"))).queue();
     	}
 	}
 
     public void vote(SlashCommandInteractionEvent event) {
     	BreadMaker bread = Synergy.getBread(Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()));
         EmbedBuilder embed = new EmbedBuilder();
-        embed.setTitle(ChatColor.stripColor(Utils.processColors(bread.translateStringColorStripped("synergy-vote-monitorings"))));
+        embed.setTitle(ChatColor.stripColor(Utils.processColors(bread.translateStringColorStripped("<lang>synergy-vote-monitorings</lang>"))));
         embed.setDescription(bread.translateStringColorStripped(String.join("\n", Synergy.getConfig().getStringList("votifier.monitorings"))));
         embed.setColor(Color.decode("#f1c40f"));
         event.replyEmbeds(embed.build()).queue();
@@ -417,8 +418,8 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 
 
     public void link(SlashCommandInteractionEvent event) {
-        TextInput subject = TextInput.create("username", Synergy.translateStringColorStripped("synergy-link-minecraft-your-username"), TextInputStyle.SHORT).setPlaceholder("Steve").setMinLength(3).setMaxLength(28).build();
-        Modal modal = Modal.create("minecraftlink", Synergy.translateStringColorStripped("synergy-link-minecraft-title")).addComponents(new LayoutComponent[] {
+        TextInput subject = TextInput.create("username", Synergy.translateStringColorStripped("<lang>synergy-link-minecraft-your-username</lang>"), TextInputStyle.SHORT).setPlaceholder("Steve").setMinLength(3).setMaxLength(28).build();
+        Modal modal = Modal.create("minecraftlink", Synergy.translateStringColorStripped("<lang>synergy-link-minecraft-title</lang>")).addComponents(new LayoutComponent[] {
             (LayoutComponent) ActionRow.of(new ItemComponent[] {
                 (ItemComponent) subject
             })
@@ -455,7 +456,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
                 color.setValue("#" + Integer.toHexString(embed.getColor().getRGB()).substring(2));
         }
 
-        Modal modal = Modal.create("embed", event.getOption("message") != null ? Synergy.translateStringColorStripped("synergy-discord-embed-edit") : Synergy.translateStringColorStripped("synergy-discord-embed-new")).addComponents(
+        Modal modal = Modal.create("embed", event.getOption("message") != null ? Synergy.translateStringColorStripped("<lang>synergy-discord-embed-edit</lang>") : Synergy.translateStringColorStripped("<lang>synergy-discord-embed-new</lang>")).addComponents(
             ActionRow.of(title.build()),
             ActionRow.of(text.build()),
             ActionRow.of(author.build()),
@@ -483,7 +484,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 	public void updateCommands() {
         CommandListUpdateAction commands = Synergy.getDiscord().getJda().updateCommands();
         commands.addCommands(new CommandData[] {
-            Commands.slash("post", Synergy.translateStringColorStripped("synergy-create-post"))
+            Commands.slash("post", Synergy.translateStringColorStripped("<lang>synergy-create-post</lang>"))
                 .addOptions(new OptionData[] {
                     (new OptionData(OptionType.STRING, "title", "Title")).setRequired(true)
                 })
@@ -519,27 +520,27 @@ public class DiscordListener extends ListenerAdapter implements Listener {
         
         if (Synergy.isDependencyAvailable("Vault")) {
 	        commands.addCommands(new CommandData[] {
-	            Commands.slash("balance", Synergy.translateStringColorStripped("synergy-check-vault-balance"))
+	            Commands.slash("balance", Synergy.translateStringColorStripped("<lang>synergy-check-vault-balance</lang>"))
 	                .setGuildOnly(true)
 	        });
         }
         
         commands.addCommands(new CommandData[] {
-            Commands.slash("list", Synergy.translateStringColorStripped("synergy-online-players-list"))
+            Commands.slash("list", Synergy.translateStringColorStripped("<lang>synergy-online-players-list</lang>"))
                 .setGuildOnly(true)
         });
 
         commands.addCommands(new CommandData[] {
-            Commands.slash("vote", Synergy.translateStringColorStripped("synergy-vote-for-server"))
+            Commands.slash("vote", Synergy.translateStringColorStripped("<lang>synergy-vote-for-server</lang>"))
                 .setGuildOnly(true)
         });
 
         commands.addCommands(new CommandData[] {
-            Commands.slash("link", Synergy.translateStringColorStripped("synergy-link-minecraft-title"))
+            Commands.slash("link", Synergy.translateStringColorStripped("<lang>synergy-link-minecraft-title</lang>"))
                 .setGuildOnly(true)
         });
         commands.addCommands(new CommandData[] {
-            Commands.slash("embed", Synergy.translateStringColorStripped("synergy-discord-embed-new"))
+            Commands.slash("embed", Synergy.translateStringColorStripped("<lang>synergy-discord-embed-new</lang>"))
                 .addOptions(new OptionData[] {
                     (new OptionData(OptionType.CHANNEL, "channel", "Channel ID")).setRequired(true)
                 })

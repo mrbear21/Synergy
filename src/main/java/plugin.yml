@@ -18,9 +18,13 @@ commands:
     colors:
         description: Custom colors list
         usage: synergy-command-usage /<command>
+    emojis:
+        description: Custom emojis list
+        usage: synergy-command-usage /<command>
     discord:
         description: Discord
         usage: synergy-command-usage /<command>
     language:
         description: Language
         usage: synergy-command-usage /<command>
+        aliases: [lang]

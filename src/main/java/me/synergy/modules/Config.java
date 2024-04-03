@@ -31,6 +31,8 @@ public class Config {
             
             addDefault("localizations.enabled", true);
             addDefault("localizations.default-language", "en");
+            addDefault("localizations.custom-colors.primary", "#fdcb6e");
+            addDefault("localizations.custom-colors.secondary", "#0984e3");
             
             addDefault("motd.enabled", true);
             addDefault("motd.message", "Message of The Day Example");

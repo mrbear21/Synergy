@@ -80,6 +80,10 @@ public class Utils {
         return parts.toArray(new String[0]);
     }
     
+    public static List<String> getBlockedWorlds() {
+		return Synergy.getSpigot().getConfig().getStringList("chat-manager.blocked-words");
+	}
+    
     public static String censorBlockedWords(String sentence, List<String> blockedWords) {
         double tolerance = Synergy.getConfig().getDouble("chat-manager.blocked-words-tolerance-percentage");
         for (String blockedWord : blockedWords) {
@@ -106,7 +110,6 @@ public class Utils {
                         double percentage = (double) match.length() / (double) word.length() * 100;
                         if (tolerance < percentage || !word.contains(blockedWord))
                             sentence = censorPartOfSentence(sentence, start, end);
-                        Synergy.debug(word + " " + match + " " + percentage + "%");
                     }
                 }
             }

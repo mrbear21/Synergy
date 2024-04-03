@@ -21,10 +21,10 @@ public class SynergyCommand implements CommandExecutor {
                     Synergy.getDataManager().initialize();
                     Synergy.getConfig().initialize();
                     Synergy.getDiscord().initialize();
-                    sender.sendMessage("synergy-reloaded");
+                    sender.sendMessage("<lang>synergy-reloaded</lang>");
                     return true;
                 }
-                sender.sendMessage("synergy-no-permission");
+                sender.sendMessage("<lang>synergy-no-permission</lang>");
                 return true;
         }
         return true;

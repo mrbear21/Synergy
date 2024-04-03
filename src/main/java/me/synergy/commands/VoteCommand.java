@@ -25,10 +25,10 @@ public class VoteCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (sender.hasPermission("synergy.vote")) {
             List<String> monitorings = Synergy.getConfig().getStringList("votifier.monitorings");
-            sender.sendMessage("synergy-vote-monitorings");
+            sender.sendMessage("<lang>synergy-vote-monitorings</lang>");
             monitorings.forEach(m -> sender.sendMessage(ChatColor.DARK_AQUA + " * " + ChatColor.UNDERLINE + m));
         } else {
-            sender.sendMessage("synergy-no-permission");
+            sender.sendMessage("<lang>synergy-no-permission</lang>");
         }
         return true;
     }

@@ -43,12 +43,12 @@ public class VoteListener implements Listener {
         
         if (bread.isOnline()) {
         	bread.sendMessage(bread.translateString(Synergy.getConfig().getString("votifier.message")).replace("%SERVICE%", service));
-        	Synergy.createSynergyEvent("announcement").setOption("message", "synergy-player-voted").setOption("argument", bread.getName()).send();
-        } else {
-        	Synergy.createSynergyEvent("discord-announcement").setOption("message", "synergy-player-voted").setOption("argument", bread.getName()).send();
         }
         
-        for (String command: Synergy.getConfig().getStringList("votifier.rewards")) {
+    	Synergy.createSynergyEvent("announcement").setOption("message", "synergy-player-voted").setOption("argument", bread.getName()).send();
+    	Synergy.createSynergyEvent("discord-announcement").setOption("message", "synergy-player-voted").setOption("argument", bread.getName()).send();
+          
+        for (String command : Synergy.getConfig().getStringList("votifier.rewards")) {
         	Synergy.executeConsoleCommand(command.replace("%PLAYER%", bread.getName()));
         }
     }
