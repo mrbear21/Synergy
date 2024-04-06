@@ -45,8 +45,8 @@ public class VoteListener implements Listener {
         	bread.sendMessage(bread.translateString(Synergy.getConfig().getString("votifier.message")).replace("%SERVICE%", service));
         }
         
-    	Synergy.createSynergyEvent("announcement").setOption("message", "synergy-player-voted").setOption("argument", bread.getName()).send();
-    	Synergy.createSynergyEvent("discord-announcement").setOption("message", "synergy-player-voted").setOption("argument", bread.getName()).send();
+    	Synergy.createSynergyEvent("announcement").setOption("message", "<lang>synergy-player-voted</lang>").setOption("argument", bread.getName()).send();
+    	Synergy.createSynergyEvent("discord-announcement").setOption("message", "<lang>synergy-player-voted</lang>").setOption("argument", bread.getName()).send();
           
         for (String command : Synergy.getConfig().getStringList("votifier.rewards")) {
         	Synergy.executeConsoleCommand(command.replace("%PLAYER%", bread.getName()));

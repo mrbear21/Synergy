@@ -22,6 +22,7 @@ import me.synergy.commands.LanguageCommand;
 import me.synergy.commands.SynergyCommand;
 import me.synergy.commands.VoteCommand;
 import me.synergy.events.SynergyEvent;
+import me.synergy.handlers.LocalesListener;
 import me.synergy.handlers.MOTDListener;
 import me.synergy.handlers.PlaceholdersBreadDataListener;
 import me.synergy.handlers.PlaceholdersLocalesListener;
@@ -63,6 +64,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         new SynergyCommand().initialize();
         new VoteCommand().initialize();
         new LocalesManager().initialize();
+        new LocalesListener().initialize();
         new ChatManager().initialize();
         new Discord().initialize();
         new VoteListener().initialize();

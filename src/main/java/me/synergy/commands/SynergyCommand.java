@@ -1,9 +1,14 @@
 package me.synergy.commands;
 
-import me.synergy.brains.Synergy;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import me.synergy.brains.Synergy;
+import me.synergy.modules.LocalesManager;
+import me.synergy.utils.LangTagProcessor;
+import me.synergy.utils.Utils;
 
 public class SynergyCommand implements CommandExecutor {
 
@@ -26,6 +31,9 @@ public class SynergyCommand implements CommandExecutor {
                 }
                 sender.sendMessage("<lang>synergy-no-permission</lang>");
                 return true;
+            case "test":
+            	String input = LangTagProcessor.processLangTags("<lang>test</lang>", LocalesManager.getDefaultLanguage());
+            	Utils.sendFakeBook((Player) sender, "Colors", input);
         }
         return true;
     }

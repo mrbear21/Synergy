@@ -7,8 +7,21 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+
 import me.synergy.brains.Synergy;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 
 public class Utils {
     private String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -240,4 +253,50 @@ public class Utils {
         m.appendTail(result);
         return result.toString();
     }
+    
+	public static String replaceFirstAndLastQuotes(String input) {
+	    if (input == null || input.isEmpty() || input.length() < 2) {
+	        return input;
+	    }
+	    if (input.charAt(0) == '"') {
+	        input = input.substring(1);
+	    }
+	    int lastIndex = input.length() - 1;
+	    if (input.charAt(lastIndex) == '"') {
+	        input = input.substring(0, lastIndex);
+	    }
+	    return input;
+	}
+	
+    public static String convertToJsonIfNeeded(String input) {
+    	input = replaceFirstAndLastQuotes(input);
+        try {
+            JsonElement jsonElement = JsonParser.parseString(input);
+            if (jsonElement.isJsonObject() || jsonElement.isJsonArray()) {
+                return input;
+            }
+        } catch (JsonSyntaxException e) {
+        }
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("text", "");
+        JsonArray extraArray = new JsonArray();
+        extraArray.add(input);
+        jsonObject.add("extra", extraArray);
+        return jsonObject.toString();
+    }
+    
+    public static void sendFakeBook(Player player, String title, String... pages) {
+        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+        BookMeta meta = (BookMeta) book.getItemMeta();
+        meta.setTitle(title);
+        for (String pageContent : pages) {
+        	BaseComponent[] page = ComponentSerializer.parse(ColorTagProcessor.processColorTags(InteractiveTagProcessor.processInteractiveTags(pageContent)));
+            meta.spigot().addPage(page);
+        }
+        meta.setTitle("Message");
+        meta.setAuthor("synergy");
+        book.setItemMeta(meta);
+        player.openBook(book);
+    }
+    
 }

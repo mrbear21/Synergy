@@ -1,6 +1,8 @@
 package me.synergy.modules;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
@@ -43,10 +45,16 @@ public class ChatManager implements Listener, CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		
 		if (label.equalsIgnoreCase("colors")) {
-			ConfigurationSection tags = Synergy.getConfig().getConfigurationSection("chat-manager.custom-color-tags");
-			for (String t : tags.getKeys(false)) {
-				sender.sendMessage(Utils.processColors(t)+t);
-			}
+		    ConfigurationSection tags = Synergy.getConfig().getConfigurationSection("chat-manager.custom-color-tags");
+	        List<String> colors = new ArrayList<>();
+	        for (String t : tags.getKeys(false)) {
+	            colors.add(Synergy.getConfig().getString("chat-manager.custom-color-tags."+t)+t);
+	        }
+	        if (sender instanceof Player) {
+	            Utils.sendFakeBook((Player) sender, "Colors", new String[] {String.join("\n", colors)});
+	        } else {
+	            sender.sendMessage("Only the player can execute this command.");
+	        }
 		}
 		
 		if (label.equalsIgnoreCase("emojis")) {
@@ -66,7 +74,7 @@ public class ChatManager implements Listener, CommandExecutor {
 		        }
 		        String emoji = Synergy.getConfig().getString("chat-manager.custom-emojis."+e);
 		        int padding = maxEmojiLength - e.length() - emoji.length();
-		        messageBuilder.append(String.format("%s - %s%" + padding + "s", e, emoji, ""));
+		        messageBuilder.append(String.format("<lang>primary</lang>%s - <lang>secondary</lang>%s%" + padding + "s", e, emoji, ""));
 		        count++;
 		    }
 		    if (messageBuilder.length() > 0) {
@@ -180,7 +188,7 @@ public class ChatManager implements Listener, CommandExecutor {
 
         message = removeSynergyTranslationKeys(message);
         message = removeChatTypeSymbol(message);
-        message = message.replace("</lang>", "<lang>");
+        message = message.replace("<lang>", "").replace("</lang>", "");
         if (sender == null || !event.getBread().hasPermission("synergy.chat.color")) {
         	message = Utils.stripColorTags(message);
         }      
@@ -192,8 +200,7 @@ public class ChatManager implements Listener, CommandExecutor {
         format = format.replace("%CHAT%", String.valueOf(chatType.charAt(0)).toUpperCase());
         format = format.replace("%COLOR%", getChatColor(chatType));
         format = format.replace("%RANDOM%", String.valueOf(new Random().nextInt(99)));
-        format = Utils.processColors(format);
-        
+   
         return format;
     }
 

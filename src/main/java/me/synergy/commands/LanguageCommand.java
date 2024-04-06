@@ -1,7 +1,10 @@
 package me.synergy.commands;
 
 import me.synergy.brains.Synergy;
+import me.synergy.modules.LocalesManager;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.LangTagProcessor;
+import me.synergy.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,12 +48,13 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
     		bread.setData("language", args[0]);
     		bread.sendMessage(bread.translateString("synergy-selected-language").replace("%LANGUAGE%", args[0]));
     		return true;
-    	} else if (args[0].equalsIgnoreCase("auto")) {
+    	} else if (args.length > 0 && args[0].equalsIgnoreCase("auto")) {
     		bread.setData("language", null);
     		bread.sendMessage(bread.translateString("synergy-selected-language").replace("%LANGUAGE%", args[0]));
     		return true;
     	}
-		sender.sendMessage("<lang>synergy-command-usage</lang> /language "+languages);
+    	Utils.sendFakeBook((Player) sender, "Languages", new String[] { LangTagProcessor.processLangTags("<lang>synergy-languages</lang>", LocalesManager.getDefaultLanguage()) });
+		//sender.sendMessage("<lang>synergy-command-usage</lang> /language "+languages);
         return true;
     }
 }

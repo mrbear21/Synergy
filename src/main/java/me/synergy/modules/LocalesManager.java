@@ -14,28 +14,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.reflect.StructureModifier;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
 
 import me.synergy.brains.Synergy;
-import me.synergy.objects.BreadMaker;
-import me.synergy.utils.ColorTagProcessor;
-import me.synergy.utils.Utils;
+import me.synergy.utils.LangTagProcessor;
 import net.md_5.bungee.api.ChatColor;
 
-public class LocalesManager implements Listener {
+public class LocalesManager {
 
 	private static Map<String, HashMap<String, String>> LOCALES;
 	
@@ -49,113 +35,6 @@ public class LocalesManager implements Listener {
 			if (!Synergy.getConfig().getBoolean("localizations.enabled")) {
 				return;
 			}
-			if (!Synergy.isDependencyAvailable("ProtocolLib")) {
-				Synergy.getLogger().warning("ProtocolLib is required to initialize "+this.getClass().getSimpleName()+" module!");
-				return;
-			}
-			
-			Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
-
-			Synergy.getSpigot().getProtocolManager().addPacketListener(
-				    new PacketAdapter(Synergy.getSpigot(), ListenerPriority.MONITOR, PacketType.Play.Server.SET_SLOT, PacketType.Play.Server.WINDOW_ITEMS) {
-				        @Override
-				        public void onPacketSending(PacketEvent event) {
-				            PacketContainer packet = event.getPacket();
-				            BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
-				            String language = bread.getLanguage();
-				            
-				            if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
-				                ItemStack itemStack = packet.getItemModifier().read(0);
-				                if (itemStack != null) {
-				                    ItemMeta itemMeta = itemStack.getItemMeta();
-				                    if (itemMeta != null) {
-				                        String translate = itemMeta.getDisplayName() != null ? translateString(itemMeta.getDisplayName(), language) : itemMeta.getDisplayName();
-				                        itemMeta.setDisplayName(translate);
-				                        if (itemMeta.hasLore()) {
-				                            List<String> lore = itemMeta.getLore();
-				                            for (int i1 = 0; i1 < lore.size(); i1++) {
-				                                translate = translateString(lore.get(i1), language);
-				                                lore.set(i1, translate);
-				                            }
-				                            itemMeta.setLore(lore);
-				                        }
-				                        itemStack.setItemMeta(itemMeta);
-				                    }
-				                    packet.getItemModifier().write(0, itemStack);
-				                }
-				            } else if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
-				                StructureModifier<ItemStack[]> itemArrayModifier = packet.getItemArrayModifier();
-				                for (int i = 0; i < itemArrayModifier.size(); i++) {
-				                    ItemStack[] itemStacks = itemArrayModifier.read(i);
-				                    if (itemStacks != null) {
-				                        for (int j = 0; j < itemStacks.length; j++) {
-				                            ItemStack itemStack = itemStacks[j];
-				                            if (itemStack != null) {
-				                                ItemMeta itemMeta = itemStack.getItemMeta();
-				                                if (itemMeta != null) {
-				                                    String translate = itemMeta.getDisplayName() != null ? translateString(itemMeta.getDisplayName(), language) : itemMeta.getDisplayName();
-				                                    itemMeta.setDisplayName(translate);
-				                                    if (itemMeta.hasLore()) {
-				                                        List<String> lore = itemMeta.getLore();
-				                                        for (int i1 = 0; i1 < lore.size(); i1++) {
-				                                            translate = translateString(lore.get(i1), language);
-				                                            lore.set(i1, translate);
-				                                        }
-				                                        itemMeta.setLore(lore);
-				                                    }
-				                                    itemStack.setItemMeta(itemMeta);
-				                                }
-				                            }
-				                        }
-				                    }
-				                    packet.getItemArrayModifier().write(i, itemStacks);
-				                }
-				            }
-				        }
-				    }
-				);
-
-
-			Synergy.getSpigot().getProtocolManager().addPacketListener(
-				    new PacketAdapter(Synergy.getSpigot(), ListenerPriority.MONITOR, PacketType.Play.Server.SYSTEM_CHAT) {
-				        @Override
-				        public void onPacketSending(PacketEvent event) {
-				            try {
-				                PacketContainer packet = event.getPacket();
-				                BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
-				                String language = bread.getLanguage();
-		                        if (getLocales().get(language) != null) {
-					                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
-					                for (WrappedChatComponent component : components) {
-					                    if (component != null) {
-					                    	
-					                    	component.setJson(processLangTags(component.getJson(), language));
-
-					                    	//Synergy.getLogger().info("BEFORE: "+component.getJson());
-					                    	
-					                    	try {
-						                    	component.setJson(ColorTagProcessor.processColorTags(component.getJson()));
-					                    	} catch (Exception c) {
-					                    		c.printStackTrace();
-					                    	}
-					                    	//Synergy.getLogger().info("AFTER: "+component.getJson());
-					                    	
-					                    	component.setJson(Utils.processColors(component.getJson()));
-					                    	
-					                    	
-					                        packet.getChatComponents().write(components.indexOf(component), component);    
-				                        }
-				                    }
-				                }
-		                        
-		                       
-		                        
-				            } catch (Exception e) {
-				                e.printStackTrace();
-				            }
-				        }
-				    }
-				);
 
 			Synergy.getLogger().info(this.getClass().getSimpleName()+" module has been initialized!");
 		} catch (Exception c) {
@@ -194,42 +73,10 @@ public class LocalesManager implements Listener {
 
 	public static String translateStringColorStripped(String string, String defaultLanguage) {
 
-		return removeColorCodes(ChatColor.stripColor(processLangTags(string, defaultLanguage)));
+		return removeColorCodes(ChatColor.stripColor(LangTagProcessor.processLangTags(string, defaultLanguage)));
 	}
 	
-    public static String processLangTags(String input, String language) {
-        String keyPattern = "<lang>(.*?)</lang>";
-        Pattern pattern = Pattern.compile(keyPattern);
-        Matcher matcher = pattern.matcher(input);
 
-        StringBuffer outputBuffer = new StringBuffer();
-        boolean found = false;
-        while (matcher.find()) {
-            found = true;
-            String translationKeyWithArgs = matcher.group(1);
-            String translationKey = translationKeyWithArgs.replaceAll("<arg>(.*?)</arg>", "");
-            HashMap<String, String> locales = LocalesManager.getLocales().getOrDefault(language, new HashMap<>());
-            String translatedText = locales.getOrDefault(translationKey, getLocales().get(getDefaultLanguage()).getOrDefault(translationKey, translationKey));
-            if (translatedText != null) {
-                String argsPattern = "<arg>(.*?)</arg>";
-                Pattern argsPatternPattern = Pattern.compile(argsPattern);
-                Matcher argsMatcher = argsPatternPattern.matcher(translationKeyWithArgs);
-                while (argsMatcher.find()) {
-                    String arg = argsMatcher.group(1);
-                    translatedText = translatedText.replaceFirst("%ARGUMENT%", arg);
-                }
-                matcher.appendReplacement(outputBuffer, translatedText);
-            }
-        }
-        matcher.appendTail(outputBuffer);
-        
-        if (found) {
-            return processLangTags(outputBuffer.toString(), language);
-        } else {
-            return outputBuffer.toString();
-        }
-    }
-	
 	public void loadLocales() {
 		
 		LOCALES = new HashMap<String, HashMap<String, String>>();

@@ -3,6 +3,7 @@ package me.synergy.objects;
 import java.util.UUID;
 
 import me.synergy.brains.Synergy;
+import me.synergy.modules.LocalesManager;
 
 public class BreadMaker {
 
@@ -13,10 +14,10 @@ public class BreadMaker {
 	}
 
 	public String getLanguage() {
-		if (Synergy.getDataManager().getConfig().isSet("players."+getUniqueId()+".language")) {
-			return Synergy.getDataManager().getConfig().getString("players."+getUniqueId()+".language");
+		if (getData("language").isSet()) {
+			return getData("language").getAsString();
 		}
-		if (Synergy.isSpigot()) {
+		if (Synergy.isSpigot() && isOnline()) {
 			return Synergy.getSpigot().getPlayerLanguage(getUniqueId());
 		}
 		return Synergy.getConfig().getString("localizations.default-language", "en");
@@ -31,7 +32,7 @@ public class BreadMaker {
 	}
 	
     public String translateStringColorStripped(String string) {
-    	return Synergy.isSpigot() ? Synergy.getLocalesManager().translateStringColorStripped(string, getLanguage()) : string;
+    	return Synergy.isSpigot() ? LocalesManager.translateStringColorStripped(string, getLanguage()) : string;
     }
 	
 	public UUID getUniqueId() {
