@@ -85,7 +85,8 @@ public class Config {
 
             addDefault("web-server.enabled", false);
             addDefault("web-server.domain", "example.com");
-            addDefault("web-server.custom-texturepacks", false);
+            addDefault("web-server.custom-texturepack", false);
+            addDefault("web-server.custom-texturepack-file", "example.zip");
             addDefault("web-server.port", 8153);
             
             addDefault("votifier.enabled", false);

@@ -47,7 +47,7 @@ public class PlaceholdersLocalesListener extends PlaceholderExpansion {
 		if (locales != null && locales.containsKey(identifier)) {
 			return locales.get(identifier);
 		}*/
-		return Synergy.getBread(p.getUniqueId()).translateString(identifier);
+		return Synergy.getBread(p.getUniqueId()).translateString("<lang>"+identifier+"</lang>");
 	}
 
 }

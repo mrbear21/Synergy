@@ -40,10 +40,6 @@ public class Synergy {
         return Boolean.valueOf(platform.equals("velocity"));
     }
 
-    public static String translateString(String string) {
-        return isSpigot() ? LocalesManager.translateString(string, LocalesManager.getDefaultLanguage()) : string;
-    }
-    
     public static String translateStringColorStripped(String string) {
     	return isSpigot() ? LocalesManager.translateStringColorStripped(string, LocalesManager.getDefaultLanguage()) : string;
     }

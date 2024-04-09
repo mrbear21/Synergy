@@ -22,7 +22,8 @@ public class LangTagProcessor {
 	            String translationKeyWithArgs = matcher.group(1);
 	            String translationKey = translationKeyWithArgs.replaceAll("<arg>(.*?)</arg>", "");
 	            HashMap<String, String> locales = LocalesManager.getLocales().getOrDefault(language, new HashMap<>());
-	            String translatedText = locales.getOrDefault(translationKey, LocalesManager.getLocales().get(LocalesManager.getDefaultLanguage()).getOrDefault(translationKey, translationKey));
+	            String defaultTranslation = LocalesManager.getLocales().get(LocalesManager.getDefaultLanguage()).getOrDefault(translationKey, translationKey);
+	            String translatedText = locales.getOrDefault(translationKey, defaultTranslation);;
 	            if (translatedText != null) {
 	                String argsPattern = "<arg>(.*?)</arg>";
 	                Pattern argsPatternPattern = Pattern.compile(argsPattern);
@@ -45,7 +46,11 @@ public class LangTagProcessor {
     		Synergy.getLogger().error(c.getLocalizedMessage());
     	}
     	
-    	return input.replaceAll("<lang>(.*?)</lang>", "");
+    	return removeLangTags(input);
+    }
+    
+    public static String removeLangTags(String string) {
+    	return string.replaceAll("<lang>(.*?)</lang>", "");
     }
     
 }

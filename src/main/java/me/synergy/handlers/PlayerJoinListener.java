@@ -1,5 +1,6 @@
 package me.synergy.handlers;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -7,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
@@ -14,10 +16,19 @@ import me.synergy.modules.WebServer;
 
 public class PlayerJoinListener implements Listener {
 
+	private static HashMap<UUID, Long> PLAYERS = new HashMap<UUID, Long>();
+	
     public void initialize() {
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
     }
 
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+    	if (PLAYERS.containsKey(event.getPlayer().getUniqueId()) && System.currentTimeMillis() - PLAYERS.get(event.getPlayer().getUniqueId()) < 1000) {
+    		event.getPlayer().performCommand("spawn");
+    	}
+    }
+    
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
@@ -55,9 +66,12 @@ public class PlayerJoinListener implements Listener {
         	Synergy.getDiscord().addVerifiedRole(Synergy.getDiscord().getDiscordIdByUniqueId(uuid));
         }
         
-        if (Synergy.getConfig().getBoolean("web-server.custom-texturepacks")) {
-        	event.getPlayer().setResourcePack(WebServer.getFullAddress()+"merged_pack.zip");
+        if (Synergy.getConfig().getBoolean("web-server.custom-texturepack")) {
+        	String address = WebServer.getFullAddress()+"/resourcepack/"+Synergy.getConfig().getString("web-server.custom-texturepack-file");
+        	event.getPlayer().setResourcePack(address);
         }
-        
+
+    	PLAYERS.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
+
     }
 }

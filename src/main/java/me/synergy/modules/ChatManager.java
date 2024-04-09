@@ -26,6 +26,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.LangTagProcessor;
 import me.synergy.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 
@@ -48,7 +49,8 @@ public class ChatManager implements Listener, CommandExecutor {
 		    ConfigurationSection tags = Synergy.getConfig().getConfigurationSection("chat-manager.custom-color-tags");
 	        List<String> colors = new ArrayList<>();
 	        for (String t : tags.getKeys(false)) {
-	            colors.add(Synergy.getConfig().getString("chat-manager.custom-color-tags."+t)+t);
+	        	String color = Synergy.getConfig().getString("chat-manager.custom-color-tags."+t);
+	            colors.add(color+String.join(color, t.split("")));
 	        }
 	        if (sender instanceof Player) {
 	            Utils.sendFakeBook((Player) sender, "Colors", new String[] {String.join("\n", colors)});
@@ -107,7 +109,7 @@ public class ChatManager implements Listener, CommandExecutor {
             if (removeChatTypeSymbol(event.getMessage()).toLowerCase().startsWith(botName.toLowerCase()) && getChatTypeFromMessage(event.getMessage()).equals("global")) {
                 String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Utils.removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
                 String answer = ((CompletionChoice)(new OpenAi()).newPrompt(question).get(0)).getText().replace("\"", "").trim();
-                answer = answer.isEmpty() ? Synergy.translateString("synergy-service-unavailable") : answer;
+                answer = answer.isEmpty() ? LangTagProcessor.processLangTags("<lang>synergy-service-unavailable</lang>", LocalesManager.getDefaultLanguage()) : answer;
                 Synergy.createSynergyEvent("chat").setOption("player", botName).setOption("message", answer).setOption("chat", "discord").send();
                 Synergy.createSynergyEvent("discord").setOption("player", botName).setOption("message", answer).setOption("chat", "global").send();
             }
@@ -145,7 +147,7 @@ public class ChatManager implements Listener, CommandExecutor {
 	                    break;
 	                case "local":
 	                    Player sender = Bukkit.getPlayer(uuid);
-	                    if (sender != null && sender.getLocation().distance(recipient.getLocation()) <= getLocalChatRadius()) {
+	                    if (sender != null && sender.getWorld() == recipient.getWorld() && sender.getLocation().distance(recipient.getLocation()) <= getLocalChatRadius()) {
 	                        recipient.sendMessage(format);
 	                        playMsgSound(recipient);
 	                    }

@@ -48,7 +48,7 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
     		return true;
     	}
         if (args.length == 0) {
-        	bread.sendMessage(bread.translateString("synergy-discord-invite").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	bread.sendMessage(bread.translateString("<lang>synergy-discord-invite</lang>").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
             return true;
         }
         switch (args[0]) {

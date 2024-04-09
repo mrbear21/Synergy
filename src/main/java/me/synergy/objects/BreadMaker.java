@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import me.synergy.brains.Synergy;
 import me.synergy.modules.LocalesManager;
+import me.synergy.utils.LangTagProcessor;
 
 public class BreadMaker {
 
@@ -28,7 +29,7 @@ public class BreadMaker {
 	}
 	
 	public String translateString(String string) {
-		return Synergy.isSpigot() ? Synergy.getLocalesManager().translateString(string, getLanguage()) : string;
+		return Synergy.isSpigot() ? LangTagProcessor.processLangTags(string, getLanguage()) : string;
 	}
 	
     public String translateStringColorStripped(String string) {

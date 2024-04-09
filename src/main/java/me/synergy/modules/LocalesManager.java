@@ -2,22 +2,16 @@ package me.synergy.modules;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 
 import me.synergy.brains.Synergy;
+import me.synergy.utils.ColorTagProcessor;
 import me.synergy.utils.LangTagProcessor;
 import net.md_5.bungee.api.ChatColor;
 
@@ -25,8 +19,7 @@ public class LocalesManager {
 
 	private static Map<String, HashMap<String, String>> LOCALES;
 	
-	public LocalesManager() {
-	}
+	public LocalesManager() {}
 
 	public void initialize() {
 		try {
@@ -42,41 +35,11 @@ public class LocalesManager {
 			c.printStackTrace();
 		}
     }
-
-	@Deprecated
-	public static String translateString(String string, String language) {
-		if (Synergy.getConfig().getBoolean("localizations.enabled")) {
-			for (String lang : new String[] {language, getDefaultLanguage()}) {
-				HashMap<String, String> locales = getLocales().get(lang);
-				locales = locales.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByKey())).collect(Collectors.toMap(
-		                Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new ));
-				
-				for (Entry<String, String> locale : locales.entrySet()) {
-					string = string.replace(locale.getKey(), locale.getValue());
-				}
-			}
-		}
-		string = string.replace("%nl%", System.lineSeparator());
-		string = string.replace("%RANDOM%", String.valueOf(new Random().nextInt(99)));
-		
-		return string;
-	}
 	
-    public static String removeColorCodes(String text) {
-        String pattern = "<#[0-9A-Fa-f]{6}>";
-        Pattern p = Pattern.compile(pattern);
-        Matcher m = p.matcher(text);
-        String result = m.replaceAll("");
-        
-        return result;
-    }
-
 	public static String translateStringColorStripped(String string, String defaultLanguage) {
-
-		return removeColorCodes(ChatColor.stripColor(LangTagProcessor.processLangTags(string, defaultLanguage)));
+		return ColorTagProcessor.removeColorTags(ChatColor.stripColor(LangTagProcessor.processLangTags(string, defaultLanguage)));
 	}
 	
-
 	public void loadLocales() {
 		
 		LOCALES = new HashMap<String, HashMap<String, String>>();
@@ -124,8 +87,6 @@ public class LocalesManager {
 	                    translationMap.put(key, combinedTranslations);
 	                    count++;
 	                    getLocales().put(language, translationMap);
-	                } else {
-	                    // Other types
 	                }
 	            }
 	        }
