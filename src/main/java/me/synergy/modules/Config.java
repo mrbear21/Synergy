@@ -90,7 +90,6 @@ public class Config {
             addDefault("web-server.port", 8153);
             
             addDefault("votifier.enabled", false);
-            addDefault("votifier.message", "synergy-voted-successfully");
             addDefault("votifier.rewards", new String[] {"eco give %PLAYER% 1"});
             addDefault("votifier.monitorings", new String[] {"https://example.com/vote/example"});
             

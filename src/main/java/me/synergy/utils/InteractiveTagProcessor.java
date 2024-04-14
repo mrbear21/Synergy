@@ -113,7 +113,6 @@ public class InteractiveTagProcessor {
             pattern = Pattern.compile("<command>(.*?)</command>");
             matcher = pattern.matcher(interactivePart);
             if (matcher.find()) {
-            	Synergy.getLogger().info(matcher.group(1));
             	commmandEvent.addProperty("action", "run_command");
                 commmandEvent.addProperty("value", matcher.group(1));
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");

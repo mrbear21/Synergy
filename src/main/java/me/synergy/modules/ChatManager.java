@@ -90,31 +90,38 @@ public class ChatManager implements Listener, CommandExecutor {
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
+		
+		BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
+		
+		if (bread.isMuted()) {
+        	return;
+		}
 
-        if (!event.isCancelled()) {
-            event.setCancelled(true);
-
-            if (removeChatTypeSymbol(event.getMessage()).isEmpty()) {
-            	event.getPlayer().sendMessage("<lang>synergy-message-cant-be-empty</lang>");
-            	return;
-            }
-            
-            Synergy.createSynergyEvent("chat").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer()
-            		.getName()).setOption("message", event.getMessage()).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
-            
-            Synergy.createSynergyEvent("discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer().getName())
-	            .setOption("message", Utils.stripColorTags(event.getMessage())).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
-            
-            String botName = Synergy.getDiscord().getBotName();
-            if (removeChatTypeSymbol(event.getMessage()).toLowerCase().startsWith(botName.toLowerCase()) && getChatTypeFromMessage(event.getMessage()).equals("global")) {
-                String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Utils.removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
-                String answer = ((CompletionChoice)(new OpenAi()).newPrompt(question).get(0)).getText().replace("\"", "").trim();
-                answer = answer.isEmpty() ? LangTagProcessor.processLangTags("<lang>synergy-service-unavailable</lang>", LocalesManager.getDefaultLanguage()) : answer;
-                Synergy.createSynergyEvent("chat").setOption("player", botName).setOption("message", answer).setOption("chat", "discord").send();
-                Synergy.createSynergyEvent("discord").setOption("player", botName).setOption("message", answer).setOption("chat", "global").send();
-            }
+        if (removeChatTypeSymbol(event.getMessage()).isEmpty()) {
+        	event.getPlayer().sendMessage("<lang>synergy-message-cant-be-empty</lang>");
+        	return;
         }
-	
+
+        if (event.isCancelled()) { 
+        	return;
+        }
+        
+        Synergy.createSynergyEvent("chat").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer()
+        		.getName()).setOption("message", event.getMessage()).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
+        
+        Synergy.createSynergyEvent("discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer().getName())
+            .setOption("message", Utils.stripColorTags(event.getMessage())).setOption("chat", getChatTypeFromMessage(event.getMessage())).send();
+        
+        String botName = Synergy.getDiscord().getBotName();
+        if (removeChatTypeSymbol(event.getMessage()).toLowerCase().startsWith(botName.toLowerCase()) && getChatTypeFromMessage(event.getMessage()).equals("global")) {
+            String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Utils.removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
+            String answer = ((CompletionChoice)(new OpenAi()).newPrompt(question).get(0)).getText().replace("\"", "").trim();
+            answer = answer.isEmpty() ? LangTagProcessor.processLangTags("<lang>synergy-service-unavailable</lang>", LocalesManager.getDefaultLanguage()) : answer;
+            Synergy.createSynergyEvent("chat").setOption("player", botName).setOption("message", answer).setOption("chat", "discord").send();
+            Synergy.createSynergyEvent("discord").setOption("player", botName).setOption("message", answer).setOption("chat", "global").send();
+        }
+        
+        event.setCancelled(true);
     }
 
     @EventHandler

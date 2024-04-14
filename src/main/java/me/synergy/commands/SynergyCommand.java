@@ -11,7 +11,7 @@ public class SynergyCommand implements CommandExecutor {
     public void initialize() {
         Synergy.getSpigot().getCommand("synergy").setExecutor(this);
     }
-
+    
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         switch (args[0]) {
             case "reload":
@@ -27,6 +27,9 @@ public class SynergyCommand implements CommandExecutor {
                 }
                 sender.sendMessage("<lang>synergy-no-permission</lang>");
                 return true;
+            case "action":
+            	
+            	return true;
         }
         return true;
     }

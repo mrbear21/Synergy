@@ -44,20 +44,23 @@ public class LocalesListener implements Listener {
 			                PacketContainer packet = event.getPacket();
 			                BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
 			                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
+
+		                    Synergy.getLogger().info("Received action bar message from player: " + event.getPacket().getStrings());
+		                    
 			                for (WrappedChatComponent component : components) {
 		                    	try {
 			                    	if (component.getJson().contains("<lang>")) {
 			                    		component.setJson(LangTagProcessor.processLangTags(component.getJson(), bread.getLanguage()));
 			                    	}
+			                    	//Synergy.getLogger().info("BEFORE: "+component.getJson());
 			                    	if (component.getJson().contains("<interactive>")) {
 			                    		component.setJson(InteractiveTagProcessor.processInteractiveTags(component.getJson(), bread));
 			                    	}
 			                    	if (component.getJson().contains("<#")) {
+			                    		//component.setJson(Utils.applyGradient(component.getJson()));
 			                    		component.setJson(ColorTagProcessor.processColorTags(component.getJson()));
 			                    	}
 			                    	component.setJson(Utils.processColors(component.getJson()));
-
-			                    	//Synergy.getLogger().info("BEFORE: "+component.getJson());
 			                    	//Synergy.getLogger().info("AFTER: "+component.getJson());
 		                    	} catch (Exception c) {
 		                    		c.printStackTrace();
@@ -70,6 +73,20 @@ public class LocalesListener implements Listener {
 			        }
 			    }
 			);	
+			/*
+			Synergy.getSpigot().getProtocolManager().addPacketListener(
+			    new PacketAdapter(Synergy.getSpigot(), ListenerPriority.MONITOR, PacketType.Play.Server.SYSTEM_CHAT) {
+				        @Override
+				        public void onPacketSending(PacketEvent event) {
+				            try {
+				            	StructureModifier<String> action = event.getPacket().getStrings();
+				            } catch (Exception e) {
+				                Synergy.getLogger().error(e.getMessage());
+				            }
+				        }
+				    }
+				);	
+			*/
 			Synergy.getLogger().info(this.getClass().getSimpleName()+" module has been initialized!");
 		} catch (Exception c) {
 			Synergy.getLogger().error(this.getClass().getSimpleName()+" module failed to initialize:");

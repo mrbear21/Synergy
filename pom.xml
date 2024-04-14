@@ -85,6 +85,10 @@
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
+	    <repository>
+	        <id>essentials-releases</id>
+	        <url>https://repo.essentialsx.net/releases/</url>
+	    </repository>
 	</repositories>
 	<dependencies>
 		<dependency>
@@ -143,5 +147,11 @@
 			<version>1.7.1</version>
 			<scope>provided</scope>
 		</dependency>
+	    <dependency>
+	        <groupId>net.essentialsx</groupId>
+	        <artifactId>EssentialsX</artifactId>
+	        <version>2.20.1</version>
+	        <scope>provided</scope>
+	    </dependency>
 	</dependencies>
 </project>

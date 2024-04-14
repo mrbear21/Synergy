@@ -27,6 +27,7 @@ import me.synergy.handlers.MOTDListener;
 import me.synergy.handlers.PlaceholdersBreadDataListener;
 import me.synergy.handlers.PlaceholdersLocalesListener;
 import me.synergy.handlers.PlayerJoinListener;
+import me.synergy.handlers.ResourcePackHandler;
 import me.synergy.handlers.VoteListener;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
@@ -74,6 +75,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         new PlayerJoinListener().initialize();
         new LanguageCommand().initialize();
         new WebServer().initialize();
+        new ResourcePackHandler().initialize();
         
         setupEconomy();
         setupPermissions();
@@ -205,5 +207,5 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 	public boolean playerHasPermission(UUID uniqueId, String node) {
 		return getPlayerByUniqueId(uniqueId) == null ? false : getPlayerByUniqueId(uniqueId).hasPermission(node);
 	}
-
+	
 }

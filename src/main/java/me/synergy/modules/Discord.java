@@ -74,7 +74,7 @@ public class Discord {
                         customStatusText = PlaceholderAPI.setPlaceholders(null, customStatusText);
                     }
                     Discord.JDA.getPresence().setActivity(Activity.customStatus(customStatusText));
-                }, 0, 30, TimeUnit.SECONDS);
+                }, 0, 5, TimeUnit.MINUTES);
             }
 
             new DiscordListener().updateCommands();

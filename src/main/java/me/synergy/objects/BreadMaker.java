@@ -3,6 +3,7 @@ package me.synergy.objects;
 import java.util.UUID;
 
 import me.synergy.brains.Synergy;
+import me.synergy.modules.EssentialsAPI;
 import me.synergy.modules.LocalesManager;
 import me.synergy.utils.LangTagProcessor;
 
@@ -38,6 +39,10 @@ public class BreadMaker {
 	
 	public UUID getUniqueId() {
 		return uuid;
+	}
+	
+	public boolean isMuted() {
+		return EssentialsAPI.essentialsIsPlayerMuted(getName());
 	}
 	
 	public String getName() {

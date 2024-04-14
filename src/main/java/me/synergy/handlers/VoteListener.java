@@ -42,7 +42,7 @@ public class VoteListener implements Listener {
         BreadMaker bread = event.getBread();
         
         if (bread.isOnline()) {
-        	bread.sendMessage(bread.translateString(Synergy.getConfig().getString("votifier.message")).replace("%SERVICE%", service));
+        	bread.sendMessage(bread.translateString("<lang>synergy-voted-successfully</lang>").replace("%SERVICE%", service));
         }
         
     	Synergy.createSynergyEvent("announcement").setOption("message", "<lang>synergy-player-voted</lang>").setOption("argument", bread.getName()).send();

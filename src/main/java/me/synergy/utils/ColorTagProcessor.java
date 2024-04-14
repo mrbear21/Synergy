@@ -72,6 +72,9 @@ public class ColorTagProcessor {
         if (specialTags.size() == 0) {
             JsonObject obj = new JsonObject();
             obj.addProperty("text", text);
+            if (lastColor != null) {
+            	obj.addProperty("color", lastColor.substring(1, lastColor.length() - 1));
+            }
             inheritProperties(object, obj);
             dividedExtra.add(obj);
         } else {

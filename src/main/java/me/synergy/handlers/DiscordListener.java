@@ -1,6 +1,8 @@
 package me.synergy.handlers;
 
 import java.awt.Color;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -18,8 +20,11 @@ import com.velocitypowered.api.event.Subscribe;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.events.SynergyVelocityEvent;
+import me.synergy.modules.LocalesManager;
 import me.synergy.modules.OpenAi;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.ColorTagProcessor;
+import me.synergy.utils.LangTagProcessor;
 import me.synergy.utils.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
@@ -184,6 +189,11 @@ public class DiscordListener extends ListenerAdapter implements Listener {
                 	event.getChannel().sendMessageEmbeds(warning(Synergy.translateStringColorStripped("<lang>synergy-you-have-to-link-account</lang>"))).queue();
                     return;
                 }
+                if (Synergy.getBread(uuid).isMuted()) {
+                	event.getMessage().replyEmbeds(warning(LocalesManager.translateStringColorStripped("<lang>synergy-you-are-muted</lang>", LocalesManager.getDefaultLanguage()))).queue();
+                	return;
+                }
+                
 	            Synergy.createSynergyEvent("chat").setPlayerUniqueId(uuid).setOption("player", event.getAuthor().getEffectiveName())
 	            	.setOption("chat", "discord").setOption("message", message.getContentDisplay()).send();
         
@@ -408,10 +418,19 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 	}
 
     public void vote(SlashCommandInteractionEvent event) {
-    	BreadMaker bread = Synergy.getBread(Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()));
+    	String language = Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId()) != null ? Synergy.getBread(Synergy.getDiscord().getUniqueIdByDiscordId(event.getUser().getId())).getLanguage() : LocalesManager.getDefaultLanguage();
         EmbedBuilder embed = new EmbedBuilder();
-        embed.setTitle(ChatColor.stripColor(Utils.processColors(bread.translateStringColorStripped("<lang>synergy-vote-monitorings</lang>"))));
-        embed.setDescription(bread.translateStringColorStripped(String.join("\n", Synergy.getConfig().getStringList("votifier.monitorings"))));
+        embed.setTitle(Utils.removeColorCodes(ColorTagProcessor.removeColorTags(LangTagProcessor.processLangTags("<lang>synergy-vote-monitorings</lang>",language))));
+        StringBuilder links = new StringBuilder();
+        for (String link : Synergy.getConfig().getStringList("votifier.monitorings")) {
+        	try {
+            	String domain = new URI(link).getHost();
+        		String format = LangTagProcessor.processLangTags("<lang>synergy-vote-monitorings-format<arg>"+domain.replace("www.", "")+"</arg></lang>", language);
+        		format = Utils.removeColorCodes(ColorTagProcessor.removeColorTags(format));
+				links.append("["+format+"]("+link+")\n");
+			} catch (URISyntaxException e) {e.printStackTrace();}
+        }
+        embed.setDescription(links);
         embed.setColor(Color.decode("#f1c40f"));
         event.replyEmbeds(embed.build()).queue();
     }

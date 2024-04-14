@@ -12,7 +12,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
-import me.synergy.modules.WebServer;
 
 public class PlayerJoinListener implements Listener {
 
@@ -64,11 +63,6 @@ public class PlayerJoinListener implements Listener {
 
         if (Synergy.getDiscord().getDiscordIdByUniqueId(uuid) != null) {
         	Synergy.getDiscord().addVerifiedRole(Synergy.getDiscord().getDiscordIdByUniqueId(uuid));
-        }
-        
-        if (Synergy.getConfig().getBoolean("web-server.custom-texturepack")) {
-        	String address = WebServer.getFullAddress()+"/resourcepack/"+Synergy.getConfig().getString("web-server.custom-texturepack-file");
-        	event.getPlayer().setResourcePack(address);
         }
 
     	PLAYERS.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());

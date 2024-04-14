@@ -45,7 +45,7 @@ public class PlaceholdersBreadDataListener extends PlaceholderExpansion {
 	@Override
 	public String onPlaceholderRequest(Player p, String identifier) {
 		BreadMaker bread = Synergy.getBread(p.getUniqueId());
-		return bread.getData(identifier).getAsString();
+		return bread.getData(identifier).isSet() ? bread.getData(identifier).getAsString() : "none";
 	}
 
 }
