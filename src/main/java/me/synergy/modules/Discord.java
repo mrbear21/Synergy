@@ -1,5 +1,6 @@
 package me.synergy.modules;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -181,12 +182,16 @@ public class Discord {
         try {
 	    	if (getUniqueIdByDiscordId(member.getId()) != null) {
 		        UUID uuid = getUniqueIdByDiscordId(member.getId());
-		        Synergy.createSynergyEvent("clear-player-group").setPlayerUniqueId(uuid).setWaitForPlayerIfOffline(true).send();
-		        for (Role r: member.getRoles()) {
-		            String group = getGroupByRoleId(r.getId());
-		            if (group != null && uuid != null) {
-		                Synergy.createSynergyEvent("set-player-group").setPlayerUniqueId(uuid).setOption("group" ,group).setWaitForPlayerIfOffline(true).send();
+		        if (uuid != null) {
+			        for (String group : getGroups()) {
+				        Synergy.createSynergyEvent("remove-player-group").setPlayerUniqueId(uuid).setOption("group", group).setWaitForPlayerIfOffline(true).send();
 		            }
+			        for (Role r: member.getRoles()) {
+			            String group = getGroupByRoleId(r.getId());
+			            if (group != null) {
+			                Synergy.createSynergyEvent("set-player-group").setPlayerUniqueId(uuid).setOption("group", group).setWaitForPlayerIfOffline(true).send();
+			            }
+			        }
 		        }
 	    	}
         } catch (Exception c) {
@@ -210,6 +215,17 @@ public class Discord {
             }
         }
         return null;
+    }
+    
+    public List<String> getGroups() {
+        ConfigurationSection roles = Synergy.getConfig().getConfigurationSection("discord.synchronization.roles");
+        List<String> groups = new ArrayList<String>();
+        for (String r: roles.getKeys(false)) {
+            if (Synergy.getConfig().getString("discord.synchronization.roles." + r).length() == 19) {
+            	groups.add(r);
+            }
+        }
+        return groups;
     }
     
     public void addVerifiedRole(String discordId) {

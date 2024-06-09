@@ -45,7 +45,7 @@ public class LocalesListener implements Listener {
 			                BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
 			                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
 
-		                    Synergy.getLogger().info("Received action bar message from player: " + event.getPacket().getStrings());
+		                    //Synergy.getLogger().info("Received action bar message from player: " + event.getPacket().getStrings());
 		                    
 			                for (WrappedChatComponent component : components) {
 		                    	try {
@@ -56,6 +56,9 @@ public class LocalesListener implements Listener {
 			                    	if (component.getJson().contains("<interactive>")) {
 			                    		component.setJson(InteractiveTagProcessor.processInteractiveTags(component.getJson(), bread));
 			                    	}
+			                    	
+			                    	component.setJson(ColorTagProcessor.processThemeTags(component.getJson(), bread.getTheme()));
+			                    	
 			                    	if (component.getJson().contains("<#")) {
 			                    		//component.setJson(Utils.applyGradient(component.getJson()));
 			                    		component.setJson(ColorTagProcessor.processColorTags(component.getJson()));

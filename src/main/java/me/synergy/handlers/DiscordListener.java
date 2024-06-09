@@ -124,7 +124,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
                 builder.setAuthor(displayname, null, Synergy.getDiscord().getBotName().equals(displayname) ? Synergy.getDiscord().getJda().getSelfUser().getAvatarUrl() : ("https://minotar.net/helm/" + displayname));
                 builder.setTitle(Synergy.getChatManager().removeChatTypeSymbol(part), null);
                 if (logchat.length() == 19)
-                	Synergy.getDiscord().getJda().getTextChannelById(logchat).sendMessage("```[" + Synergy.getChatManager().getChatTypeFromMessage(message) + "] " + displayname + ": " + part + "```").queue();
+                	Synergy.getDiscord().getJda().getTextChannelById(logchat).sendMessage("```[" + chat + "] " + displayname + ": " + part + "```").queue();
                 if (globalchat.length() == 19 && chat.equals("global")) {
                     builder.setColor(Color.decode("#f1c40f"));
                     Synergy.getDiscord().getJda().getTextChannelById(globalchat).sendMessageEmbeds(builder.build()).queue();
@@ -144,18 +144,16 @@ public class DiscordListener extends ListenerAdapter implements Listener {
         	Synergy.getDiscord().syncRolesFromDiscordToMc(event.getPlayerUniqueId());
         }
 
-        if (event.getIdentifier().equals("clear-player-group")) {
-            if (Synergy.getConfig().getBoolean("discord.synchronization.use-vault")) {
-                for (String g: Synergy.getSpigot().getPermissions().getPlayerGroups(Bukkit.getPlayer(event.getPlayerUniqueId()))) {
-                    Synergy.getSpigot().getPermissions().playerRemoveGroup(Bukkit.getPlayer(event.getPlayerUniqueId()), g);
-                }
+        if (event.getIdentifier().equals("remove-player-group")) {
+            if (Synergy.isDependencyAvailable("Vault") && Synergy.getConfig().getBoolean("discord.synchronization.use-vault")) {
+            	Synergy.getSpigot().getPermissions().playerRemoveGroup(Bukkit.getPlayer(event.getPlayerUniqueId()), event.getOption("group").getAsString());
             } else {
-                Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Synergy.getConfig().getString("discord.synchronization.custom-command-remove").replace("%PLAYER%", event.getBread().getName()));
+                Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Synergy.getConfig().getString("discord.synchronization.custom-command-remove").replace("%PLAYER%", event.getBread().getName()).replace("%GROUP%", event.getOption("group").getAsString()));
             }
         }
 
         if (event.getIdentifier().equals("set-player-group")) {
-            if (Synergy.getConfig().getBoolean("discord.synchronization.use-vault")) {
+            if (Synergy.isDependencyAvailable("Vault") && Synergy.getConfig().getBoolean("discord.synchronization.use-vault")) {
                 Synergy.getSpigot().getPermissions().playerAddGroup(Bukkit.getPlayer(event.getPlayerUniqueId()), event.getOption("group").getAsString());
             } else {
                 Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), Synergy.getConfig().getString("discord.synchronization.custom-command-add").replace("%PLAYER%", event.getBread().getName()).replace("%GROUP%", event.getOption("group").getAsString()));
@@ -326,7 +324,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
             
             Synergy.getDataManager().setData("players."+uuid+".confirm-discord", event.getUser().getId());
             event.replyEmbeds(info(bread.translateStringColorStripped("<lang>synergy-link-minecraft-confirmation</lang>"))).setEphemeral(true).queue();
-            bread.sendMessage(bread.translateString("synergy-link-discord-confirmation").replace("%ACCOUNT%", event.getUser().getEffectiveName()));
+            bread.sendMessage(bread.translateString("<lang>synergy-link-discord-confirmation</lang>").replace("%ACCOUNT%", event.getUser().getEffectiveName()));
         }
         
         if (event.getModalId().equals("embed")) {

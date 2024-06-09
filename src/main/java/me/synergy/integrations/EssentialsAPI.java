@@ -1,4 +1,4 @@
-package me.synergy.modules;
+package me.synergy.integrations;
 
 import org.bukkit.Bukkit;
 

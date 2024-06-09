@@ -45,7 +45,7 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
     	BreadMaker bread = new BreadMaker(player.getUniqueId());
     	Set<String> languages = Synergy.getLocalesManager().getLanguages();
     	if (args.length > 0 && languages.contains(args[0].toLowerCase())) {
-    		bread.setData("language", args[0]);
+    		bread.setData("language", args[0].toLowerCase());
     		bread.sendMessage(bread.translateString("<lang>synergy-selected-language</lang>").replace("%LANGUAGE%", args[0]));
     		return true;
     	} else if (args.length > 0 && args[0].equalsIgnoreCase("auto")) {

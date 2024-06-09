@@ -53,16 +53,17 @@ public class PlayerJoinListener implements Listener {
             }
         }, 0, 60);
 
-        if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-form-mc-to-discord")) {
-            Synergy.createSynergyEvent("sync-roles-from-mc-to-discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("group", Synergy.getSpigot().getPermissions().getPrimaryGroup(event.getPlayer())).send();
-        }
-
-        if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-from-discord-to-mc")) {
-            Synergy.createSynergyEvent("sync-roles-from-discord-to-mc").setPlayerUniqueId(event.getPlayer().getUniqueId()).send();
-        }
-
         if (Synergy.getDiscord().getDiscordIdByUniqueId(uuid) != null) {
+        	
         	Synergy.getDiscord().addVerifiedRole(Synergy.getDiscord().getDiscordIdByUniqueId(uuid));
+        	
+            if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-form-mc-to-discord")) {
+                Synergy.createSynergyEvent("sync-roles-from-mc-to-discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("group", Synergy.getSpigot().getPermissions().getPrimaryGroup(event.getPlayer())).send();
+            }
+
+            if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-from-discord-to-mc")) {
+                Synergy.createSynergyEvent("sync-roles-from-discord-to-mc").setPlayerUniqueId(event.getPlayer().getUniqueId()).send();
+            }
         }
 
     	PLAYERS.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());

@@ -31,8 +31,10 @@ public class Config {
             
             addDefault("localizations.enabled", true);
             addDefault("localizations.default-language", "en");
-            addDefault("localizations.custom-colors.primary", "#fdcb6e");
-            addDefault("localizations.custom-colors.secondary", "#0984e3");
+            addDefault("localizations.color-themes.default.primary", "<#1abc9c>");
+            addDefault("localizations.color-themes.default.secondary", "<#3498db>");
+            addDefault("localizations.color-themes.default.success", "<#2ecc71>");
+            addDefault("localizations.color-themes.default.danger", "<#e74c3c>");
             
             addDefault("motd.enabled", true);
             addDefault("motd.message", "Message of The Day Example");
@@ -56,7 +58,7 @@ public class Config {
             addDefault("discord.synchronization.sync-roles-from-discord-to-mc", false);
             addDefault("discord.synchronization.sync-roles-form-mc-to-discord", false);
             addDefault("discord.synchronization.use-vault", true);
-            addDefault("discord.synchronization.custom-command-remove", "lp user %PLAYER% parent clear");
+            addDefault("discord.synchronization.custom-command-remove", "lp user %PLAYER% parent remove %GROUP%");
             addDefault("discord.synchronization.custom-command-add", "lp user %PLAYER% parent add %GROUP%");
             addDefault("discord.synchronization.roles.owner", "00000000000000000");
             addDefault("discord.synchronization.roles.admin", "00000000000000000");
@@ -105,9 +107,11 @@ public class Config {
                 addDefault("chat-manager.blocked-words", new String[] {"fuck", "bitch"});
                 addDefault("chat-manager.blocked-words-tolerance-percentage", 38.5);
                 addDefault("chat-manager.local-chat-radius", 500);
+                addDefault("chat-manager.local-chat-per-plotsquared-plot", false);
                 addDefault("chat-manager.cross-server-global-chat", true);
                 addDefault("chat-manager.colors.global-chat", "&e");
                 addDefault("chat-manager.colors.local-chat", "&f");
+                addDefault("chat-manager.colors.plot-chat", "&f");
                 addDefault("chat-manager.colors.discord-chat", "&b");
                 addDefault("chat-manager.colors.admin-chat", "&c");
                 addDefault("chat-manager.colors.discord_admin-chat", "&c");

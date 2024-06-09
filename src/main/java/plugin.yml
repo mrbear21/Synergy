@@ -2,29 +2,32 @@ name: Synergy
 main: me.synergy.brains.Spigot
 version: 0.0.1
 api-version: 1.16
-author: mrbear25
-softdepend: [Authme, PlaceholderAPI, ProtocolLib, Votifier]
+author: mrbear22
+softdepend: [Authme, PlaceholderAPI, ProtocolLib, Votifier, Essentials]
 description: Basic tools and server messaging plugin
 commands:
     synergy:
         description: Synergy
-        usage: synergy-command-usage /<command>
+        usage: <lang>synergy-command-usage</lang> /<command>
     vote:
         description: Vote
-        usage: synergy-command-usage /<command>
+        usage: <lang>synergy-command-usage</lang> /<command>
     chat:
         description: Chat
-        usage: synergy-command-usage /<command>
+        usage: <lang>synergy-command-usage</lang> /<command>
+    theme:
+        description: Theme
+        usage: <lang>synergy-command-usage</lang> /<command>
     colors:
         description: Custom colors list
-        usage: synergy-command-usage /<command>
+        usage: <lang>synergy-command-usage</lang> /<command>
     emojis:
         description: Custom emojis list
-        usage: synergy-command-usage /<command>
+        usage: <lang>synergy-command-usage</lang> /<command>
     discord:
         description: Discord
-        usage: synergy-command-usage /<command>
+        usage: <lang>synergy-command-usage</lang> /<command>
     language:
         description: Language
-        usage: synergy-command-usage /<command>
+        usage: <lang>synergy-command-usage</lang> /<command>
         aliases: [lang]

@@ -37,7 +37,7 @@ public class Synergy {
     }
 
     public static Boolean isRunningVelocity() {
-        return Boolean.valueOf(platform.equals("velocity"));
+        return platform.equals("velocity");
     }
 
     public static String translateStringColorStripped(String string) {

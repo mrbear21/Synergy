@@ -8,7 +8,7 @@ import me.synergy.brains.Synergy;
 import me.synergy.modules.LocalesManager;
 
 public class LangTagProcessor {
-	
+
     public static String processLangTags(String input, String language) {
     	try {
 	        String keyPattern = "<lang>(.*?)</lang>";

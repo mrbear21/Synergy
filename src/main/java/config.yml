@@ -1,6 +1,5 @@
 #You must set up the same Synergy token on all your servers
-synergy-plugin-messaging:
-
+synergy-plugin-messaging: {}
 
 #Get your token in the OpenAi developer dashboard
 openai:
@@ -45,6 +44,5 @@ votifier:
   enabled: false
   monitorings:
   - https://example.com/vote/example
-  message: synergy-voted-successfully
   rewards:
   - eco give %PLAYER% 1

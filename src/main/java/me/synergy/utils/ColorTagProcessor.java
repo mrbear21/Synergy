@@ -20,6 +20,21 @@ public class ColorTagProcessor {
         System.out.println(dividedJson);
     }
 
+	
+    public static String processThemeTags(String input, String theme) {
+    	for (String t : new String[] {theme, "default"}) {
+    		try {
+		    	for (String c : Synergy.getConfig().getConfigurationSection("localizations.color-themes."+t).getKeys(false)) {
+		    		String hexCode = Synergy.getConfig().getString("localizations.color-themes."+t+"."+c);
+		    		input = input.replace("<"+c+">", hexCode);
+		    	}
+    		} catch (Exception c) {
+    			c.printStackTrace();
+    		}
+    	}
+    	return input;
+    }
+    
     public static String processColorTags(String jsonString) {
         try {
             jsonString = Utils.convertToJsonIfNeeded(jsonString);
@@ -122,6 +137,7 @@ public class ColorTagProcessor {
     }
 
     public static String removeColorTags(String string) {
+    	string = processThemeTags(string, "default");
         Pattern pattern = Pattern.compile("<#[A-Fa-f0-9]{6}>");
         Matcher matcher = pattern.matcher(string);
         return matcher.replaceAll("");

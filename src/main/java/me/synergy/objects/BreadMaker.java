@@ -3,7 +3,8 @@ package me.synergy.objects;
 import java.util.UUID;
 
 import me.synergy.brains.Synergy;
-import me.synergy.modules.EssentialsAPI;
+import me.synergy.integrations.AuthmeAPI;
+import me.synergy.integrations.EssentialsAPI;
 import me.synergy.modules.LocalesManager;
 import me.synergy.utils.LangTagProcessor;
 
@@ -64,10 +65,24 @@ public class BreadMaker {
 		return false;
 	}
 
+    public boolean isAuthenticated() {
+		if (Synergy.isSpigot() && Synergy.isDependencyAvailable("Authme")) {
+			return AuthmeAPI.isAuthenticated(Synergy.getSpigot().getPlayerByUniqueId(uuid));
+		}
+		return true;
+    }
+	
 	public boolean hasPermission(String node) {
 		if (Synergy.isSpigot()) {
 			return Synergy.getSpigot().playerHasPermission(getUniqueId(), node);
 		}
 		return false;
+	}
+
+	public String getTheme() {
+		if (getData("theme").isSet()) {
+			return getData("theme").getAsString();
+		}
+		return "default";
 	}
 }

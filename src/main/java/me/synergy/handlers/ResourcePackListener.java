@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import me.synergy.brains.Synergy;
 import me.synergy.modules.WebServer;
 
-public class ResourcePackHandler implements Listener {
+public class ResourcePackListener implements Listener {
 
     public void initialize() {
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());

@@ -20,6 +20,7 @@ import com.google.common.io.ByteStreams;
 
 import me.synergy.commands.LanguageCommand;
 import me.synergy.commands.SynergyCommand;
+import me.synergy.commands.ThemeCommand;
 import me.synergy.commands.VoteCommand;
 import me.synergy.events.SynergyEvent;
 import me.synergy.handlers.LocalesListener;
@@ -27,7 +28,7 @@ import me.synergy.handlers.MOTDListener;
 import me.synergy.handlers.PlaceholdersBreadDataListener;
 import me.synergy.handlers.PlaceholdersLocalesListener;
 import me.synergy.handlers.PlayerJoinListener;
-import me.synergy.handlers.ResourcePackHandler;
+import me.synergy.handlers.ResourcePackListener;
 import me.synergy.handlers.VoteListener;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
@@ -48,7 +49,6 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
     private static Economy econ;
     private static Permission perms;
     private static Chat chat;
-    
     
     public void onEnable() {
         INSTANCE = this;
@@ -75,7 +75,8 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         new PlayerJoinListener().initialize();
         new LanguageCommand().initialize();
         new WebServer().initialize();
-        new ResourcePackHandler().initialize();
+        new ResourcePackListener().initialize();
+        new ThemeCommand().initialize();
         
         setupEconomy();
         setupPermissions();

@@ -4,7 +4,13 @@ import org.bukkit.entity.Player;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.synergy.brains.Synergy;
+import me.synergy.objects.BreadMaker;
+import me.synergy.utils.ColorTagProcessor;
+import me.synergy.utils.InteractiveTagProcessor;
+import me.synergy.utils.LangTagProcessor;
+import me.synergy.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.chat.ComponentSerializer;
 
 public class PlaceholdersLocalesListener extends PlaceholderExpansion {
 
@@ -42,12 +48,17 @@ public class PlaceholdersLocalesListener extends PlaceholderExpansion {
 	}
 	
 	@Override
-	public String onPlaceholderRequest(Player p, String identifier) {
+	public String onPlaceholderRequest(Player player, String identifier) {
 		/*HashMap<String, String> locales = Synergy.getLocalesManager().getLocales().get(Synergy.getBread(p.getUniqueId()).getLanguage());
 		if (locales != null && locales.containsKey(identifier)) {
 			return locales.get(identifier);
 		}*/
-		return Synergy.getBread(p.getUniqueId()).translateString("<lang>"+identifier+"</lang>");
+		BreadMaker bread = Synergy.getBread(player.getUniqueId());
+		
+    	String lang = LangTagProcessor.processLangTags("<lang>"+identifier+"</lang>", bread.getLanguage());
+    	String color = ColorTagProcessor.processThemeTags(InteractiveTagProcessor.removeInteractiveTags(lang), bread.getTheme());
+    	
+		return color;
 	}
 
 }

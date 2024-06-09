@@ -20,6 +20,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import me.synergy.brains.Synergy;
+import me.synergy.objects.BreadMaker;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -307,24 +308,28 @@ public class Utils {
     }
 
     public static void sendFakeBook(Player player, String title, String... pages) {
+    	BreadMaker bread = Synergy.getBread(player.getUniqueId());
         TextComponent[] textComponents = new TextComponent[pages.length];
         for (int i = 0; i < pages.length; i++) {
            	String lang = LangTagProcessor.processLangTags(pages[i], Synergy.getBread(player.getUniqueId()).getLanguage());
         	String interactive = InteractiveTagProcessor.processInteractiveTags(lang, Synergy.getBread(player.getUniqueId()));
-        	String colors = Utils.processColors(ColorTagProcessor.processColorTags(interactive));
+        	String colors = ColorTagProcessor.processThemeTags(interactive, bread.getTheme());
+        	colors = Utils.processColors(ColorTagProcessor.processColorTags(colors));
             textComponents[i] = new TextComponent(ComponentSerializer.parse(colors));
         }
         sendFakeBook(player, title, textComponents);
     }
     
     public static void sendFakeBook(Player player, String title, TextComponent[]... pages) {
+    	BreadMaker bread = Synergy.getBread(player.getUniqueId());
         ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
         BookMeta meta = (BookMeta) book.getItemMeta();
         meta.setTitle(title);
         for (TextComponent[] pageContent : pages) {
         	String lang = LangTagProcessor.processLangTags(ComponentSerializer.toString(pageContent), Synergy.getBread(player.getUniqueId()).getLanguage());
         	String interactive = InteractiveTagProcessor.processInteractiveTags(lang, Synergy.getBread(player.getUniqueId()));
-        	String colors = Utils.processColors(ColorTagProcessor.processColorTags(interactive));
+        	String colors = ColorTagProcessor.processThemeTags(interactive, bread.getTheme());
+        	colors = Utils.processColors(ColorTagProcessor.processColorTags(colors));
         	BaseComponent[] page = ComponentSerializer.parse(colors);
             meta.spigot().addPage(page);
         }
