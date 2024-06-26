@@ -8,9 +8,7 @@ import me.synergy.objects.BreadMaker;
 import me.synergy.utils.ColorTagProcessor;
 import me.synergy.utils.InteractiveTagProcessor;
 import me.synergy.utils.LangTagProcessor;
-import me.synergy.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.chat.ComponentSerializer;
 
 public class PlaceholdersLocalesListener extends PlaceholderExpansion {
 

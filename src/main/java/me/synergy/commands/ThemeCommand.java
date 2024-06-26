@@ -15,10 +15,6 @@ import me.synergy.modules.LocalesManager;
 import me.synergy.objects.BreadMaker;
 import me.synergy.utils.LangTagProcessor;
 import me.synergy.utils.Utils;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class ThemeCommand implements CommandExecutor, TabCompleter {
 

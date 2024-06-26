@@ -89,7 +89,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 	        List<String> colors = new ArrayList<>();
 	        for (String t : tags.getKeys(false)) {
 	        	String color = Synergy.getConfig().getString("chat-manager.custom-color-tags."+t);
-	            colors.add(color+String.join(color, t.split("")));
+	            colors.add(color+t.replace("&", "$")/*String.join(color, t.split(""))*/);
 	        }
 	        if (sender instanceof Player) {
 	            Utils.sendFakeBook((Player) sender, "Colors", new String[] {String.join("\n", colors)});
@@ -105,7 +105,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 		    int maxEmojiLength = 0;
 		    for (String e : tags.getKeys(false)) {
 		        String emoji = Synergy.getConfig().getString("chat-manager.custom-emojis."+e);
-		        maxEmojiLength = Math.max(maxEmojiLength, e.length() + emoji.length() + 3); // Adding 3 for spacing
+		        maxEmojiLength = Math.max(maxEmojiLength, e.length() + emoji.length() + 3);
 		    }
 		    for (String e : tags.getKeys(false)) {
 		        if (count == 2) {
@@ -265,6 +265,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         }      
         message = Utils.translateSmiles(message);
         message = Utils.censorBlockedWords(message, Utils.getBlockedWorlds());
+        message = Utils.removeRepetitiveCharacters(message);
         
         format = format.replace("%DISPLAYNAME%", displayname);
         format = format.replace("%MESSAGE%", message);

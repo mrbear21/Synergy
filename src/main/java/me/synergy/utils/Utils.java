@@ -29,6 +29,12 @@ import net.md_5.bungee.chat.ComponentSerializer;
 public class Utils {
     private String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+    public static void main(String[] args) {
+        String test = removeRepetitiveCharacters("");
+        System.out.println(test);
+    }
+
+    
     public String generateRandomString(int length) {
         SecureRandom random = new SecureRandom();
         StringBuilder randomString = new StringBuilder();
@@ -40,6 +46,30 @@ public class Utils {
         return randomString.toString();
     }
 
+    public static String removeRepetitiveCharacters(String sentence) {
+        StringBuilder sb = new StringBuilder();
+        char[] chars = sentence.toCharArray();
+        
+        for (int i = 0; i < chars.length; i++) {
+            char currentChar = chars[i];
+            int count = 1;
+            
+            while (i + 1 < chars.length && Character.toLowerCase(chars[i + 1]) == Character.toLowerCase(currentChar)) {
+                count++;
+                i++;
+            }
+            
+            int repeatCount = Math.min(count, 3);
+            for (int j = 0; j < repeatCount; j++) {
+                sb.append(currentChar);
+            }
+        }
+        
+        return sb.toString();
+    }
+
+
+    
     public static String removeIgnoringCase(String word, String sentence) {
         String lowerCaseSentence = sentence.toLowerCase();
         String lowerCaseWord = word.toLowerCase();
