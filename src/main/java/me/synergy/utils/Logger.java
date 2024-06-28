@@ -41,10 +41,15 @@ public class Logger {
   }
   
   public void error(String string) {
-    if (Synergy.isSpigot())
+    if (Synergy.isSpigot()) {
       Synergy.getSpigot().getLogger().severe(string); 
+    }
     if (Synergy.isRunningVelocity()) {
     	Velocity.getLogger().error(string); 
     }
+  }
+  
+  public void discord(String string) {
+	Synergy.createSynergyEvent("discord-log").setOption("message", string).send();
   }
 }

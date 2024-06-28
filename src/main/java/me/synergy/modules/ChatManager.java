@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import com.theokanning.openai.completion.CompletionChoice;
 
@@ -168,6 +169,14 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         }
     }
 
+	@EventHandler
+	public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
+	    List<String> commands = Arrays.asList("/reg", "/register", "/l", "/login");
+	    if (!commands.stream().anyMatch(event.getMessage()::startsWith)) {
+	        Synergy.getLogger().discord("```[cmd] " + event.getPlayer().getName() + ": " + event.getMessage() + "```");
+	    }
+	}
+	
     @EventHandler
     public void onSynergyPluginMessage(SynergyEvent event) {
 
@@ -271,7 +280,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         format = format.replace("%MESSAGE%", message);
         format = format.replace("%CHATLETTER%", String.valueOf(chatType.charAt(0)).toUpperCase());
         format = format.replace("%CHAT%", chatType.toLowerCase());
-        format = format.replace("%PLOT%", chatType.toLowerCase().equals("plot") ? "<plot> " : "");
+        format = format.replace("%PLOT%", chatType.toLowerCase().equals("plot") ? "[plot] " : "");
         format = format.replace("%COLOR%", getChatColor(chatType));
         format = format.replace("%RANDOM%", String.valueOf(new Random().nextInt(99)));
    

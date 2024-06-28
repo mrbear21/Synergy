@@ -72,7 +72,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
             return;
         }
 	}
-	
+
     @EventHandler
     public void getMessage(SynergyEvent event) {
     	
@@ -98,6 +98,13 @@ public class DiscordListener extends ListenerAdapter implements Listener {
     		Synergy.getDiscord().removeDiscordLink(uuid);
     	}
     	
+    	if (event.getIdentifier().equals("discord-log")) {
+	        String logchat = Synergy.getConfig().getString("discord.channels.log-channel");
+            if (logchat.length() == 19) {
+            	Synergy.getDiscord().getJda().getTextChannelById(logchat).sendMessage(event.getOption("message").getAsString()).queue();
+            }
+    	}
+    	
         if (event.getIdentifier().equals("discord-announcement")) {
         	 String announcementschat = Synergy.getConfig().getString("discord.channels.announcements-channel");
         	 if (announcementschat.length() == 19) {
@@ -117,15 +124,12 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 
 	        String globalchat = Synergy.getConfig().getString("discord.channels.global-chat-channel");
 	        String adminchat = Synergy.getConfig().getString("discord.channels.admin-chat-channel");
-	        String logchat = Synergy.getConfig().getString("discord.channels.log-channel");
 
             String[] messageParts = Utils.splitMessage(message);
             for (String part: messageParts) {
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setAuthor(displayname, null, Synergy.getDiscord().getBotName().equals(displayname) ? Synergy.getDiscord().getJda().getSelfUser().getAvatarUrl() : ("https://minotar.net/helm/" + displayname));
                 builder.setTitle(Synergy.getChatManager().removeChatTypeSymbol(part), null);
-                if (logchat.length() == 19)
-                	Synergy.getDiscord().getJda().getTextChannelById(logchat).sendMessage("```[" + chat + "] " + displayname + ": " + part + "```").queue();
                 if (globalchat.length() == 19 && chat.equals("global")) {
                     builder.setColor(Color.decode("#f1c40f"));
                     Synergy.getDiscord().getJda().getTextChannelById(globalchat).sendMessageEmbeds(builder.build()).queue();
@@ -134,6 +138,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
                     builder.setColor(Color.decode("#e74c3c"));
                     Synergy.getDiscord().getJda().getTextChannelById(adminchat).sendMessageEmbeds(builder.build()).queue();
                 }
+                Synergy.getLogger().discord("```[" + chat + "] " + displayname + ": " + part + "```");
             }
         }
     

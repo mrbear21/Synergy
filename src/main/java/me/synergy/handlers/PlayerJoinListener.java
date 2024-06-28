@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import me.synergy.brains.Synergy;
@@ -25,7 +26,14 @@ public class PlayerJoinListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
     	if (PLAYERS.containsKey(event.getPlayer().getUniqueId()) && System.currentTimeMillis() - PLAYERS.get(event.getPlayer().getUniqueId()) < 1000) {
     		event.getPlayer().performCommand("spawn");
+        	Synergy.getLogger().discord("```Player "+event.getPlayer().getName()+" has been teleported to spawn ```");
     	}
+    	Synergy.getLogger().discord("```Player "+event.getPlayer().getName()+" has left ```");
+    }
+
+    @EventHandler
+    public void onKick(PlayerKickEvent event) {
+    	Synergy.getLogger().discord("```Player "+event.getPlayer().getName()+" has been kicked with the reason: "+event.getReason()+"```");
     }
     
     @EventHandler
@@ -67,6 +75,8 @@ public class PlayerJoinListener implements Listener {
         }
 
     	PLAYERS.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
-
+    	
+    	Synergy.getLogger().discord("```Player "+event.getPlayer().getName()+" has joined with IP "+event.getPlayer().getAddress()+" ```");
+    	
     }
 }

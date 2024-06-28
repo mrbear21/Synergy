@@ -10,7 +10,7 @@ Basic tools and server messaging plugin for minecraft servers. The plugin can be
 ☑️Discord integration
 ☑️Votifier (only handling for now)
 ☑️Convenient API
-⏹️Player data manager
+☑️Player data manager
 ⏹️Patreon integration (maybe)
 ⏹️Convenient web manager
 ⏹️Security and caching features
@@ -20,7 +20,7 @@ Basic tools and server messaging plugin for minecraft servers. The plugin can be
 <dependency>
   <groupId>archi.quest</groupId>
   <artifactId>synergy</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
 </dependency>
 ```
 

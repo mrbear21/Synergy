@@ -4,7 +4,7 @@
   <groupId>archi.quest</groupId>
   <artifactId>synergy</artifactId>
   <name>Synergy</name>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
   <description>Basic tools and server messaging plugin</description>
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
@@ -78,6 +78,10 @@
     <repository>
       <id>enginehub-repo</id>
       <url>https://maven.enginehub.org/repo/</url>
+    </repository>
+    <repository>
+      <id>codemc-repo</id>
+      <url>https://repo.codemc.org/repository/maven-public/</url>
     </repository>
   </repositories>
   <dependencies>

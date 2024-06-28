@@ -49,26 +49,20 @@ public class Utils {
     public static String removeRepetitiveCharacters(String sentence) {
         StringBuilder sb = new StringBuilder();
         char[] chars = sentence.toCharArray();
-        
         for (int i = 0; i < chars.length; i++) {
             char currentChar = chars[i];
             int count = 1;
-            
             while (i + 1 < chars.length && Character.toLowerCase(chars[i + 1]) == Character.toLowerCase(currentChar)) {
                 count++;
                 i++;
             }
-            
             int repeatCount = Math.min(count, 3);
             for (int j = 0; j < repeatCount; j++) {
                 sb.append(currentChar);
             }
         }
-        
         return sb.toString();
     }
-
-
     
     public static String removeIgnoringCase(String word, String sentence) {
         String lowerCaseSentence = sentence.toLowerCase();
