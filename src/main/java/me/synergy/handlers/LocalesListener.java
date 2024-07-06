@@ -6,12 +6,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 
 import me.synergy.brains.Synergy;
@@ -19,6 +22,7 @@ import me.synergy.objects.BreadMaker;
 import me.synergy.utils.ColorTagProcessor;
 import me.synergy.utils.InteractiveTagProcessor;
 import me.synergy.utils.LangTagProcessor;
+import me.synergy.utils.PlaceholdersProcessor;
 import me.synergy.utils.Utils;
 
 public class LocalesListener implements Listener {
@@ -51,6 +55,8 @@ public class LocalesListener implements Listener {
 		                    	try {
 			                    	if (component.getJson().contains("<lang>")) {
 			                    		component.setJson(LangTagProcessor.processLangTags(component.getJson(), bread.getLanguage()));
+			                    		component.setJson(PlaceholdersProcessor.processPlaceholders(event.getPlayer(), component.getJson()));
+			                    		component.setJson(LangTagProcessor.processPortableLangTags(component.getJson(), bread.getLanguage()));
 			                    	}
 			                    	//Synergy.getLogger().info("BEFORE: "+component.getJson());
 			                    	if (component.getJson().contains("<interactive>")) {
@@ -58,6 +64,8 @@ public class LocalesListener implements Listener {
 			                    	}
 			                    	
 			                    	component.setJson(ColorTagProcessor.processThemeTags(component.getJson(), bread.getTheme()));
+			                    	
+			                    	component.setJson(ColorTagProcessor.processColorReplace(component.getJson(), bread.getTheme()));
 			                    	
 			                    	if (component.getJson().contains("<#")) {
 			                    		//component.setJson(Utils.applyGradient(component.getJson()));
@@ -76,20 +84,60 @@ public class LocalesListener implements Listener {
 			        }
 			    }
 			);	
-			/*
+
+            /*if (itemMeta.hasLore()) {
+            List<String> lore = itemMeta.getLore();
+            for (int i1 = 0; i1 < lore.size(); i1++) {
+                translate = bread.getLocales().translateString(lore.get(i1));
+                lore.set(i1, translate);
+                itemMeta.setLore(lore);
+            }
+        }*/
+			
 			Synergy.getSpigot().getProtocolManager().addPacketListener(
-			    new PacketAdapter(Synergy.getSpigot(), ListenerPriority.MONITOR, PacketType.Play.Server.SYSTEM_CHAT) {
-				        @Override
-				        public void onPacketSending(PacketEvent event) {
-				            try {
-				            	StructureModifier<String> action = event.getPacket().getStrings();
-				            } catch (Exception e) {
-				                Synergy.getLogger().error(e.getMessage());
-				            }
-				        }
-				    }
-				);	
-			*/
+				new PacketAdapter(Synergy.getSpigot(), ListenerPriority.MONITOR, PacketType.Play.Server.SET_SLOT, PacketType.Play.Server.WINDOW_ITEMS) {
+						@Override
+			            public void onPacketSending(PacketEvent event) {
+			                PacketContainer packet = event.getPacket();
+			                if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
+			                    ItemStack itemStack = packet.getItemModifier().read(0);
+			                    if (itemStack != null) {
+			                        ItemMeta itemMeta = itemStack.getItemMeta();
+			                        if (itemMeta != null) {
+			                            BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
+			                            String translate = itemMeta.getDisplayName() != null ? LangTagProcessor.processLangTags(itemMeta.getDisplayName(), bread.getLanguage()) : itemMeta.getDisplayName();
+			                            itemMeta.setDisplayName(translate);
+			                            itemStack.setItemMeta(itemMeta);
+			                            packet.getItemModifier().write(0, itemStack);
+			                        }
+			                    }
+			                } else if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
+			                    StructureModifier<ItemStack[]> itemArrayModifier = packet.getItemArrayModifier();
+			                    for (int i = 0; i < itemArrayModifier.size(); i++) {
+			                        ItemStack[] itemStacks = itemArrayModifier.read(i);
+			                        if (itemStacks != null) {
+			                            for (int j = 0; j < itemStacks.length; j++) {
+			                                ItemStack itemStack = itemStacks[j]; // Use correct index j instead of i
+			                                if (itemStack != null) {
+			                                    ItemMeta itemMeta = itemStack.getItemMeta();
+			                                    if (itemMeta != null) {
+			                                        BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
+			                                        String translate = itemMeta.getDisplayName() != null ? LangTagProcessor.processLangTags(itemMeta.getDisplayName(), bread.getLanguage()) : itemMeta.getDisplayName();
+			                                        itemMeta.setDisplayName(translate);
+			                                        itemStack.setItemMeta(itemMeta);
+			                                        itemStacks[j] = itemStack; // Update the itemStack back in the array
+			                                    }
+			                                }
+			                            }
+			                            itemArrayModifier.write(i, itemStacks); // Write back the modified array
+			                        }
+			                    }
+			                }
+						}
+					}
+				);
+			
+			
 			Synergy.getLogger().info(this.getClass().getSimpleName()+" module has been initialized!");
 		} catch (Exception c) {
 			Synergy.getLogger().error(this.getClass().getSimpleName()+" module failed to initialize:");

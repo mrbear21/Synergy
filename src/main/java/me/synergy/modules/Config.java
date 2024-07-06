@@ -104,8 +104,9 @@ public class Config {
                 addDefault("chat-manager.enabled", true);
                 addDefault("chat-manager.local-chat", true);
                 addDefault("chat-manager.custom-color-tags.&p", "<#BDC581>");
-                addDefault("chat-manager.blocked-words", new String[] {"fuck", "bitch"});
-                addDefault("chat-manager.blocked-words-tolerance-percentage", 38.5);
+                addDefault("chat-manager.chat-filter.blocked-words", new String[] {"fuck", "bitch"});
+                addDefault("chat-manager.chat-filter.ignored-words", new String[] {"чіпідрос", "книга"});
+                addDefault("chat-manager.chat-filter.blocked-words-tolerance-percentage", 38.5);
                 addDefault("chat-manager.local-chat-radius", 500);
                 addDefault("chat-manager.local-chat-per-plotsquared-plot", false);
                 addDefault("chat-manager.cross-server-global-chat", true);

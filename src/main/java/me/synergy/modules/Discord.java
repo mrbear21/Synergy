@@ -17,6 +17,7 @@ import me.synergy.brains.Synergy;
 import me.synergy.commands.DiscordCommand;
 import me.synergy.handlers.DiscordListener;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.PlaceholdersProcessor;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -43,7 +44,8 @@ public class Discord {
     private static final GatewayIntent[] INTENTS = new GatewayIntent[] {
         GatewayIntent.SCHEDULED_EVENTS, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_VOICE_STATES
     };
-
+    private static DiscordListener DISCORD_LISTENER = null;
+    
     public void initialize() {
         try {
 
@@ -52,7 +54,8 @@ public class Discord {
             }
 
             String token = Synergy.getConfig().getString("discord.bot-token");
-
+            DISCORD_LISTENER = new DiscordListener();
+            
             Discord.JDA = JDABuilder.create(token, Arrays.asList(INTENTS))
                 .enableCache(CacheFlag.MEMBER_OVERRIDES, new CacheFlag[] {
                     CacheFlag.VOICE_STATE
@@ -63,7 +66,7 @@ public class Discord {
                 .setStatus(OnlineStatus.ONLINE)
                 .setActivity(Activity.customStatus(Synergy.getConfig().getStringList("discord.activities").get(0)))
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
-                .addEventListeners(new DiscordListener())
+                .addEventListeners(DISCORD_LISTENER)
                 .setBulkDeleteSplittingEnabled(true).build();
 
             if (Synergy.getConfig().getStringList("discord.activities").size() > 1) {
@@ -71,9 +74,7 @@ public class Discord {
                     long currentTimeSeconds = System.currentTimeMillis() / 1000;
                     int index = (int)(currentTimeSeconds % Synergy.getConfig().getStringList("discord.activities").size());
                     String customStatusText = Synergy.getConfig().getStringList("discord.activities").get(index);
-                    if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
-                        customStatusText = PlaceholderAPI.setPlaceholders(null, customStatusText);
-                    }
+                    customStatusText = PlaceholdersProcessor.processPlaceholders(null, customStatusText);
                     Discord.JDA.getPresence().setActivity(Activity.customStatus(customStatusText));
                 }, 0, 5, TimeUnit.MINUTES);
             }
@@ -97,7 +98,7 @@ public class Discord {
     
     public void shutdown() {
         if (getJda() != null) {
-        	getJda().removeEventListener(new DiscordListener());
+        	getJda().removeEventListener(DISCORD_LISTENER);
             getJda().shutdownNow();
         }
     }
@@ -115,8 +116,6 @@ public class Discord {
         return List.copyOf(userTagsCache);
     }
 
-    
-    
     public String getDiscordIdByUniqueId(UUID uuid) {
     	ConfigurationSection links = Synergy.getDataManager().getConfigurationSection("discord.links");
     	if (links != null) {
@@ -259,7 +258,7 @@ public class Discord {
     	BreadMaker bread = new BreadMaker(uuid);
     	Synergy.getDataManager().setData("discord.links." + discordId, uuid.toString());
 		String account = Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUniqueId(uuid)).getEffectiveName();
-    	bread.sendMessage(bread.translateString("synergy-discord-link-success").replace("%ACCOUNT%", account));
+    	bread.sendMessage(bread.translateString("<lang>synergy-discord-link-success</lang>").replace("%ACCOUNT%", account));
     	addVerifiedRole(discordId);
     }
     
@@ -279,7 +278,7 @@ public class Discord {
 		
        	if (Synergy.getDiscord().getDiscordIdByUniqueId(uuid) != null) {
     		String account = Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUniqueId(uuid)).getEffectiveName();
-    		bread.sendMessage(bread.translateString("synergy-link-discord-already-linked").replace("%ACCOUNT%", account));
+    		bread.sendMessage(bread.translateString("<lang>synergy-link-discord-already-linked</lang>").replace("%ACCOUNT%", account));
     		return;
     	}
 
@@ -290,7 +289,7 @@ public class Discord {
         	            User user = member.getUser();
 
         	            if (Synergy.getDiscord().getUniqueIdByDiscordId(user.getId()) != null) {
-        	            	bread.sendMessage(bread.translateString("synergy-link-minecraft-already-linked").replace("%ACCOUNT%", bread.getName()));
+        	            	bread.sendMessage(bread.translateString("<lang>synergy-link-minecraft-already-linked</lang>").replace("%ACCOUNT%", bread.getName()));
         	                return;
         	            }
         	            
@@ -306,12 +305,12 @@ public class Discord {
         	                            .addActionRow(
         	                                    Button.success(user.getId() + ":confirm:" + uuid, bread.translateStringColorStripped("<lang>synergy-confirm-action</lang>")))
         	                            .queue();
-        	                    bread.sendMessage(bread.translateString("synergy-discord-link-check-pm").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	                    bread.sendMessage(bread.translateString("<lang>synergy-discord-link-check-pm</lang>").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	                } else {
-        	                	bread.sendMessage(bread.translateString("synergy-discord-use-link-cmd").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	                	bread.sendMessage(bread.translateString("<lang>synergy-discord-use-link-cmd</lang>").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	                }
         	            } else {
-        	            	bread.sendMessage(bread.translateString("synergy-discord-use-link-cmd").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	            	bread.sendMessage(bread.translateString("<lang>synergy-discord-use-link-cmd</lang>").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	            }
         	            return;
         	        }

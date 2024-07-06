@@ -118,7 +118,7 @@ public class DiscordListener extends ListenerAdapter implements Listener {
 	        String displayname = event.getOption("player").getAsString();
 	        String message = event.getOption("message").getAsString();
 	        message = Utils.translateSmiles(message);
-	        message = Utils.censorBlockedWords(message, Utils.getBlockedWorlds());
+	        message = Utils.censorBlockedWords(message);
 	        message =  Utils.removeRepetitiveCharacters(message);
 	        String chat = event.getOption("chat").getAsString();
 

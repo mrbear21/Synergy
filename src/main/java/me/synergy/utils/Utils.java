@@ -119,13 +119,46 @@ public class Utils {
         return parts.toArray(new String[0]);
     }
     
+    public static void addBlockedWord(String word) {
+    	List<String> words = getBlockedWorlds();
+    	words.add(word);
+    	Synergy.getSpigot().getConfig().set("chat-manager.chat-filter.blocked-words", words);
+    	Synergy.getSpigot().saveConfig();
+    }
+    
+    public static void removeBlockedWord(String word) {
+    	List<String> words = getBlockedWorlds();
+    	words.remove(word);
+    	Synergy.getSpigot().getConfig().set("chat-manager.chat-filter.blocked-words", words);
+    	Synergy.getSpigot().saveConfig();
+    }
+    
+    public static void addIgnoredWord(String word) {
+    	List<String> words = getIgnoredWorlds();
+    	words.add(word);
+    	Synergy.getSpigot().getConfig().set("chat-manager.chat-filter.ignored-words", words);
+    	Synergy.getSpigot().saveConfig();
+    }
+    
+    public static void removeIgnoredWord(String word) {
+    	List<String> words = getIgnoredWorlds();
+    	words.remove(word);
+    	Synergy.getSpigot().getConfig().set("chat-manager.chat-filter.ignored-words", words);
+    	Synergy.getSpigot().saveConfig();
+    }
+    
+    
     public static List<String> getBlockedWorlds() {
-		return Synergy.getSpigot().getConfig().getStringList("chat-manager.blocked-words");
+		return Synergy.getSpigot().getConfig().getStringList("chat-manager.chat-filter.blocked-words");
 	}
     
-    public static String censorBlockedWords(String sentence, List<String> blockedWords) {
-        double tolerance = Synergy.getConfig().getDouble("chat-manager.blocked-words-tolerance-percentage");
-        for (String blockedWord : blockedWords) {
+    public static List<String> getIgnoredWorlds() {
+		return Synergy.getSpigot().getConfig().getStringList("chat-manager.chat-filter.ignored-words");
+	}
+    
+    public static String censorBlockedWords(String sentence) {
+        double tolerance = Synergy.getConfig().getDouble("chat-manager.chat-filter.blocked-words-tolerance-percentage");
+        for (String blockedWord : getBlockedWorlds()) {
             String match = "";
             int start = 0, end = 0;
             for (int i = 0; i < removeColorCodes(sentence).length(); i++) {
@@ -147,7 +180,7 @@ public class Utils {
                     if (blockedWord.equals(match) || blockedWord.equals(removeConsecutiveDuplicates(match))) {
                         String word = findWordInRange(removeColorCodes(sentence), start, end);
                         double percentage = (double) match.length() / (double) word.length() * 100;
-                        if (tolerance < percentage || !word.contains(blockedWord))
+                        if ((tolerance < percentage || !word.contains(blockedWord)) && !getIgnoredWorlds().contains(word))
                             sentence = censorPartOfSentence(sentence, start, end);
                     }
                 }

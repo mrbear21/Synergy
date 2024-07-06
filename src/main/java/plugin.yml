@@ -1,6 +1,6 @@
 name: Synergy
 main: me.synergy.brains.Spigot
-version: 0.0.1
+version: 0.0.3
 api-version: 1.16
 author: mrbear22
 softdepend: [Authme, PlaceholderAPI, ProtocolLib, Votifier, Essentials]
@@ -23,6 +23,9 @@ commands:
         usage: <lang>synergy-command-usage</lang> /<command>
     emojis:
         description: Custom emojis list
+        usage: <lang>synergy-command-usage</lang> /<command>
+    chatfilter:
+        description: Chat filter
         usage: <lang>synergy-command-usage</lang> /<command>
     discord:
         description: Discord

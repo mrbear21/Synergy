@@ -48,7 +48,33 @@ public class LangTagProcessor {
     	
     	return removeLangTags(input);
     }
-    
+
+    public static String processPortableLangTags(String string, String language) {
+    	try {
+            String langContentRegex = "<lang>(.*?)</lang>";
+            Pattern langPattern = Pattern.compile(langContentRegex, Pattern.DOTALL);
+            Matcher langMatcher = langPattern.matcher(string);
+            while (langMatcher.find()) {
+                String langContent = langMatcher.group(1);
+                String regex = "<" + language + ">(.*?)</" + language + ">";
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(langContent);
+
+                String replacement;
+                if (matcher.find()) {
+                    replacement = matcher.group(1);
+                } else {
+                    replacement = "";
+                }
+                string = string.replace(langMatcher.group(0), replacement);
+            }
+            return string;
+        } catch (Exception c) {
+    		Synergy.getLogger().error(c.getLocalizedMessage());
+    	}
+    	return string;
+    }
+
     public static String removeLangTags(String string) {
     	return string.replaceAll("<lang>(.*?)</lang>", "");
     }

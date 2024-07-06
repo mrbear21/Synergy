@@ -49,7 +49,7 @@ public void onSynergyEvent(SynergyEvent e) {
 
 # Convenient localization system (including third-party plugins and system messages)
 
-## Make your transaltions in Synergy's locales.yml
+## Make your own translations in Synergy's locales.yml
 ```
 login-command-usage:
     en: "&cUsage: /login <password>"
@@ -79,6 +79,7 @@ messages:
 ## Placeholders
 ```
 %synergy_<translation_key>%
+%breadmaker_<option_key>%
 ```
 
 # Convenient storage of player data
@@ -93,5 +94,5 @@ bread.getData("language").getAsString()
 bread.setData("key", "value");
 
 //Save data permanently
-bread.setData("key", "value").save();
+bread.setData("key", "value");
 ```

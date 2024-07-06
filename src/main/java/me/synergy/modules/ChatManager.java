@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -43,6 +44,8 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
             Synergy.getSpigot().getCommand("emojis").setExecutor(this);
             Synergy.getSpigot().getCommand("chat").setExecutor(this);
             Synergy.getSpigot().getCommand("chat").setTabCompleter(this);
+            Synergy.getSpigot().getCommand("chatfilter").setExecutor(this);
+            Synergy.getSpigot().getCommand("chatfilter").setTabCompleter(this);
             Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
         }
     }
@@ -62,14 +65,54 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
     
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-    	if (args.length < 2) {
-	        return getChats();
+    	
+		if (!sender.hasPermission("synergy."+command.getLabel().toLowerCase())) {
+			return null;
+		}
+    	
+    	if (command.getLabel().equals("chat")) {
+	    	if (args.length < 2) {
+		        return getChats();
+	    	}
+    	}
+    	if (command.getLabel().equals("chatfilter")) {
+    		if (args.length < 2) {
+    			return Arrays.asList(new String[] {"block", "ignore", "remove"});
+    		} 
+	    	if (args.length > 0 && args[0].equalsIgnoreCase("remove")) {
+	    		return Stream.concat(Utils.getBlockedWorlds().stream(), Utils.getIgnoredWorlds().stream()).toList();
+	    	}
     	}
     	return null;
     }
     
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		
+		if (!sender.hasPermission("synergy."+label.toLowerCase())) {
+			sender.sendMessage("<lang>synergy-no-permission</lang>");
+			return true;
+		}
+		
+		if (label.equalsIgnoreCase("chatfilter")) {
+			if (args.length > 1) {
+				if (args[0].equalsIgnoreCase("block")) {
+					Utils.addBlockedWord(args[1].toLowerCase());
+					sender.sendMessage("<lang>synergy-word-blocked<arg>"+args[1].toLowerCase()+"</arg></lang>");
+				}
+				if (args[0].equalsIgnoreCase("ignore")) {
+					Utils.addIgnoredWord(args[1].toLowerCase());
+					sender.sendMessage("<lang>synergy-word-ignored<arg>"+args[1].toLowerCase()+"</arg></lang>");
+				}
+				if (args[0].equalsIgnoreCase("remove")) {
+					Utils.removeBlockedWord(args[1].toLowerCase());
+					Utils.removeIgnoredWord(args[1].toLowerCase());
+					sender.sendMessage("<lang>synergy-word-removed<arg>"+args[1].toLowerCase()+"</arg></lang>");
+				}
+			} else {
+				sender.sendMessage("<lang>synergy-command-usage</lang> /chatfilter block/ignore/remove <word>");
+			}
+		}
 		
 		if (label.equalsIgnoreCase("chat")) {
 
@@ -269,11 +312,11 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         message = removeChatTypeSymbol(message);
         message = message.replace("<lang>", "").replace("</lang>", "");
         message = message.replace("҉", "*");
-        if (sender == null || !event.getBread().hasPermission("synergy.chat.color")) {
+        if (sender == null || !event.getBread().hasPermission("synergy.colors")) {
         	message = Utils.stripColorTags(message);
         }      
         message = Utils.translateSmiles(message);
-        message = Utils.censorBlockedWords(message, Utils.getBlockedWorlds());
+        message = Utils.censorBlockedWords(message);
         message = Utils.removeRepetitiveCharacters(message);
         
         format = format.replace("%DISPLAYNAME%", displayname);
