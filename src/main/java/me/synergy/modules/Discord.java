@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.bukkit.configuration.ConfigurationSection;
 
-import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.brains.Synergy;
 import me.synergy.commands.DiscordCommand;
 import me.synergy.handlers.DiscordListener;

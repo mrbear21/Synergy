@@ -17,7 +17,8 @@ public class PlotSquaredAPI {
     }
     
     public static boolean isPlotChatEnabled(Player player) {
-        PlotPlayer<Player> plotPlayer = PlotPlayer.from(player);
+        @SuppressWarnings("unused")
+		PlotPlayer<Player> plotPlayer = PlotPlayer.from(player);
         return false;
     }
     

@@ -179,10 +179,5 @@
 		    <version>7.3.7</version>
 		    <scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>archi.quest</groupId>
-			<artifactId>sanctuaryrandomthings</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
 	</dependencies>
 </project>
