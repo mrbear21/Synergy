@@ -11,12 +11,8 @@ import org.bukkit.entity.Player;
 
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
-import me.synergy.utils.LangTagProcessor;
+import me.synergy.utils.Translation;
 import me.synergy.utils.Utils;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class VoteCommand implements CommandExecutor {
 
@@ -33,21 +29,24 @@ public class VoteCommand implements CommandExecutor {
         if (sender.hasPermission("synergy.vote")) {
         	BreadMaker bread = Synergy.getBread(((Player) sender).getUniqueId());
             List<String> monitorings = Synergy.getConfig().getStringList("votifier.monitorings");
-            TextComponent message = new TextComponent(LangTagProcessor.processLangTags("<lang>synergy-vote-monitorings</lang>", bread.getLanguage()));
+            
+            StringBuilder build = new StringBuilder();
+            StringBuilder list = new StringBuilder();
+            
             for (String m : monitorings) {
                 try {
                 	String domain = new URI(m).getHost();
-                	TextComponent t = new TextComponent(LangTagProcessor.processLangTags("<lang>synergy-vote-monitorings-format<arg>"+domain.replace("www.", "")+"</arg></lang>", bread.getLanguage()));
-                	t.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, m));
-                    t.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(LangTagProcessor.processLangTags("<lang>synergy-click-to-open<arg>"+domain+"</arg></lang>", bread.getLanguage()))));
-                    message.addExtra("\n");
-                    message.addExtra(t);
+                	String shortenDomain = domain.replace("www.", "");
+                	list.append(Translation.processLangTags("<lang>synergy-vote-monitorings-format</lang>", bread.getLanguage()).replace("%URL%", m).replace("%MONITORING%", shortenDomain));
+                	list.append("\n");
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
             }
-            //((Player) sender).spigot().sendMessage(message);
-            Utils.sendFakeBook((Player) sender, "Monitorings", new TextComponent[] {message});
+            
+            build.append(Translation.translate("<lang>synergy-monitorings-menu</lang>", bread.getLanguage()).replace("%MONITORINGS%", list));
+
+            Utils.sendFakeBook((Player) sender, "Monitorings", build.toString());
         } else {
             sender.sendMessage("<lang>synergy-no-permission</lang>");
         }

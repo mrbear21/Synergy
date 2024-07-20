@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -15,20 +16,19 @@ import com.google.gson.JsonPrimitive;
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
 
-public class InteractiveTagProcessor {
+public class Interactive {
 	
     public static void main(String[] args) {
-        String dividedJson = processInteractiveTags("{\"text\":\"\",\"extra\":[{\"text\":\"Hello\",\"color\":\"#a4b0be\"}]}", null);
+        String dividedJson = processInteractiveTags("{\"text\":\"\",\"extra\":[{\"text\":\"Hello\",\"color\":\"#a4b0be\"}]}");
         System.out.println(dividedJson);
     }
 
-    private static BreadMaker bread;
-    
-    public static String processInteractiveTags(String jsonString, BreadMaker bread) {
-    	InteractiveTagProcessor.bread = bread;
+    public static String processInteractiveTags(String json) {
     	try {
-	    	jsonString = Utils.convertToJsonIfNeeded(jsonString);
-	        JsonObject jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
+        	if (!Utils.isValidJson(json)) {
+        		json = Utils.convertToJson(json);
+        	}
+	        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
 	        JsonArray extraArray = jsonObject.getAsJsonArray("extra");
 	        JsonArray dividedExtra = new JsonArray();
 	        for (JsonElement element : extraArray) {
@@ -48,14 +48,31 @@ public class InteractiveTagProcessor {
     		Synergy.getLogger().error(c.getLocalizedMessage());
     	}
  
-    	return removeInteractiveTags(jsonString);
+    	return removeInteractiveTags(json);
     }
     
     public static String removeInteractiveTags(String string) {
     	return string.replaceAll("<interactive>(.*?)</interactive>", "");
     }
 
-    public static void splitInteractiveText(JsonObject object, JsonArray dividedExtra) {
+    public static void executeInteractive(String json, BreadMaker bread) {
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        if (jsonObject.has("extra")) {
+            JsonArray extraArray = jsonObject.getAsJsonArray("extra");
+            for (JsonElement element : extraArray) {
+                JsonObject extraObject = element.getAsJsonObject();
+                if (extraObject.has("soundEvent")) {
+                    JsonObject soundEvent = extraObject.getAsJsonObject("soundEvent");
+                    if (soundEvent.has("sound")) {
+                		Utils.playSound(Sound.valueOf(soundEvent.get("sound").getAsString().toUpperCase()), Bukkit.getPlayer(bread.getUniqueId()));
+                    }
+                }
+            }
+        }
+    }
+    
+    private static void splitInteractiveText(JsonObject object, JsonArray dividedExtra) {
         String text = object.get("text").getAsString();
         int startIndex = text.indexOf("<interactive>");
         if (startIndex == -1) {
@@ -81,7 +98,7 @@ public class InteractiveTagProcessor {
             if (matcher.find()) {
                 JsonObject urlEvent = new JsonObject();
             	urlEvent.addProperty("action", "open_url");
-            	urlEvent.addProperty("value", Utils.processColors(matcher.group(1)));
+            	urlEvent.addProperty("value", matcher.group(1));
             	interactiveObject.add("clickEvent", urlEvent);
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
             }
@@ -89,14 +106,10 @@ public class InteractiveTagProcessor {
             pattern = Pattern.compile("<sound>(.*?)</sound>");
             matcher = pattern.matcher(interactivePart);
             if (matcher.find()) {
-            	if (bread != null && bread.isOnline()) {
-            		Utils.playSound(Sound.valueOf(matcher.group(1).toUpperCase()), Bukkit.getPlayer(bread.getUniqueId()));
-            	}
-            	//JsonObject soundEvent = new JsonObject();
-            	//soundEvent.addProperty("sound", matcher.group(1));
-            	//interactiveObject.add("soundEvent", soundEvent);
+            	JsonObject soundEvent = new JsonObject();
+            	soundEvent.addProperty("sound", matcher.group(1));
+            	interactiveObject.add("soundEvent", soundEvent);
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
-
             } 
             
             pattern = Pattern.compile("<hover>(.*?)</hover>");
@@ -104,7 +117,7 @@ public class InteractiveTagProcessor {
             if (matcher.find()) {
                 JsonObject hoverEvent = new JsonObject();
                 hoverEvent.addProperty("action", "show_text");
-                hoverEvent.addProperty("value", Utils.processColors(matcher.group(1)));
+                hoverEvent.addProperty("value", Color.processLegacyColors(matcher.group(1)));
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
             	interactiveObject.add("hoverEvent", hoverEvent);
             }
@@ -131,7 +144,7 @@ public class InteractiveTagProcessor {
         }
     }
     
-    public static void inheritProperties(JsonObject source, JsonObject target) {
+    private static void inheritProperties(JsonObject source, JsonObject target) {
         for (String key : source.keySet()) {
             if (!key.equals("text")) {
                 target.add(key, source.get(key));

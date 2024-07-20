@@ -20,33 +20,45 @@ public class Logger {
   }
   
   public void info(String string, boolean broadcast) {
-    if (Synergy.isSpigot()) {
-      Synergy.getSpigot().getLogger().info(string);
-      if (broadcast) {
-        opLog(string);
-      }
-    } 
-    if (Synergy.isRunningVelocity()) {
-      Velocity.getLogger().info(string); 
-    }
+	try {
+	    if (Synergy.isSpigot()) {
+	      Synergy.getSpigot().getLogger().info(string);
+	      if (broadcast) {
+	        opLog(string);
+	      }
+	    } 
+	    if (Synergy.isRunningVelocity()) {
+	      Velocity.getLogger().info(string); 
+	    }
+	} catch (Exception c) {
+		System.out.print(string);
+	}
   }
   
   public void warning(String string) {
-    if (Synergy.isSpigot()) {
-      Synergy.getSpigot().getLogger().warning(string); 
-    }
-    if (Synergy.isRunningVelocity()) {
-    	Velocity.getLogger().warn(string); 
-    }
+	try {
+	    if (Synergy.isSpigot()) {
+	      Synergy.getSpigot().getLogger().warning(string); 
+	    }
+	    if (Synergy.isRunningVelocity()) {
+	    	Velocity.getLogger().warn(string); 
+	    }
+	} catch (Exception c) {
+		System.out.print(string);
+	}
   }
   
   public void error(String string) {
-    if (Synergy.isSpigot()) {
-      Synergy.getSpigot().getLogger().severe(string); 
-    }
-    if (Synergy.isRunningVelocity()) {
-    	Velocity.getLogger().error(string); 
-    }
+	try {
+	    if (Synergy.isSpigot()) {
+	      Synergy.getSpigot().getLogger().severe(string); 
+	    }
+	    if (Synergy.isRunningVelocity()) {
+	    	Velocity.getLogger().error(string); 
+	    }
+	} catch (Exception c) {
+		System.out.print(string);
+	}
   }
   
   public void discord(String string) {

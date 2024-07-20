@@ -13,6 +13,7 @@ import com.vexsoftware.votifier.model.VotifierEvent;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.Translation;
 
 public class VoteListener implements Listener {
 
@@ -42,7 +43,7 @@ public class VoteListener implements Listener {
         BreadMaker bread = event.getBread();
         
         if (bread.isOnline()) {
-        	bread.sendMessage(bread.translateString("<lang>synergy-voted-successfully</lang>").replace("%SERVICE%", service));
+        	bread.sendMessage(Translation.processLangTags("<lang>synergy-voted-successfully</lang>", bread.getLanguage()).replace("%SERVICE%", service));
         }
         
     	Synergy.createSynergyEvent("announcement").setOption("message", "<lang>synergy-player-voted</lang>").setOption("argument", bread.getName()).send();

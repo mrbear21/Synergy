@@ -3,7 +3,6 @@ package me.synergy.utils;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,7 +22,6 @@ import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 
 public class Utils {
@@ -34,7 +32,6 @@ public class Utils {
         System.out.println(test);
     }
 
-    
     public String generateRandomString(int length) {
         SecureRandom random = new SecureRandom();
         StringBuilder randomString = new StringBuilder();
@@ -76,26 +73,7 @@ public class Utils {
         return result.toString().trim();
     }
 
-    public static String customColorCodes(String sentence) {
-        Set <String> codes = Synergy.getSpigot().getConfig().getConfigurationSection("chat-manager.custom-color-tags").getKeys(false);
-        for (String c: codes) {
-            sentence = sentence.replace(c, Synergy.getSpigot().getConfig().getString("chat-manager.custom-color-tags." + c));
-        }
-        return sentence;
-    }
 
-    public static String processColors(String string) {
-        string = applyGradient(string);
-        string = customColorCodes(string);
-        Pattern pattern = Pattern.compile("<(#[A-Fa-f0-9]{6})>");
-        Matcher matcher = pattern.matcher(string);
-        while (matcher.find()) {
-            string = string.replace(matcher.group(), "" + ChatColor.of(matcher.group(1)));
-        }
-        string = ChatColor.translateAlternateColorCodes('&', string);
-        return string;
-    }
-    
     public static String stripColorTags(String string) {
         String pattern = "<#\\w{6}>";
         string = string.replaceAll(pattern, "").replaceAll("</#\\w{6}>", "");
@@ -327,15 +305,18 @@ public class Utils {
 	    return input;
 	}
 	
-    public static String convertToJsonIfNeeded(String input) {
-    	input = replaceFirstAndLastQuotes(input);
+    public static boolean isValidJson(String input) {
         try {
             JsonElement jsonElement = JsonParser.parseString(input);
             if (jsonElement.isJsonObject() || jsonElement.isJsonArray()) {
-                return input;
+                return true;
             }
-        } catch (JsonSyntaxException e) {
-        }
+        } catch (JsonSyntaxException e) {}
+		return false;
+    }
+	
+    public static String convertToJson(String input) {
+    	input = replaceFirstAndLastQuotes(input);
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("text", "");
         JsonArray extraArray = new JsonArray();
@@ -364,36 +345,25 @@ public class Utils {
     	} 
     }
 
-    public static void sendFakeBook(Player player, String title, String... pages) {
-    	BreadMaker bread = Synergy.getBread(player.getUniqueId());
-        TextComponent[] textComponents = new TextComponent[pages.length];
-        for (int i = 0; i < pages.length; i++) {
-           	String lang = LangTagProcessor.processLangTags(pages[i], Synergy.getBread(player.getUniqueId()).getLanguage());
-        	String interactive = InteractiveTagProcessor.processInteractiveTags(lang, Synergy.getBread(player.getUniqueId()));
-        	String colors = ColorTagProcessor.processThemeTags(interactive, bread.getTheme());
-        	colors = Utils.processColors(ColorTagProcessor.processColorTags(colors));
-            textComponents[i] = new TextComponent(ComponentSerializer.parse(colors));
-        }
-        sendFakeBook(player, title, textComponents);
-    }
-    
-    public static void sendFakeBook(Player player, String title, TextComponent[]... pages) {
-    	BreadMaker bread = Synergy.getBread(player.getUniqueId());
+    public static void sendFakeBook(Player player, String title, String content) {
+        BreadMaker bread = Synergy.getBread(player.getUniqueId());
         ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
         BookMeta meta = (BookMeta) book.getItemMeta();
         meta.setTitle(title);
-        for (TextComponent[] pageContent : pages) {
-        	String lang = LangTagProcessor.processLangTags(ComponentSerializer.toString(pageContent), Synergy.getBread(player.getUniqueId()).getLanguage());
-        	String interactive = InteractiveTagProcessor.processInteractiveTags(lang, Synergy.getBread(player.getUniqueId()));
-        	String colors = ColorTagProcessor.processThemeTags(interactive, bread.getTheme());
-        	colors = Utils.processColors(ColorTagProcessor.processColorTags(colors));
-        	BaseComponent[] page = ComponentSerializer.parse(colors);
+
+        String[] pages = content.split("%np%");
+
+        for (String pageContent : pages) {
+            String lang = Translation.translate(pageContent, bread.getLanguage());
+            String color = Color.color(lang, bread.getTheme());
+            BaseComponent[] page = ComponentSerializer.parse(color);
             meta.spigot().addPage(page);
         }
+
         meta.setAuthor("synergy");
         book.setItemMeta(meta);
         player.openBook(book);
         playSound(Sound.ITEM_BOOK_PAGE_TURN, player);
     }
-    
+
 }

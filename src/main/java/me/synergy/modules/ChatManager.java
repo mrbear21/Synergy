@@ -30,7 +30,7 @@ import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.integrations.PlotSquaredAPI;
 import me.synergy.objects.BreadMaker;
-import me.synergy.utils.LangTagProcessor;
+import me.synergy.utils.Translation;
 import me.synergy.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 
@@ -136,7 +136,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 	            colors.add(color+t.replace("&", "$")/*String.join(color, t.split(""))*/);
 	        }
 	        if (sender instanceof Player) {
-	            Utils.sendFakeBook((Player) sender, "Colors", new String[] {String.join("\n", colors)});
+	            Utils.sendFakeBook((Player) sender, "Colors", String.join("\n", colors));
 	        } else {
 	            sender.sendMessage("Only the player can execute this command.");
 	        }
@@ -206,7 +206,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         if (removeChatTypeSymbol(event.getMessage()).toLowerCase().startsWith(botName.toLowerCase()) && chat.equals("global")) {
             String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Utils.removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
             String answer = ((CompletionChoice)(new OpenAi()).newPrompt(question).get(0)).getText().replace("\"", "").trim();
-            answer = answer.isEmpty() ? LangTagProcessor.processLangTags("<lang>synergy-service-unavailable</lang>", LocalesManager.getDefaultLanguage()) : answer;
+            answer = answer.isEmpty() ? Translation.translate("<lang>synergy-service-unavailable</lang>", Translation.getDefaultLanguage()) : answer;
             Synergy.createSynergyEvent("chat").setOption("player", botName).setOption("message", answer).setOption("chat", "discord").send();
             Synergy.createSynergyEvent("discord").setOption("player", botName).setOption("message", answer).setOption("chat", "global").send();
         }
@@ -231,7 +231,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         if (event.getIdentifier().equals("announcement")) {
         	for (Player p : Bukkit.getOnlinePlayers()) {
         		BreadMaker bread = Synergy.getBread(p.getUniqueId());
-        		bread.sendMessage(bread.translateString(event.getOption("message").getAsString()).replace("%ARGUMENT%", event.getOption("argument").getAsString()));
+        		bread.sendMessage(Translation.translate(event.getOption("message").getAsString(), bread.getLanguage()).replace("%ARGUMENT%", event.getOption("argument").getAsString()));
         	}
         }
         
@@ -286,8 +286,8 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 
     }
 
-    public String removeSynergyTranslationKeys(String string) {
-    	for (Entry<String, String> k : LocalesManager.getLocales().get(LocalesManager.getDefaultLanguage()).entrySet()) {
+    public String hideSynergyTranslationKeys(String string) {
+    	for (Entry<String, String> k : LocalesManager.getLocales().get(Translation.getDefaultLanguage()).entrySet()) {
     		string = string.replace(k.getKey(), k.getKey().replace("-", "–"));
     	}
 		return string;
@@ -308,7 +308,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
             format = PlaceholderAPI.setPlaceholders(sender, format);
         }
 
-        message = removeSynergyTranslationKeys(message);
+        message = hideSynergyTranslationKeys(message);
         message = removeChatTypeSymbol(message);
         message = message.replace("<lang>", "").replace("</lang>", "");
         message = message.replace("҉", "*");

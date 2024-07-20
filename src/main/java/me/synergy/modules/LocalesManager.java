@@ -11,13 +11,11 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 
 import me.synergy.brains.Synergy;
-import me.synergy.utils.ColorTagProcessor;
-import me.synergy.utils.LangTagProcessor;
-import net.md_5.bungee.api.ChatColor;
+
 
 public class LocalesManager {
 
-	private static Map<String, HashMap<String, String>> LOCALES;
+	private static Map<String, HashMap<String, String>> LOCALES = new HashMap<String, HashMap<String, String>>();
 	
 	public LocalesManager() {}
 
@@ -35,14 +33,8 @@ public class LocalesManager {
 			c.printStackTrace();
 		}
     }
-	
-	public static String translateStringColorStripped(String string, String defaultLanguage) {
-		return ColorTagProcessor.removeColorTags(ChatColor.stripColor(LangTagProcessor.processLangTags(string, defaultLanguage)));
-	}
-	
+
 	public void loadLocales() {
-		
-		LOCALES = new HashMap<String, HashMap<String, String>>();
 		
 		if (!new File(Synergy.getSpigot().getDataFolder(), "locales.yml").exists()) {
 			Synergy.getLogger().info("Creating locales file...");
@@ -101,9 +93,4 @@ public class LocalesManager {
 	public static Map<String, HashMap<String, String>> getLocales() {
 		return LOCALES;
 	}
-	
-    public static String getDefaultLanguage() {
-        return Synergy.getConfig().getString("localizations.default-language");
-    }
-	
 }

@@ -10,7 +10,9 @@ import me.synergy.modules.DataManager;
 import me.synergy.modules.Discord;
 import me.synergy.modules.LocalesManager;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.Color;
 import me.synergy.utils.Logger;
+import me.synergy.utils.Translation;
 
 public class Synergy {
     public static String platform;
@@ -40,10 +42,6 @@ public class Synergy {
         return platform.equals("velocity");
     }
 
-    public static String translateStringColorStripped(String string) {
-    	return isSpigot() ? LocalesManager.translateStringColorStripped(string, LocalesManager.getDefaultLanguage()) : string;
-    }
-
     public static String getServerName() {
         return getConfig().getString("synergy-plugin-messaging.servername");
     }
@@ -60,6 +58,14 @@ public class Synergy {
         return new Discord();
     }
 
+    public static Translation getTranslation() {
+        return new Translation();
+    }
+    
+    public static Color getColor() {
+        return new Color();
+    }
+    
     public static ChatManager getChatManager() {
         return new ChatManager();
     }

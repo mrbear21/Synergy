@@ -78,7 +78,7 @@ messages:
 
 ## Placeholders
 ```
-%synergy_<translation_key>%
+%translation_<translation_key>%
 %breadmaker_<option_key>%
 ```
 

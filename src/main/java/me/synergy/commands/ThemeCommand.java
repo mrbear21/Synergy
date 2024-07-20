@@ -11,9 +11,8 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import me.synergy.brains.Synergy;
-import me.synergy.modules.LocalesManager;
 import me.synergy.objects.BreadMaker;
-import me.synergy.utils.LangTagProcessor;
+import me.synergy.utils.Translation;
 import me.synergy.utils.Utils;
 
 public class ThemeCommand implements CommandExecutor, TabCompleter {
@@ -44,18 +43,18 @@ public class ThemeCommand implements CommandExecutor, TabCompleter {
     	Set<String> themes = Synergy.getConfig().getConfigurationSection("localizations.color-themes").getKeys(false);
     	if (args.length > 0 && themes.contains(args[0].toLowerCase())) {
     		bread.setData("theme", args[0].toLowerCase());
-    		bread.sendMessage(bread.translateString("<lang>synergy-selected-theme</lang>").replace("%THEME%", args[0]));
+    		bread.sendMessage(Translation.processLangTags("<lang>synergy-selected-theme</lang>", bread.getLanguage()).replace("%THEME%", args[0]));
     		return true;
     	} else if (args.length > 0 && args[0].equalsIgnoreCase("auto")) {
     		bread.setData("theme", null);
-    		bread.sendMessage(bread.translateString("<lang>synergy-selected-theme</lang>").replace("%THEME%", args[0]));
+    		bread.sendMessage(Translation.processLangTags("<lang>synergy-selected-theme</lang>", bread.getLanguage()).replace("%THEME%", args[0]));
     		return true;
     	} else if (args.length > 0) {
     		sender.sendMessage("<lang>synergy-command-usage</lang> /theme "+themes);
     		return true;
     	}
     	
-    	Utils.sendFakeBook((Player) sender, "Themes", new String[] { LangTagProcessor.processLangTags("<lang>synergy-themes</lang>", LocalesManager.getDefaultLanguage()) });
+    	Utils.sendFakeBook((Player) sender, "Themes", Translation.processLangTags("<lang>synergy-themes</lang>", bread.getLanguage()));
         return true;
     }
 }

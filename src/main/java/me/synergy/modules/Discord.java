@@ -17,6 +17,7 @@ import me.synergy.commands.DiscordCommand;
 import me.synergy.handlers.DiscordListener;
 import me.synergy.objects.BreadMaker;
 import me.synergy.utils.PlaceholdersProcessor;
+import me.synergy.utils.Translation;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -257,7 +258,7 @@ public class Discord {
     	BreadMaker bread = new BreadMaker(uuid);
     	Synergy.getDataManager().setData("discord.links." + discordId, uuid.toString());
 		String account = Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUniqueId(uuid)).getEffectiveName();
-    	bread.sendMessage(bread.translateString("<lang>synergy-discord-link-success</lang>").replace("%ACCOUNT%", account));
+    	bread.sendMessage(Translation.translate("<lang>synergy-discord-link-success</lang>", bread.getLanguage()).replace("%ACCOUNT%", account));
     	addVerifiedRole(discordId);
     }
     
@@ -277,7 +278,7 @@ public class Discord {
 		
        	if (Synergy.getDiscord().getDiscordIdByUniqueId(uuid) != null) {
     		String account = Synergy.getDiscord().getJda().getUserById(Synergy.getDiscord().getDiscordIdByUniqueId(uuid)).getEffectiveName();
-    		bread.sendMessage(bread.translateString("<lang>synergy-link-discord-already-linked</lang>").replace("%ACCOUNT%", account));
+    		bread.sendMessage(Translation.translate("<lang>synergy-link-discord-already-linked</lang>", bread.getLanguage()).replace("%ACCOUNT%", account));
     		return;
     	}
 
@@ -288,12 +289,12 @@ public class Discord {
         	            User user = member.getUser();
 
         	            if (Synergy.getDiscord().getUniqueIdByDiscordId(user.getId()) != null) {
-        	            	bread.sendMessage(bread.translateString("<lang>synergy-link-minecraft-already-linked</lang>").replace("%ACCOUNT%", bread.getName()));
+        	            	bread.sendMessage(Translation.translate("<lang>synergy-link-minecraft-already-linked</lang>", bread.getLanguage()).replace("%ACCOUNT%", bread.getName()));
         	                return;
         	            }
         	            
         	            PrivateChannel privateChannel = user.openPrivateChannel().complete();
-        	            String message = bread.translateStringColorStripped("<lang>synergy-discord-confirm-link</lang>").replace("%ACCOUNT%", bread.getName());
+        	            String message = Translation.translateStripped("<lang>synergy-discord-confirm-link</lang>", bread.getLanguage()).replace("%ACCOUNT%", bread.getName());
         	            
         	            MessageHistory history = privateChannel.getHistory();
         	            Message lastMessage = history.retrievePast(1).complete().size() == 0 ? null : history.retrievePast(1).complete().get(0);
@@ -302,14 +303,14 @@ public class Discord {
         	                if (privateChannel.canTalk()) {
         	                    privateChannel.sendMessage(message)
         	                            .addActionRow(
-        	                                    Button.success(user.getId() + ":confirm:" + uuid, bread.translateStringColorStripped("<lang>synergy-confirm-action</lang>")))
+        	                                    Button.success(user.getId() + ":confirm:" + uuid, Translation.translateStripped("<lang>synergy-confirm-action</lang>", bread.getLanguage())))
         	                            .queue();
-        	                    bread.sendMessage(bread.translateString("<lang>synergy-discord-link-check-pm</lang>").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	                    bread.sendMessage(Translation.translate("<lang>synergy-discord-link-check-pm</lang>", bread.getLanguage()).replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	                } else {
-        	                	bread.sendMessage(bread.translateString("<lang>synergy-discord-use-link-cmd</lang>").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	                	bread.sendMessage(Translation.translate("<lang>synergy-discord-use-link-cmd</lang>", bread.getLanguage()).replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	                }
         	            } else {
-        	            	bread.sendMessage(bread.translateString("<lang>synergy-discord-use-link-cmd</lang>").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	            	bread.sendMessage(Translation.translate("<lang>synergy-discord-use-link-cmd</lang>", bread.getLanguage()).replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         	            }
         	            return;
         	        }
@@ -317,7 +318,7 @@ public class Discord {
         	}
         } catch (Exception c) {
         	c.printStackTrace();
-        	bread.sendMessage(bread.translateStringColorStripped("<lang>synergy-discord-use-link-cmd</lang>").replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	bread.sendMessage(Translation.translate("<lang>synergy-discord-use-link-cmd</lang>", bread.getLanguage()).replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
         }
     }
     

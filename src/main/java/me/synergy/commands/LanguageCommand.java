@@ -1,9 +1,8 @@
 package me.synergy.commands;
 
 import me.synergy.brains.Synergy;
-import me.synergy.modules.LocalesManager;
 import me.synergy.objects.BreadMaker;
-import me.synergy.utils.LangTagProcessor;
+import me.synergy.utils.Translation;
 import me.synergy.utils.Utils;
 
 import java.util.ArrayList;
@@ -46,17 +45,17 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
     	Set<String> languages = Synergy.getLocalesManager().getLanguages();
     	if (args.length > 0 && languages.contains(args[0].toLowerCase())) {
     		bread.setData("language", args[0].toLowerCase());
-    		bread.sendMessage(bread.translateString("<lang>synergy-selected-language</lang>").replace("%LANGUAGE%", args[0]));
+    		bread.sendMessage(Translation.processLangTags("<lang>synergy-selected-language</lang>", bread.getLanguage()).replace("%LANGUAGE%", args[0]));
     		return true;
     	} else if (args.length > 0 && args[0].equalsIgnoreCase("auto")) {
     		bread.setData("language", null);
-    		bread.sendMessage(bread.translateString("<lang>synergy-selected-language</lang>").replace("%LANGUAGE%", args[0]));
+    		bread.sendMessage(Translation.processLangTags("<lang>synergy-selected-language</lang>", bread.getLanguage()).replace("%LANGUAGE%", args[0]));
     		return true;
     	} else if (args.length > 0) {
     		sender.sendMessage("<lang>synergy-command-usage</lang> /language "+languages);
     		return true;
     	}
-    	Utils.sendFakeBook((Player) sender, "Languages", new String[] { LangTagProcessor.processLangTags("<lang>synergy-languages</lang>", LocalesManager.getDefaultLanguage()) });
+    	Utils.sendFakeBook((Player) sender, "Languages", Translation.processLangTags("<lang>synergy-languages</lang>", bread.getLanguage()));
         return true;
     }
 }

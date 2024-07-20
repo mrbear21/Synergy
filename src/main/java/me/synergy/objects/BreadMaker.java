@@ -5,8 +5,6 @@ import java.util.UUID;
 import me.synergy.brains.Synergy;
 import me.synergy.integrations.AuthmeAPI;
 import me.synergy.integrations.EssentialsAPI;
-import me.synergy.modules.LocalesManager;
-import me.synergy.utils.LangTagProcessor;
 
 public class BreadMaker {
 
@@ -29,14 +27,6 @@ public class BreadMaker {
 	public void sendMessage(String message) {
 		Synergy.createSynergyEvent("system-chat").setPlayerUniqueId(uuid).setOption("message", message).send();
 	}
-	
-	public String translateString(String string) {
-		return Synergy.isSpigot() ? LangTagProcessor.processLangTags(string, getLanguage()) : string;
-	}
-	
-    public String translateStringColorStripped(String string) {
-    	return Synergy.isSpigot() ? LocalesManager.translateStringColorStripped(string, getLanguage()) : string;
-    }
 	
 	public UUID getUniqueId() {
 		return uuid;
