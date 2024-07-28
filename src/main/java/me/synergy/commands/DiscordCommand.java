@@ -21,11 +21,11 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
         if (!Synergy.getConfig().getBoolean("discord.enabled")) {
             return;
         }
-        
+
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
         Synergy.getSpigot().getCommand("discord").setExecutor(this);
         Synergy.getSpigot().getCommand("discord").setTabCompleter(this);
-        
+
 	}
 
     @Override
@@ -39,7 +39,7 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
         }
         return List.of();
     }
-    
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     	Player player = (Player) sender;
@@ -49,7 +49,7 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
     		return true;
     	}
         if (args.length == 0) {
-        	bread.sendMessage(Translation.translate("<lang>synergy-discord-invite</lang>", bread.getLanguage()).replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
+        	bread.sendMessage(Translation.processLangTags("<lang>synergy-discord-invite</lang>", bread.getLanguage()).replace("%INVITE%", Synergy.getConfig().getString("discord.invite-link")));
             return true;
         }
         switch (args[0]) {
@@ -69,5 +69,5 @@ public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
         }
         return true;
     }
-	
+
 }

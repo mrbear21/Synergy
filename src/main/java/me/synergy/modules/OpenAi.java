@@ -1,10 +1,12 @@
 package me.synergy.modules;
 
+import java.time.Duration;
+import java.util.List;
+
 import com.theokanning.openai.completion.CompletionChoice;
 import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.service.OpenAiService;
-import java.time.Duration;
-import java.util.List;
+
 import me.synergy.brains.Synergy;
 
 public class OpenAi {

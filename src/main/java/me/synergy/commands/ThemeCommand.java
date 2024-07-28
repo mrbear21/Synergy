@@ -18,14 +18,14 @@ import me.synergy.utils.Utils;
 public class ThemeCommand implements CommandExecutor, TabCompleter {
 
 	public ThemeCommand() {}
-	
+
     public void initialize() {
     	if (!Synergy.getConfig().getBoolean("localizations.enabled")) {
 	    	return;
 	    }
         Synergy.getSpigot().getCommand("theme").setExecutor(this);
         Synergy.getSpigot().getCommand("theme").setTabCompleter(this);
-        
+
 	}
 
     @Override
@@ -36,8 +36,9 @@ public class ThemeCommand implements CommandExecutor, TabCompleter {
     	}
     	return null;
     }
-    
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+
+    @Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     	Player player = (Player) sender;
     	BreadMaker bread = new BreadMaker(player.getUniqueId());
     	Set<String> themes = Synergy.getConfig().getConfigurationSection("localizations.color-themes").getKeys(false);
@@ -53,8 +54,8 @@ public class ThemeCommand implements CommandExecutor, TabCompleter {
     		sender.sendMessage("<lang>synergy-command-usage</lang> /theme "+themes);
     		return true;
     	}
-    	
-    	Utils.sendFakeBook((Player) sender, "Themes", Translation.processLangTags("<lang>synergy-themes</lang>", bread.getLanguage()));
+
+    	Utils.sendFakeBook(player, "Themes", "<lang>synergy-themes</lang>");
         return true;
     }
 }

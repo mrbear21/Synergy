@@ -9,7 +9,7 @@ import me.synergy.integrations.EssentialsAPI;
 public class BreadMaker {
 
 	private UUID uuid;
-	
+
 	public BreadMaker(UUID uuid) {
 		this.uuid = uuid;
 	}
@@ -27,19 +27,19 @@ public class BreadMaker {
 	public void sendMessage(String message) {
 		Synergy.createSynergyEvent("system-chat").setPlayerUniqueId(uuid).setOption("message", message).send();
 	}
-	
+
 	public UUID getUniqueId() {
 		return uuid;
 	}
-	
+
 	public boolean isMuted() {
 		return EssentialsAPI.essentialsIsPlayerMuted(getName());
 	}
-	
+
 	public String getName() {
 		return Synergy.isSpigot() ? Synergy.getSpigot().getPlayerName(getUniqueId()) : null;
 	}
-	
+
 	public DataObject getData(String option) {
 		return Synergy.getDataManager().getData("players."+"."+getUniqueId()+"."+option);
 	}
@@ -47,7 +47,7 @@ public class BreadMaker {
 	public void setData(String option, String value) {
 		 Synergy.getDataManager().setData("players."+"."+getUniqueId()+"."+option, value);
 	}
-	
+
 	public boolean isOnline() {
 		if (Synergy.isSpigot()) {
 			return getUniqueId() == null ? false : Synergy.getSpigot().getPlayerByUniqueId(getUniqueId()) != null ? Synergy.getSpigot().getPlayerByUniqueId(getUniqueId()).isOnline() : false;
@@ -61,7 +61,7 @@ public class BreadMaker {
 		}
 		return true;
     }
-	
+
 	public boolean hasPermission(String node) {
 		if (Synergy.isSpigot()) {
 			return Synergy.getSpigot().playerHasPermission(getUniqueId(), node);

@@ -24,18 +24,35 @@ public class Color {
         System.out.println(dividedJson);
     }
 
-    public static String color(String json, String theme) {
+    public static String processColors(String json, String theme) {
         try {
         	json = processThemeTags(json, theme);
+            json = customColorCodes(json);
             if (json.contains("<#")) {
-            	json = processColorTags(json);
+            	if (Utils.isValidJson(json)) {
+            		json = processColorTags(json);
+            	} else {
+            		json = processColorTags(Utils.convertToJson(json));
+            	}
             }
-            json = processLegacyColors(json);
             json = processColorReplace(json, theme);
+            json = ChatColor.translateAlternateColorCodes('&', json);
         } catch (Exception e) {
-            Synergy.getLogger().error(e.getLocalizedMessage());
+            Synergy.getLogger().error("Error while processing colors: " + e.getLocalizedMessage());
         }
         return json;
+    }
+
+    public static String processLegacyColors(String string, String theme) {
+        string = customColorCodes(string);
+        string = processThemeTags(string, theme);
+        Pattern pattern = Pattern.compile("<(#[A-Fa-f0-9]{6})>");
+        Matcher matcher = pattern.matcher(string);
+        while (matcher.find()) {
+            string = string.replace(matcher.group(), "" + ChatColor.of(matcher.group(1)));
+        }
+        string = ChatColor.translateAlternateColorCodes('&', string);
+        return string;
     }
 
     public static String removeColor(String json) {
@@ -54,7 +71,7 @@ public class Color {
                     input = input.replace("<" + c + ">", hexCode);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+            	Synergy.getLogger().error("Error while processing theme tags: " + e.getLocalizedMessage());
             }
         }
         return input;
@@ -67,7 +84,7 @@ public class Color {
                 input = input.replace("\"" + c + "\"", "\"" + hexCode.substring(1, 8) + "\"");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+        	Synergy.getLogger().error("Error while processing color replace: " + e.getLocalizedMessage());
         }
         return input;
     }
@@ -80,23 +97,8 @@ public class Color {
         return sentence;
     }
 
-    public static String processLegacyColors(String string) {
-        string = customColorCodes(string);
-        Pattern pattern = Pattern.compile("<(#[A-Fa-f0-9]{6})>");
-        Matcher matcher = pattern.matcher(string);
-        while (matcher.find()) {
-            string = string.replace(matcher.group(), "" + ChatColor.of(matcher.group(1)));
-        }
-        string = ChatColor.translateAlternateColorCodes('&', string);
-        return string;
-    }
-
     private static String processColorTags(String json) {
         try {
-            if (!Utils.isValidJson(json)) {
-            	json = Utils.convertToJson(json);
-            }
-
             JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
             JsonObject text = new JsonObject();
             text.addProperty("text", jsonObject.get("text").getAsString());
@@ -123,13 +125,7 @@ public class Color {
             jsonObject.add("extra", dividedExtra);
             return jsonObject.toString();
         } catch (Exception e) {
-            Synergy.getLogger().error(e.getLocalizedMessage());
-        }
-
-        try {
-            return processLegacyColors(json);
-        } catch (Exception e) {
-            Synergy.getLogger().error(e.getLocalizedMessage());
+        	Synergy.getLogger().error("Error while processing color tags: " + e.getLocalizedMessage());
         }
 
         return removeColor(json);

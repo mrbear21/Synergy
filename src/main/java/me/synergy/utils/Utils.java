@@ -12,6 +12,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -21,16 +23,10 @@ import com.google.gson.JsonSyntaxException;
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 
 public class Utils {
     private String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    public static void main(String[] args) {
-        String test = removeRepetitiveCharacters("");
-        System.out.println(test);
-    }
 
     public String generateRandomString(int length) {
         SecureRandom random = new SecureRandom();
@@ -60,15 +56,16 @@ public class Utils {
         }
         return sb.toString();
     }
-    
+
     public static String removeIgnoringCase(String word, String sentence) {
         String lowerCaseSentence = sentence.toLowerCase();
         String lowerCaseWord = word.toLowerCase();
         String[] words = lowerCaseSentence.split("\\s+");
         StringBuilder result = new StringBuilder();
         for (String w: words) {
-            if (!w.equals(lowerCaseWord))
-                result.append(w).append(" ");
+            if (!w.equals(lowerCaseWord)) {
+				result.append(w).append(" ");
+			}
         }
         return result.toString().trim();
     }
@@ -80,7 +77,7 @@ public class Utils {
         string = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', string));
         return string;
     }
-    
+
     public static String[] splitMessage(String message) {
         List < String > parts = new ArrayList < > ();
         String[] words = message.split("\\s+");
@@ -96,44 +93,44 @@ public class Utils {
         parts.add(currentPart.toString());
         return parts.toArray(new String[0]);
     }
-    
+
     public static void addBlockedWord(String word) {
     	List<String> words = getBlockedWorlds();
     	words.add(word);
     	Synergy.getSpigot().getConfig().set("chat-manager.chat-filter.blocked-words", words);
     	Synergy.getSpigot().saveConfig();
     }
-    
+
     public static void removeBlockedWord(String word) {
     	List<String> words = getBlockedWorlds();
     	words.remove(word);
     	Synergy.getSpigot().getConfig().set("chat-manager.chat-filter.blocked-words", words);
     	Synergy.getSpigot().saveConfig();
     }
-    
+
     public static void addIgnoredWord(String word) {
     	List<String> words = getIgnoredWorlds();
     	words.add(word);
     	Synergy.getSpigot().getConfig().set("chat-manager.chat-filter.ignored-words", words);
     	Synergy.getSpigot().saveConfig();
     }
-    
+
     public static void removeIgnoredWord(String word) {
     	List<String> words = getIgnoredWorlds();
     	words.remove(word);
     	Synergy.getSpigot().getConfig().set("chat-manager.chat-filter.ignored-words", words);
     	Synergy.getSpigot().saveConfig();
     }
-    
-    
+
+
     public static List<String> getBlockedWorlds() {
 		return Synergy.getSpigot().getConfig().getStringList("chat-manager.chat-filter.blocked-words");
 	}
-    
+
     public static List<String> getIgnoredWorlds() {
 		return Synergy.getSpigot().getConfig().getStringList("chat-manager.chat-filter.ignored-words");
 	}
-    
+
     public static String censorBlockedWords(String sentence) {
         double tolerance = Synergy.getConfig().getDouble("chat-manager.chat-filter.blocked-words-tolerance-percentage");
         for (String blockedWord : getBlockedWorlds()) {
@@ -147,8 +144,9 @@ public class Utils {
                     boolean isWordWithoutDuplicatesStartsWithBadWord = blockedWord.startsWith(removeConsecutiveDuplicates(String.valueOf(match) + removeColorCodes(sentence).charAt(i)));
 
                     if (isFirstLetterMatches || isWordStartsWithBadWord || isWordWithoutDuplicatesStartsWithBadWord) {
-                        if (match.isEmpty())
-                            start = i;
+                        if (match.isEmpty()) {
+							start = i;
+						}
                         match = String.valueOf(match) + Utils.removeColorCodes(sentence).charAt(i);
                         end = i;
                     } else {
@@ -158,15 +156,16 @@ public class Utils {
                     if (blockedWord.equals(match) || blockedWord.equals(removeConsecutiveDuplicates(match))) {
                         String word = findWordInRange(removeColorCodes(sentence), start, end);
                         double percentage = (double) match.length() / (double) word.length() * 100;
-                        if ((tolerance < percentage || !word.contains(blockedWord)) && !getIgnoredWorlds().contains(word))
-                            sentence = censorPartOfSentence(sentence, start, end);
+                        if ((tolerance < percentage || !word.contains(blockedWord)) && !getIgnoredWorlds().contains(word)) {
+							sentence = censorPartOfSentence(sentence, start, end);
+						}
                     }
                 }
             }
         }
         return sentence;
     }
-    
+
 	public static String detectPlayernamePlaceholder(String text, String defaultIfNull) {
 	    int startIdx = text.indexOf("%");
 	    if (startIdx == -1) {
@@ -183,14 +182,14 @@ public class Utils {
 	    }
 	    return text.substring(leftPercentIdx, rightPercentIdx + 1);
 	}
-    
+
 	public static String translateSmiles(String string) {
 		for (String e : Synergy.getConfig().getConfigurationSection("chat-manager.custom-emojis").getKeys(false)) {
 			string = string.replace(e, Synergy.getConfig().getString("chat-manager.custom-emojis."+e));
 		}
 		return string;
 	}
-	
+
     public static String removeColorCodes(String input) {
         String regex = "&[0-9a-f]";
         Pattern pattern = Pattern.compile(regex);
@@ -198,7 +197,7 @@ public class Utils {
         String result = matcher.replaceAll("**");
         return result;
     }
-    
+
     public static String removeConsecutiveDuplicates(String text) {
         StringBuilder result = new StringBuilder();
         char prevChar = '\0';
@@ -210,13 +209,13 @@ public class Utils {
         }
         return result.toString();
     }
-    
+
     public static String findWordInRange(String sentence, int start, int end) {
         String[] words = sentence.split("\\s+");
         for (String word : words) {
             int wordStart = sentence.indexOf(word);
             int wordEnd = wordStart + word.length() - 1;
-            
+
             if (start >= wordStart && end <= wordEnd) {
                 return word;
             }
@@ -235,7 +234,7 @@ public class Utils {
         return new String(charArray);
     }
 
-    
+
     public static String censorPartOfSentence(String sentence, int start, int end) {
         if (end-start < 2) {
             return sentence;
@@ -248,7 +247,7 @@ public class Utils {
         }
         return new String(charArray);
     }
-	
+
     private static String applyGradientToText(String text, ChatColor startColor, ChatColor endColor) {
         StringBuilder gradientText = new StringBuilder();
         int startRgb = startColor.getColor().getRGB();
@@ -290,7 +289,7 @@ public class Utils {
         m.appendTail(result);
         return result.toString();
     }
-    
+
 	public static String replaceFirstAndLastQuotes(String input) {
 	    if (input == null || input.isEmpty() || input.length() < 2) {
 	        return input;
@@ -304,17 +303,16 @@ public class Utils {
 	    }
 	    return input;
 	}
-	
-    public static boolean isValidJson(String input) {
-        try {
-            JsonElement jsonElement = JsonParser.parseString(input);
-            if (jsonElement.isJsonObject() || jsonElement.isJsonArray()) {
-                return true;
-            }
-        } catch (JsonSyntaxException e) {}
-		return false;
-    }
-	
+
+	public static boolean isValidJson(String input) {
+	    try {
+	        JsonElement jsonElement = JsonParser.parseString(input);
+	        return jsonElement.isJsonObject() || jsonElement.isJsonArray();
+	    } catch (JsonSyntaxException e) {
+	        return false;
+	    }
+	}
+
     public static String convertToJson(String input) {
     	input = replaceFirstAndLastQuotes(input);
         JsonObject jsonObject = new JsonObject();
@@ -324,7 +322,54 @@ public class Utils {
         jsonObject.add("extra", extraArray);
         return jsonObject.toString();
     }
-    
+
+    public static String extractText(String json) {
+        try {
+            // Ensure the JSON string is correctly formatted
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(json);
+            StringBuilder combinedText = new StringBuilder();
+            extractText(rootNode, combinedText);
+            return combinedText.toString();
+        } catch (Exception c) {
+            Synergy.getLogger().warning("Error while extracting text: " + c.getLocalizedMessage());
+            return json;
+        }
+    }
+
+    private static void extractText(JsonNode node, StringBuilder combinedText) {
+        if (node.isObject()) {
+            // Process the "text" field
+            if (node.has("text")) {
+                JsonNode textNode = node.get("text");
+                if (textNode.isTextual()) {
+                    combinedText.append(textNode.asText());
+                }
+            }
+            // Process the "extra" field if it exists
+            if (node.has("extra")) {
+                JsonNode extraNode = node.get("extra");
+                if (extraNode.isArray()) {
+                    for (JsonNode arrayElement : extraNode) {
+                        extractText(arrayElement, combinedText);
+                    }
+                }
+            }
+        } else if (node.isArray()) {
+            for (JsonNode arrayElement : node) {
+                extractText(arrayElement, combinedText);
+            }
+        } else if (node.isTextual()) {
+            combinedText.append(node.asText());
+        }
+    }
+
+    public static void main(String[] args) {
+        String json = "{\"text\":\"\",\"extra\":[\"<primary>Добро пожаловать на\\n <danger>&lSanctuary<primary>\\n\\n<primary>Стримерка <interactive><danger>&nmeitene<hover>Перейти на Twitch</hover><url>https://twitch.tv/meitene_space</url></interactive> <primary>приглашает тебя создавать свои шедевры!\\n\\n\\n<secondary>&oСервер открыт для всех. Общение в чате на латышском, русском или английском языке.\\n\"]}";
+        String text = extractText(json);
+        System.out.println(text);
+    }
+
     public static JsonArray insertJsonElementIntoArray(int index, JsonElement val, JsonArray currentArray) {
         JsonArray newArray = new JsonArray();
         for (int i = 0; i < index; i++) {
@@ -342,7 +387,7 @@ public class Utils {
     		player.playSound(player.getLocation(), sound, 1.0F, 1.0F);
     	} catch (Exception c) {
     		Synergy.getLogger().error(c.getLocalizedMessage());
-    	} 
+    	}
     }
 
     public static void sendFakeBook(Player player, String title, String content) {
@@ -351,13 +396,13 @@ public class Utils {
         BookMeta meta = (BookMeta) book.getItemMeta();
         meta.setTitle(title);
 
+        content = Translation.processLangTags(content, bread.getLanguage());
+
         String[] pages = content.split("%np%");
 
-        for (String pageContent : pages) {
-            String lang = Translation.translate(pageContent, bread.getLanguage());
-            String color = Color.color(lang, bread.getTheme());
-            BaseComponent[] page = ComponentSerializer.parse(color);
-            meta.spigot().addPage(page);
+        for (String page : pages) {
+        	page = Synergy.translate(page, bread.getLanguage()).setExecuteInteractive(bread).getColored(bread.getTheme());
+            meta.spigot().addPage(ComponentSerializer.parse(page));
         }
 
         meta.setAuthor("synergy");

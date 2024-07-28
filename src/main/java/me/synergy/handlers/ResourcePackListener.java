@@ -20,7 +20,7 @@ public class ResourcePackListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         Synergy.getBread(event.getPlayer().getUniqueId()).setData("resourcepack", null);
     }
-    
+
     @EventHandler
     public void onResourcePackStatus(PlayerResourcePackStatusEvent event) {
         if (event.getStatus() == PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED) {
@@ -29,7 +29,7 @@ public class ResourcePackListener implements Listener {
         }
         Synergy.getBread(event.getPlayer().getUniqueId()).setData("resourcepack", "no");
     }
-    
+
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         if (Synergy.getConfig().getBoolean("web-server.custom-texturepack")) {

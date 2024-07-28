@@ -17,17 +17,27 @@ import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
 
 public class Interactive {
-	
-    public static void main(String[] args) {
-        String dividedJson = processInteractiveTags("{\"text\":\"\",\"extra\":[{\"text\":\"Hello\",\"color\":\"#a4b0be\"}]}");
-        System.out.println(dividedJson);
+
+    public static String processInteractive(String json) {
+
+		if (!json.contains("<interactive>")) {
+			return json;
+		}
+
+    	try {
+    		if (!Utils.isValidJson(json)) {
+    			json = Utils.convertToJson(Utils.extractText(json));
+    		}
+    		return processInteractiveTags(json);
+    	} catch (Exception c) {
+    		json = Utils.extractText(json);
+    		return processInteractiveTags(json);
+    	}
+
     }
 
-    public static String processInteractiveTags(String json) {
+    private static String processInteractiveTags(String json) {
     	try {
-        	if (!Utils.isValidJson(json)) {
-        		json = Utils.convertToJson(json);
-        	}
 	        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
 	        JsonArray extraArray = jsonObject.getAsJsonArray("extra");
 	        JsonArray dividedExtra = new JsonArray();
@@ -45,33 +55,38 @@ public class Interactive {
 	        jsonObject.add("extra", dividedExtra);
 	        return jsonObject.toString();
     	} catch (Exception c) {
-    		Synergy.getLogger().error(c.getLocalizedMessage());
+    		Synergy.getLogger().error("Error while processing interactive: " + c.getLocalizedMessage());
+    		c.printStackTrace();
     	}
- 
+
     	return removeInteractiveTags(json);
     }
-    
+
     public static String removeInteractiveTags(String string) {
     	return string.replaceAll("<interactive>(.*?)</interactive>", "");
     }
 
-    public static void executeInteractive(String json, BreadMaker bread) {
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
-        if (jsonObject.has("extra")) {
-            JsonArray extraArray = jsonObject.getAsJsonArray("extra");
-            for (JsonElement element : extraArray) {
-                JsonObject extraObject = element.getAsJsonObject();
-                if (extraObject.has("soundEvent")) {
-                    JsonObject soundEvent = extraObject.getAsJsonObject("soundEvent");
-                    if (soundEvent.has("sound")) {
-                		Utils.playSound(Sound.valueOf(soundEvent.get("sound").getAsString().toUpperCase()), Bukkit.getPlayer(bread.getUniqueId()));
-                    }
-                }
-            }
-        }
+	public static void executeInteractive(String json, BreadMaker bread) {
+    	try {
+	        Gson gson = new Gson();
+	        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+	        if (jsonObject.has("extra")) {
+	            JsonArray extraArray = jsonObject.getAsJsonArray("extra");
+	            for (JsonElement element : extraArray) {
+	                JsonObject extraObject = element.getAsJsonObject();
+	                if (extraObject.has("soundEvent")) {
+	                    JsonObject soundEvent = extraObject.getAsJsonObject("soundEvent");
+	                    if (soundEvent.has("sound")) {
+	                		Utils.playSound(Sound.valueOf(soundEvent.get("sound").getAsString().toUpperCase()), Bukkit.getPlayer(bread.getUniqueId()));
+	                    }
+	                }
+	            }
+	        }
+    	} catch (Exception c) {
+    		//Synergy.getLogger().error("Error while executing interactive: " + c.getLocalizedMessage());
+    	}
     }
-    
+
     private static void splitInteractiveText(JsonObject object, JsonArray dividedExtra) {
         String text = object.get("text").getAsString();
         int startIndex = text.indexOf("<interactive>");
@@ -92,7 +107,7 @@ public class Interactive {
             dividedExtra.add(obj);
 
             JsonObject interactiveObject = new JsonObject();
-            
+
             Pattern pattern = Pattern.compile("<url>(.*?)</url>");
             Matcher matcher = pattern.matcher(interactivePart);
             if (matcher.find()) {
@@ -102,7 +117,7 @@ public class Interactive {
             	interactiveObject.add("clickEvent", urlEvent);
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
             }
-            
+
             pattern = Pattern.compile("<sound>(.*?)</sound>");
             matcher = pattern.matcher(interactivePart);
             if (matcher.find()) {
@@ -110,18 +125,18 @@ public class Interactive {
             	soundEvent.addProperty("sound", matcher.group(1));
             	interactiveObject.add("soundEvent", soundEvent);
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
-            } 
-            
+            }
+
             pattern = Pattern.compile("<hover>(.*?)</hover>");
             matcher = pattern.matcher(interactivePart);
             if (matcher.find()) {
                 JsonObject hoverEvent = new JsonObject();
                 hoverEvent.addProperty("action", "show_text");
-                hoverEvent.addProperty("value", Color.processLegacyColors(matcher.group(1)));
+                hoverEvent.addProperty("value", Color.processLegacyColors(matcher.group(1), "default"));
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
             	interactiveObject.add("hoverEvent", hoverEvent);
             }
-            
+
             JsonObject commmandEvent = new JsonObject();
             pattern = Pattern.compile("<command>(.*?)</command>");
             matcher = pattern.matcher(interactivePart);
@@ -131,10 +146,10 @@ public class Interactive {
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
             	interactiveObject.add("clickEvent", commmandEvent);
             }
-            
+
             interactiveObject.addProperty("text", interactivePart);
             inheritProperties(object, interactiveObject);
-            
+
             dividedExtra.add(interactiveObject);
 
             JsonObject remains = new JsonObject();
@@ -143,7 +158,7 @@ public class Interactive {
             splitInteractiveText(remains, dividedExtra);
         }
     }
-    
+
     private static void inheritProperties(JsonObject source, JsonObject target) {
         for (String key : source.keySet()) {
             if (!key.equals("text")) {

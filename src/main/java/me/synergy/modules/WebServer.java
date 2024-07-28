@@ -21,12 +21,12 @@ public class WebServer implements Listener {
     private static int port = Synergy.getConfig().getInt("web-server.port");
     private static String serverAddress = Synergy.getConfig().getString("web-server.domain");
     private static String fullAddress = "http://" + serverAddress + ":"+port;
-    
+
     public void initialize() {
     	if (!Synergy.getConfig().getBoolean("web-server.enabled")) {
     		return;
     	}
-    	
+
     	Synergy.getSpigot().getServer().getPluginManager().registerEvents(this, Synergy.getSpigot());
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -40,7 +40,7 @@ public class WebServer implements Listener {
         loadWebFiles();
         if (Synergy.isSpigot()) {
         	loadResourcePackFolder();
-        }        
+        }
     }
 
     private void loadWebFiles() {
@@ -62,7 +62,7 @@ public class WebServer implements Listener {
             }
         }
     }
-    
+
     private void loadResourcePackFolder() {
         File webFolder = new File("resourcepack");
         if (!webFolder.exists()) {
@@ -73,11 +73,11 @@ public class WebServer implements Listener {
             }
         }
     }
-    
+
     public static String getFullAddress() {
     	return fullAddress;
     }
-    
+
     public void shutdown() {
         if (server != null) {
             server.stop(0);
@@ -131,6 +131,6 @@ public class WebServer implements Listener {
         }
     }
 
-    
-    
+
+
 }

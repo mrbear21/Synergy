@@ -1,6 +1,7 @@
 package me.synergy.handlers;
 
 import org.bukkit.entity.Player;
+
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.synergy.brains.Synergy;
@@ -41,7 +42,7 @@ public class PlaceholdersBreadDataListener extends PlaceholderExpansion {
 	public String setPlaceholders(Player player, String placeholder) {
 		return ChatColor.translateAlternateColorCodes('&', PlaceholderAPI.setPlaceholders(player, placeholder));
 	}
-	
+
 	@Override
 	public String onPlaceholderRequest(Player p, String identifier) {
 		BreadMaker bread = Synergy.getBread(p.getUniqueId());

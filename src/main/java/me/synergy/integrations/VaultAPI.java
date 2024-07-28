@@ -22,7 +22,7 @@ public class VaultAPI {
         }
         return playersWithPermission;
     }
-    
+
     public OfflinePlayer getPlayerWithExactPermission(String permissionNode) {
     	Permission permission = Synergy.getSpigot().getPermissions();
         if (permission != null) {
@@ -36,5 +36,5 @@ public class VaultAPI {
         }
         return null;
     }
-	
+
 }

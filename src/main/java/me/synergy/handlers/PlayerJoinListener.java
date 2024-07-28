@@ -16,8 +16,8 @@ import me.synergy.events.SynergyEvent;
 
 public class PlayerJoinListener implements Listener {
 
-	private static HashMap<UUID, Long> PLAYERS = new HashMap<UUID, Long>();
-	
+	private static HashMap<UUID, Long> PLAYERS = new HashMap<>();
+
     public void initialize() {
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
     }
@@ -35,7 +35,7 @@ public class PlayerJoinListener implements Listener {
     public void onKick(PlayerKickEvent event) {
     	Synergy.getLogger().discord("```Player "+event.getPlayer().getName()+" has been kicked with the reason: "+event.getReason()+"```");
     }
-    
+
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
@@ -55,16 +55,17 @@ public class PlayerJoinListener implements Listener {
             }
         }
         Synergy.getSpigot().getServer().getScheduler().scheduleSyncRepeatingTask(Synergy.getSpigot(), new Runnable() {
-            public void run() {
+            @Override
+			public void run() {
                 Synergy.getDataManager().getConfig().set("synergy-event-waiting." + uuid, null);
                 Synergy.getDataManager().saveConfig();
             }
         }, 0, 60);
 
         if (Synergy.getDiscord().getDiscordIdByUniqueId(uuid) != null) {
-        	
+
         	Synergy.getDiscord().addVerifiedRole(Synergy.getDiscord().getDiscordIdByUniqueId(uuid));
-        	
+
             if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-form-mc-to-discord")) {
                 Synergy.createSynergyEvent("sync-roles-from-mc-to-discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("group", Synergy.getSpigot().getPermissions().getPrimaryGroup(event.getPlayer())).send();
             }
@@ -75,8 +76,8 @@ public class PlayerJoinListener implements Listener {
         }
 
     	PLAYERS.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
-    	
+
     	Synergy.getLogger().discord("```Player "+event.getPlayer().getName()+" has joined with IP "+event.getPlayer().getAddress()+" ```");
-    	
+
     }
 }

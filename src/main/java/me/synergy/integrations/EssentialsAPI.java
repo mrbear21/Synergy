@@ -19,5 +19,5 @@ public class EssentialsAPI {
 		}
         return false;
 	}
-	
+
 }

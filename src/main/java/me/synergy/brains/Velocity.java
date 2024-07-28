@@ -32,7 +32,7 @@ public class Velocity {
     public Map<String, Object> configValues;
 	public Object config;
 	private static Velocity INSTANCE;
-    
+
     public static final String CHANNEL_NAME = "net:synergy";
     public static final MinecraftChannelIdentifier IDENTIFIER = MinecraftChannelIdentifier.from(CHANNEL_NAME);
 
@@ -71,10 +71,10 @@ public class Velocity {
             }
         } catch (Exception ignored) {}
         String[] args = argsList.toArray(new String[0]);
-        
+
         if (!Boolean.valueOf(waitForPlayer)) {
 	        server.getEventManager().fire(new SynergyVelocityEvent(identifier, player, args));
-	        
+
 	        ByteArrayDataOutput out = ByteStreams.newDataOutput();
 	        out.writeUTF(token);
 	        out.writeUTF(identifier);
@@ -83,17 +83,17 @@ public class Velocity {
 	        for (String arg : argsList) {
 		        out.writeUTF(arg);
 	        }
-	        
+
 	        for (RegisteredServer registeredServer : server.getAllServers()) {
 	            registeredServer.sendPluginMessage(IDENTIFIER, out.toByteArray());
 	        }
-	        
+
         } else {
-        	
+
         }
-   
+
     }
-    
+
 	@Subscribe(order = PostOrder.EARLY)
 	public void onEvent(SynergyVelocityEvent e) {
         if (!e.getIdentifier().equals("chat")) {
@@ -101,11 +101,11 @@ public class Velocity {
         }
 		getLogger().info(e.getIdentifier());
 	}
-    
+
     public static Logger getLogger() {
     	return logger;
     }
-    
+
     public ProxyServer getProxy() {
     	return server;
     }
@@ -121,5 +121,5 @@ public class Velocity {
 	public static void setLogger(Logger logger) {
 		Velocity.logger = logger;
 	}
-    
+
 }

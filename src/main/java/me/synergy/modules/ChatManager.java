@@ -23,8 +23,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
-import com.theokanning.openai.completion.CompletionChoice;
-
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
@@ -49,9 +47,9 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
             Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
         }
     }
-    
+
     private List<String> getChats() {
-		List<String> chats = new ArrayList<String>();
+		List<String> chats = new ArrayList<>();
 		if (Synergy.getConfig().getBoolean("chat-manager.local-chat")) {
 			chats.add("local");
 		} else {
@@ -62,14 +60,14 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 		}
 		return chats;
     }
-    
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-    	
+
 		if (!sender.hasPermission("synergy."+command.getLabel().toLowerCase())) {
 			return null;
 		}
-    	
+
     	if (command.getLabel().equals("chat")) {
 	    	if (args.length < 2) {
 		        return getChats();
@@ -78,22 +76,22 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
     	if (command.getLabel().equals("chatfilter")) {
     		if (args.length < 2) {
     			return Arrays.asList(new String[] {"block", "ignore", "remove"});
-    		} 
+    		}
 	    	if (args.length > 0 && args[0].equalsIgnoreCase("remove")) {
 	    		return Stream.concat(Utils.getBlockedWorlds().stream(), Utils.getIgnoredWorlds().stream()).toList();
 	    	}
     	}
     	return null;
     }
-    
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		
+
 		if (!sender.hasPermission("synergy."+label.toLowerCase())) {
 			sender.sendMessage("<lang>synergy-no-permission</lang>");
 			return true;
 		}
-		
+
 		if (label.equalsIgnoreCase("chatfilter")) {
 			if (args.length > 1) {
 				if (args[0].equalsIgnoreCase("block")) {
@@ -113,21 +111,21 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 				sender.sendMessage("<lang>synergy-command-usage</lang> /chatfilter block/ignore/remove <word>");
 			}
 		}
-		
+
 		if (label.equalsIgnoreCase("chat")) {
 
 			if (args.length == 0) {
 				sender.sendMessage("<lang>synergy-command-usage</lang> /chat <"+String.join("/", getChats())+">");
 				return true;
 			}
-			
+
 			if (getChats().contains(args[0].toLowerCase())) {
 				Synergy.getBread(((Player) sender).getUniqueId()).setData("chat", args[0].toLowerCase());
 				sender.sendMessage("<lang>synergy-selected-chat<arg>"+args[0].toLowerCase()+"</arg></lang>");
 				return true;
 			}
 		}
-		
+
 		if (label.equalsIgnoreCase("colors")) {
 		    ConfigurationSection tags = Synergy.getConfig().getConfigurationSection("chat-manager.custom-color-tags");
 	        List<String> colors = new ArrayList<>();
@@ -141,7 +139,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 	            sender.sendMessage("Only the player can execute this command.");
 	        }
 		}
-		
+
 		if (label.equalsIgnoreCase("emojis")) {
 		    ConfigurationSection tags = Synergy.getConfig().getConfigurationSection("chat-manager.custom-emojis");
 		    int count = 0;
@@ -173,18 +171,14 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
-		
+
 		BreadMaker bread = Synergy.getBread(event.getPlayer().getUniqueId());
 
-        if (!event.isCancelled()) { 
+        if (!event.isCancelled()) {
         	event.setCancelled(true);
         }
-        
-        if (!bread.isAuthenticated()) {
-        	return;
-        }
-        
-		if (bread.isMuted()) {
+
+        if (!bread.isAuthenticated() || bread.isMuted()) {
         	return;
 		}
 
@@ -192,20 +186,20 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         	event.getPlayer().sendMessage("<lang>synergy-message-cant-be-empty</lang>");
         	return;
         }
-        
+
         String chat = bread.getData("chat").isSet() ? bread.getData("chat").getAsString() : Synergy.getConfig().getBoolean("chat-manager.local-chat") ? "local" : "global";
         chat = getChatTypeFromMessage(event.getMessage()) == null ? chat : getChatTypeFromMessage(event.getMessage());
-        
+
         Synergy.createSynergyEvent("chat").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer()
         		.getName()).setOption("message", event.getMessage()).setOption("chat", chat).send();
-        
+
         Synergy.createSynergyEvent("discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer().getName())
             .setOption("message", Utils.stripColorTags(event.getMessage())).setOption("chat", chat).send();
-        
+
         String botName = Synergy.getDiscord().getBotName();
         if (removeChatTypeSymbol(event.getMessage()).toLowerCase().startsWith(botName.toLowerCase()) && chat.equals("global")) {
             String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Utils.removeIgnoringCase(botName, removeChatTypeSymbol(event.getMessage())));
-            String answer = ((CompletionChoice)(new OpenAi()).newPrompt(question).get(0)).getText().replace("\"", "").trim();
+            String answer = (new OpenAi()).newPrompt(question).get(0).getText().replace("\"", "").trim();
             answer = answer.isEmpty() ? Translation.translate("<lang>synergy-service-unavailable</lang>", Translation.getDefaultLanguage()) : answer;
             Synergy.createSynergyEvent("chat").setOption("player", botName).setOption("message", answer).setOption("chat", "discord").send();
             Synergy.createSynergyEvent("discord").setOption("player", botName).setOption("message", answer).setOption("chat", "global").send();
@@ -219,7 +213,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 	        Synergy.getLogger().discord("```[cmd] " + event.getPlayer().getName() + ": " + event.getMessage() + "```");
 	    }
 	}
-	
+
     @EventHandler
     public void onSynergyPluginMessage(SynergyEvent event) {
 
@@ -234,15 +228,15 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         		bread.sendMessage(Translation.translate(event.getOption("message").getAsString(), bread.getLanguage()).replace("%ARGUMENT%", event.getOption("argument").getAsString()));
         	}
         }
-        
+
         if (event.getIdentifier().equals("chat")) {
-        	
+
         	UUID uuid = event.getPlayerUniqueId();
 	        String chatType = event.getOption("chat").getAsString();
 	        String format = getFormattedChatMessage(event);
             Player sender = Bukkit.getPlayer(uuid);
 	        int count = 0;
-	        
+
 	        for (Player recipient: Bukkit.getOnlinePlayers()) {
 	            switch (chatType) {
 	                case "discord":
@@ -277,7 +271,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 	                    break;
 	            }
 	        }
-	        
+
 	        if (count == 1 && Arrays.asList(new String[] {"local", "plot"}).contains(chatType)) {
 	        	event.getBread().sendMessage("<lang>synergy-noone-hears-you</lang>");
 	        }
@@ -303,7 +297,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         if (chatType.contains("discord")) {
         	format = format.replace(Utils.detectPlayernamePlaceholder(format, "%DISPLAYNAME%"), displayname);
         }
-        
+
         if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
             format = PlaceholderAPI.setPlaceholders(sender, format);
         }
@@ -314,11 +308,11 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         message = message.replace("҉", "*");
         if (sender == null || !event.getBread().hasPermission("synergy.colors")) {
         	message = Utils.stripColorTags(message);
-        }      
+        }
         message = Utils.translateSmiles(message);
         message = Utils.censorBlockedWords(message);
         message = Utils.removeRepetitiveCharacters(message);
-        
+
         format = format.replace("%DISPLAYNAME%", displayname);
         format = format.replace("%MESSAGE%", message);
         format = format.replace("%CHATLETTER%", String.valueOf(chatType.charAt(0)).toUpperCase());
@@ -326,7 +320,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         format = format.replace("%PLOT%", chatType.toLowerCase().equals("plot") ? "[plot] " : "");
         format = format.replace("%COLOR%", getChatColor(chatType));
         format = format.replace("%RANDOM%", String.valueOf(new Random().nextInt(99)));
-   
+
         return format;
     }
 

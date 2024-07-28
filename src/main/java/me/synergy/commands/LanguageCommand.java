@@ -1,10 +1,5 @@
 package me.synergy.commands;
 
-import me.synergy.brains.Synergy;
-import me.synergy.objects.BreadMaker;
-import me.synergy.utils.Translation;
-import me.synergy.utils.Utils;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +11,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
+import me.synergy.brains.Synergy;
+import me.synergy.objects.BreadMaker;
+import me.synergy.utils.Translation;
+import me.synergy.utils.Utils;
+
 public class LanguageCommand implements CommandExecutor, TabCompleter {
 
     public void initialize() {
@@ -26,7 +26,7 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
         Synergy.getSpigot().getCommand("lang").setExecutor(this);
         Synergy.getSpigot().getCommand("language").setTabCompleter(this);
         Synergy.getSpigot().getCommand("lang").setTabCompleter(this);
-        
+
 	}
 
     @Override
@@ -38,8 +38,9 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
     	}
     	return null;
     }
-    
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+
+    @Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     	Player player = (Player) sender;
     	BreadMaker bread = new BreadMaker(player.getUniqueId());
     	Set<String> languages = Synergy.getLocalesManager().getLanguages();
@@ -55,7 +56,7 @@ public class LanguageCommand implements CommandExecutor, TabCompleter {
     		sender.sendMessage("<lang>synergy-command-usage</lang> /language "+languages);
     		return true;
     	}
-    	Utils.sendFakeBook((Player) sender, "Languages", Translation.processLangTags("<lang>synergy-languages</lang>", bread.getLanguage()));
+    	Utils.sendFakeBook(player, "Languages", "<lang>synergy-languages</lang>");
         return true;
     }
 }

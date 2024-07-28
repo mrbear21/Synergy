@@ -1,6 +1,7 @@
 package me.synergy.handlers;
 
 import org.bukkit.entity.Player;
+
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.synergy.brains.Synergy;
@@ -44,16 +45,16 @@ public class PlaceholdersLocalesListener extends PlaceholderExpansion {
 	public String setPlaceholders(Player player, String placeholder) {
 		return ChatColor.translateAlternateColorCodes('&', PlaceholderAPI.setPlaceholders(player, placeholder));
 	}
-	
+
 	@Override
 	public String onPlaceholderRequest(Player player, String identifier) {
 
 		BreadMaker bread = Synergy.getBread(player.getUniqueId());
-		
+
     	String output = Translation.translate("<lang>"+identifier+"</lang>", bread.getLanguage());
     	output = Interactive.removeInteractiveTags(output);
     	output = Color.processThemeTags(output, bread.getTheme());
-    	
+
 		return output;
 	}
 

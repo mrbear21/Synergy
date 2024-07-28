@@ -12,11 +12,12 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import me.synergy.brains.Synergy;
+import me.synergy.integrations.PlaceholdersAPI;
 import me.synergy.modules.LocalesManager;
-import net.md_5.bungee.api.ChatColor;
+import me.synergy.objects.BreadMaker;
 
 public class Translation {
-	
+
     public static String getDefaultLanguage() {
     	try {
     		return Synergy.getConfig().getString("localizations.default-language");
@@ -24,74 +25,59 @@ public class Translation {
     		return "en";
     	}
     }
-	
-	public static String translateStripped(String string, String language) {
-		// Translate string
-		string = translate(string, language);
-		// Remove color
-		string = ChatColor.stripColor(Color.removeColor(string));
-		// Remove interactive
-		string = Interactive.removeInteractiveTags(string);
-		return string;
-	}
 
-	public static String translate(String string, String language) {
-		
+    public static String translate(String string, String language) {
+    	return translate(string, language, null);
+    }
+
+	public static String translate(String string, String language, BreadMaker bread) {
+
 		// Process <lang> tags
 		try {
         	if (string.contains("<lang>")) {
+        		if (Utils.isValidJson(string)) {
+        			string = Utils.convertToJson(Utils.extractText(string));
+        		}
         		string = Translation.processLangTags(string, language);
+        	//	return translate(string, language);
         	}
-		} catch (Exception c) { Synergy.getLogger().error(c.getLocalizedMessage()); }
-		
+		} catch (Exception c) { Synergy.getLogger().error("Error while processing <lang> tags: " + c.getLocalizedMessage()); }
+
+
 		// Process placeholders
 		try {
-			if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
-				string = PlaceholdersProcessor.processPlaceholders(null, string);
+			if (Synergy.isDependencyAvailable("PlaceholderAPI") && bread != null) {
+				string = PlaceholdersAPI.processPlaceholders(Synergy.getSpigot().getPlayerByUniqueId(bread.getUniqueId()), string);
 			}
-		} catch (Exception c) { Synergy.getLogger().error(c.getLocalizedMessage()); }
+		} catch (Exception c) { Synergy.getLogger().error("Error while processing placeholders: " + c.getLocalizedMessage()); }
+
 
 		// Process <translation> tags
 		try {
         	if (string.contains("<translation>")) {
-        		try {
-        			string = Translation.processTranslationTags(string, language);
-        		} catch (Exception a) {
-        			Synergy.getLogger().error(a.getLocalizedMessage());
-
-            		try {
-	        			Synergy.getLogger().info("MERGED JSON "+JsonMerger.extractAndCombineText(string));
-	        			string = Translation.processTranslationTags(JsonMerger.extractAndCombineText(string), language);
-	        		} catch (Exception b) {
-	        			Synergy.getLogger().error(b.getLocalizedMessage());
-	        		}
+        		if (Utils.isValidJson(string)) {
+        			string = Utils.convertToJson(Utils.extractText(string));
         		}
+        		string = Translation.processTranslationTags(string, language);
+        	//	return translate(string, language);
         	}
-		} catch (Exception c) { Synergy.getLogger().error(c.getLocalizedMessage()); }
+		} catch (Exception c) { Synergy.getLogger().error("Error while processing <translation> tags: " + c.getLocalizedMessage()); }
 
-		// Process <interactive> tags
-		try {
-        	if (string.contains("<interactive>")) {
-        		string = Interactive.processInteractiveTags(string);
-        	}
-		} catch (Exception c) { Synergy.getLogger().error(c.getLocalizedMessage()); }
 
 		return string;
 	}
-	
-	
-	
-	
+
+
 	/*
 	 * <lang> tags processor
 	 */
-	
+
     public static String processLangTags(String input, String language) {
     	try {
 	        String keyPattern = "<lang>(.*?)</lang>";
 	        Pattern pattern = Pattern.compile(keyPattern);
 	        Matcher matcher = pattern.matcher(input);
-	
+
 	        StringBuffer outputBuffer = new StringBuffer();
 	        boolean found = false;
 	        while (matcher.find()) {
@@ -100,7 +86,7 @@ public class Translation {
 	            String translationKey = translationKeyWithArgs.replaceAll("<arg>(.*?)</arg>", "");
 	            HashMap<String, String> locales = LocalesManager.getLocales().getOrDefault(language, new HashMap<>());
 	            String defaultTranslation = LocalesManager.getLocales().getOrDefault(getDefaultLanguage(), new HashMap<>()).getOrDefault(translationKey, translationKey);
-	            String translatedText = locales.getOrDefault(translationKey, defaultTranslation);;
+	            String translatedText = locales.getOrDefault(translationKey, defaultTranslation);
 	            if (translatedText != null) {
 	                String argsPattern = "<arg>(.*?)</arg>";
 	                Pattern argsPatternPattern = Pattern.compile(argsPattern);
@@ -113,7 +99,7 @@ public class Translation {
 	            }
 	        }
 	        matcher.appendTail(outputBuffer);
-	        
+
 	        if (found) {
 	            return processLangTags(outputBuffer.toString(), language);
 	        } else {
@@ -122,24 +108,24 @@ public class Translation {
         } catch (Exception c) {
     		Synergy.getLogger().error(c.getLocalizedMessage());
     	}
-    	
+
     	return removeLangTags(input);
     }
-    
+
     public static String removeLangTags(String string) {
     	return string.replaceAll("<lang>(.*?)</lang>", "");
     }
-	
-		
+
+
 	/*
 	 * <translation> tags processor
 	 */
-	
+
     public static String processTranslationTags(String input, String languageCode) {
         Document doc = Jsoup.parse(input);
         StringBuilder result = new StringBuilder();
         processNode(doc.body(), languageCode, result);
-        return result.toString().trim();
+        return result.toString().trim().replace("\\", "");
     }
 
     private static void processNode(Node node, String languageCode, StringBuilder result) {
@@ -166,7 +152,7 @@ public class Translation {
             }
         }
     }
-    
+
     public static String removeTranslationTags(String string) {
     	return string.replaceAll("<translation>(.*?)</translation>", "");
     }

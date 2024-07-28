@@ -20,7 +20,7 @@ Basic tools and server messaging plugin for minecraft servers. The plugin can be
 <dependency>
   <groupId>archi.quest</groupId>
   <artifactId>synergy</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.4-SNAPSHOT</version>
 </dependency>
 ```
 

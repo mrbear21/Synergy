@@ -11,7 +11,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -55,7 +54,8 @@ public class SynergyEvent extends Event implements Listener {
         return HANDLER_LIST;
     }
 
-    public HandlerList getHandlers() {
+    @Override
+	public HandlerList getHandlers() {
         return HANDLER_LIST;
     }
 
@@ -79,7 +79,7 @@ public class SynergyEvent extends Event implements Listener {
 	public UUID getPlayerUniqueId() {
 		return uuid;
 	}
-    
+
     public SynergyEvent setOption(String option, String value) {
         this.options.put(option, value);
         return this;
@@ -94,13 +94,13 @@ public class SynergyEvent extends Event implements Listener {
         Gson gson = new Gson();
         return gson.toJson(options);
     }
-    
+
     private Map<String, String> getOptionsAsMap(String options) {
         Gson gson = new Gson();
         Type type = new TypeToken<Map<String, String>>(){}.getType();
         return gson.fromJson(options, type);
     }
-    
+
     public void send() {
         if (Synergy.getConfig().getBoolean("synergy-plugin-messaging.enabled")) {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
@@ -119,10 +119,11 @@ public class SynergyEvent extends Event implements Listener {
             triggerEvent();
         }
     }
-    
+
     public void triggerEvent() {
-        Bukkit.getScheduler().runTask((Plugin) Synergy.getSpigot(), new Runnable() {
-            public void run() {
+        Bukkit.getScheduler().runTask(Synergy.getSpigot(), new Runnable() {
+            @Override
+			public void run() {
                 Bukkit.getServer().getPluginManager().callEvent(new SynergyEvent(identifier, uuid, getOptionsAsJson()));
             }
         });

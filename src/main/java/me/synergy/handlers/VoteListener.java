@@ -38,17 +38,17 @@ public class VoteListener implements Listener {
         if (!event.getIdentifier().equals("votifier")) {
             return;
         }
-        
+
         String service = event.getOption("service").getAsString();
         BreadMaker bread = event.getBread();
-        
+
         if (bread.isOnline()) {
         	bread.sendMessage(Translation.processLangTags("<lang>synergy-voted-successfully</lang>", bread.getLanguage()).replace("%SERVICE%", service));
         }
-        
+
     	Synergy.createSynergyEvent("announcement").setOption("message", "<lang>synergy-player-voted</lang>").setOption("argument", bread.getName()).send();
     	Synergy.createSynergyEvent("discord-announcement").setOption("message", "<lang>synergy-player-voted</lang>").setOption("argument", bread.getName()).send();
-          
+
         for (String command : Synergy.getConfig().getStringList("votifier.rewards")) {
         	Synergy.executeConsoleCommand(command.replace("%PLAYER%", bread.getName()));
         }

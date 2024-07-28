@@ -25,14 +25,15 @@ public class VoteCommand implements CommandExecutor {
         Synergy.getSpigot().getCommand("vote").setExecutor(this);
     }
 
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    @Override
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (sender.hasPermission("synergy.vote")) {
         	BreadMaker bread = Synergy.getBread(((Player) sender).getUniqueId());
             List<String> monitorings = Synergy.getConfig().getStringList("votifier.monitorings");
-            
+
             StringBuilder build = new StringBuilder();
             StringBuilder list = new StringBuilder();
-            
+
             for (String m : monitorings) {
                 try {
                 	String domain = new URI(m).getHost();
@@ -43,7 +44,7 @@ public class VoteCommand implements CommandExecutor {
                     e.printStackTrace();
                 }
             }
-            
+
             build.append(Translation.translate("<lang>synergy-monitorings-menu</lang>", bread.getLanguage()).replace("%MONITORINGS%", list));
 
             Utils.sendFakeBook((Player) sender, "Monitorings", build.toString());

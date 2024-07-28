@@ -16,14 +16,14 @@ public class DataManager {
 	}
 
 	public void initialize() {
-		
+
 		if (!new File(Synergy.getSpigot().getDataFolder(), "data.yml").exists()) {
 			Synergy.getLogger().info("Creating data file...");
 			try {
 				Synergy.getSpigot().saveResource("data.yml", false);
 			} catch (Exception c) { c.printStackTrace(); }
 		}
-		
+
         File dataFile = new File(Synergy.getSpigot().getDataFolder(), "data.yml");
         if (dataFile.exists()) {
             try {
@@ -34,7 +34,7 @@ public class DataManager {
             }
         }
 	}
-	
+
 	public void setData(String key, String value) {
 		Synergy.getSpigot().getDataFile().set(key, value);
 		try {
@@ -44,14 +44,14 @@ public class DataManager {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public DataObject getData(String key) {
 		return new DataObject(Synergy.getSpigot().getDataFile().get(key));
 	}
 
 	public ConfigurationSection getConfigurationSection(String path) {
 		return Synergy.getSpigot().getDataFile().get(path) == null ? null : Synergy.getSpigot().getDataFile().getConfigurationSection(path);
-		
+
 	}
 
 	public FileConfiguration getConfig() {

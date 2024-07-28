@@ -13,12 +13,14 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import me.synergy.brains.Synergy;
-import me.synergy.utils.Utils;
+
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+
+import me.synergy.brains.Synergy;
+import me.synergy.utils.Utils;
 
 public class Config {
     private String configFile = "plugins/Synergy/config.yml";
@@ -26,26 +28,26 @@ public class Config {
 
     public void initialize() {
         try {
-        	
+
             loadConfig();
-            
+
             addDefault("localizations.enabled", true);
             addDefault("localizations.default-language", "en");
             addDefault("localizations.color-themes.default.primary", "<#1abc9c>");
             addDefault("localizations.color-themes.default.secondary", "<#3498db>");
             addDefault("localizations.color-themes.default.success", "<#2ecc71>");
             addDefault("localizations.color-themes.default.danger", "<#e74c3c>");
-            
+
             addDefault("motd.enabled", true);
             addDefault("motd.message", "Message of The Day Example");
             addDefault("motd.max-players", 100);
-            
+
             addDefault("openai.enabled", false);
             addDefault("openai.token", "token");
             addDefault("openai.response-size", 64);
             addDefault("openai.temperature", 0.7);
             addDefault("openai.model", "gpt-3.5-turbo-instruct-0914");
-            
+
             addDefault("discord.enabled", false);
             addDefault("discord.bot-token", "token");
             addDefault("discord.invite-link", "https://discord.gg/example");
@@ -90,17 +92,17 @@ public class Config {
             addDefault("web-server.custom-texturepack", false);
             addDefault("web-server.custom-texturepack-file", "example.zip");
             addDefault("web-server.port", 8153);
-            
+
             addDefault("votifier.enabled", false);
             addDefault("votifier.rewards", new String[] {"eco give %PLAYER% 1"});
             addDefault("votifier.monitorings", new String[] {"https://example.com/vote/example"});
-            
+
             if (Synergy.isSpigot()) {
-            	
+
                 addDefault("synergy-plugin-messaging.enabled", false);
                 addDefault("synergy-plugin-messaging.servername", Bukkit.getServer().getMotd());
                 addDefault("synergy-plugin-messaging.token", "Copy plugin-messaging-token from config.yml of Synergy in your Proxy folder");
-                
+
                 addDefault("chat-manager.enabled", true);
                 addDefault("chat-manager.local-chat", true);
                 addDefault("chat-manager.custom-color-tags.&p", "<#BDC581>");
@@ -117,24 +119,24 @@ public class Config {
                 addDefault("chat-manager.colors.admin-chat", "&c");
                 addDefault("chat-manager.colors.discord_admin-chat", "&c");
                 addDefault("chat-manager.format", "%COLOR%[%CHAT%] %DISPLAYNAME%%COLOR%: %MESSAGE%");
-                
+
                 Synergy.getSpigot().getConfig().options().copyDefaults(true);
                 Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " file has been initialized!");
-                
+
             }
-            
+
             if (Synergy.isRunningVelocity()) {
-            	
+
                 addDefault("synergy-plugin-messaging.enabled", true);
                 addDefault("synergy-plugin-messaging.servername", "Proxy");
                 addDefault("synergy-plugin-messaging.token", (new Utils()).generateRandomString(50));
-                
+
                 Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " file has been initialized!");
-                
+
             }
-            
+
             saveConfig();
-            
+
         } catch (Exception c) {
             Synergy.getLogger().warning(String.valueOf(getClass().getSimpleName()) + " file failed to initialize: " + c);
         }
@@ -274,22 +276,25 @@ public class Config {
     }
 
     public boolean getBoolean(String key) {
-        if (Synergy.isSpigot())
-            return Synergy.getSpigot().getConfig().getBoolean(key);
+        if (Synergy.isSpigot()) {
+			return Synergy.getSpigot().getConfig().getBoolean(key);
+		}
         Object value = get(key);
         return value != null ? (Boolean) value : null;
     }
 
     public Integer getInt(String key) {
-        if (Synergy.isSpigot())
-            return Integer.valueOf(Synergy.getSpigot().getConfig().getInt(key));
+        if (Synergy.isSpigot()) {
+			return Integer.valueOf(Synergy.getSpigot().getConfig().getInt(key));
+		}
         Object value = get(key);
         return value != null ? (int) value : null;
     }
 
     public String getString(String key) {
-        if (Synergy.isSpigot())
-            return Synergy.getSpigot().getConfig().getString(key);
+        if (Synergy.isSpigot()) {
+			return Synergy.getSpigot().getConfig().getString(key);
+		}
         Object value = get(key);
         return value != null ? (String) value : null;
     }
@@ -299,16 +304,18 @@ public class Config {
     }
 
     public double getDouble(String key) {
-        if (Synergy.isSpigot())
-            return Synergy.getSpigot().getConfig().getDouble(key);
+        if (Synergy.isSpigot()) {
+			return Synergy.getSpigot().getConfig().getDouble(key);
+		}
         Object value = get(key);
         return value != null ? (double) value : null;
     }
 
     @SuppressWarnings("unchecked")
     public List <String> getStringList(String key) {
-        if (Synergy.isSpigot())
-            return Synergy.getSpigot().getConfig().getStringList(key);
+        if (Synergy.isSpigot()) {
+			return Synergy.getSpigot().getConfig().getStringList(key);
+		}
         Object value = get(key);
         return (value != null) ? (List <String>) value : null;
     }
@@ -318,8 +325,9 @@ public class Config {
     }
 
 	public ConfigurationSection getConfigurationSection(String path) {
-        if (Synergy.isSpigot())
-            return Synergy.getSpigot().getConfig().getConfigurationSection(path);
+        if (Synergy.isSpigot()) {
+			return Synergy.getSpigot().getConfig().getConfigurationSection(path);
+		}
 		return null;
 	}
 }

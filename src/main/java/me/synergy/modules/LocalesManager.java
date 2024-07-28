@@ -15,14 +15,14 @@ import me.synergy.brains.Synergy;
 
 public class LocalesManager {
 
-	private static Map<String, HashMap<String, String>> LOCALES = new HashMap<String, HashMap<String, String>>();
-	
+	private static Map<String, HashMap<String, String>> LOCALES = new HashMap<>();
+
 	public LocalesManager() {}
 
 	public void initialize() {
 		try {
 			loadLocales();
-			
+
 			if (!Synergy.getConfig().getBoolean("localizations.enabled")) {
 				return;
 			}
@@ -35,14 +35,14 @@ public class LocalesManager {
     }
 
 	public void loadLocales() {
-		
+
 		if (!new File(Synergy.getSpigot().getDataFolder(), "locales.yml").exists()) {
 			Synergy.getLogger().info("Creating locales file...");
 			try {
 				Synergy.getSpigot().saveResource("locales.yml", false);
 			} catch (Exception c) { c.printStackTrace(); }
 		}
-		
+
         File localesFile = new File(Synergy.getSpigot().getDataFolder(), "locales.yml");
         if (localesFile.exists()) {
             try {
@@ -51,7 +51,7 @@ public class LocalesManager {
                 e.printStackTrace();
             }
         }
-		
+
 	    int count = 0;
 	    for (String key : Synergy.getSpigot().getLocalesFile().getKeys(false)) {
 	        ConfigurationSection subSection = Synergy.getSpigot().getLocalesFile().getConfigurationSection(key);
@@ -85,11 +85,11 @@ public class LocalesManager {
 	    }
 	    Synergy.getLogger().info("There were "+count+" translations initialized!");
 	}
-	
+
 	public Set<String> getLanguages() {
 		return getLocales().keySet();
 	}
-	
+
 	public static Map<String, HashMap<String, String>> getLocales() {
 		return LOCALES;
 	}

@@ -4,11 +4,9 @@ import java.io.File;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -24,11 +22,11 @@ import me.synergy.commands.ThemeCommand;
 import me.synergy.commands.VoteCommand;
 import me.synergy.events.SynergyEvent;
 import me.synergy.handlers.LocalesListener;
-import me.synergy.handlers.ServerListPingListener;
 import me.synergy.handlers.PlaceholdersBreadDataListener;
 import me.synergy.handlers.PlaceholdersLocalesListener;
 import me.synergy.handlers.PlayerJoinListener;
 import me.synergy.handlers.ResourcePackListener;
+import me.synergy.handlers.ServerListPingListener;
 import me.synergy.handlers.VoteListener;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
@@ -41,7 +39,7 @@ import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
 public class Spigot extends JavaPlugin implements PluginMessageListener {
-	
+
     private static Spigot INSTANCE;
     private FileConfiguration LOCALESFILE;
     private FileConfiguration DATAFILE;
@@ -49,13 +47,14 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
     private static Economy econ;
     private static Permission perms;
     private static Chat chat;
-    
-    public void onEnable() {
+
+    @Override
+	public void onEnable() {
         INSTANCE = this;
         Synergy.platform = "spigot";
 
-        getServer().getMessenger().registerOutgoingPluginChannel((Plugin) this, "net:synergy");
-        getServer().getMessenger().registerIncomingPluginChannel((Plugin) this, "net:synergy", this);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "net:synergy");
+        getServer().getMessenger().registerIncomingPluginChannel(this, "net:synergy", this);
 
         PROTOCOLMANAGER = ProtocolLibrary.getProtocolManager();
         DATAFILE = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "data.yml"));
@@ -77,25 +76,27 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         new WebServer().initialize();
         new ResourcePackListener().initialize();
         new ThemeCommand().initialize();
-        
+
         setupEconomy();
         setupPermissions();
         setupChat();
-        
+
 		if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
 			new PlaceholdersLocalesListener().register();
 			new PlaceholdersBreadDataListener().register();
 		}
-        
+
         getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
     }
 
     private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null)
-            return false;
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+			return false;
+		}
         RegisteredServiceProvider <Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null)
-            return false;
+        if (rsp == null) {
+			return false;
+		}
         setEconomy(rsp.getProvider());
         return (getEconomy() != null);
     }
@@ -117,15 +118,15 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         }
         return false;
     }
-    
+
     private void setChat(Chat chat) {
 		Spigot.chat = chat;
 	}
-    
+
 	public Chat getChat() {
         return chat;
     }
-    
+
 	public Economy getEconomy() {
         return econ;
     }
@@ -133,15 +134,15 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
     public static void setEconomy(Economy econ) {
         Spigot.econ = econ;
     }
-    
+
     public Permission getPermissions() {
         return perms;
     }
-    
+
     public static void setPermissions(Permission perms) {
         Spigot.perms = perms;
     }
-    
+
     public ProtocolManager getProtocolManager() {
         return this.PROTOCOLMANAGER;
     }
@@ -158,13 +159,14 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         @SuppressWarnings("unused")
 		String waitForPlayer = in.readUTF();
 		String options = in.readUTF();
-        
+
         if (token.equals(Synergy.getSynergyToken())) {
         	Bukkit.getServer().getPluginManager().callEvent(new SynergyEvent(identifier, uuid, options));
         }
     }
 
-    public void onDisable() {
+    @Override
+	public void onDisable() {
         Synergy.getDiscord().shutdown();
         new WebServer().shutdown();
         getLogger().info("Synergy has stopped it's service!");
@@ -173,11 +175,11 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 	public FileConfiguration getLocalesFile() {
 		return LOCALESFILE;
 	}
-	
+
 	public FileConfiguration getDataFile() {
 		return DATAFILE;
 	}
-	
+
 	public static Spigot getInstance() {
 		return INSTANCE;
 	}
@@ -190,7 +192,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 	public UUID getUniqueIdFromName(String username) {
 		return username == null ? null : Bukkit.getOfflinePlayer(username) == null ? null : Bukkit.getOfflinePlayer(username).getUniqueId();
 	}
-	
+
 	public String getPlayerLanguage(UUID uniqueId) {
 		Player player = Bukkit.getPlayer(uniqueId);
 		String language = player.getLocale().split("_")[0];
@@ -198,7 +200,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 	}
 
 	public void executeConsoleCommand(String command) {
-		 Bukkit.dispatchCommand((CommandSender) Bukkit.getServer().getConsoleSender(), command);
+		 Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), command);
 	}
 
 	public Player getPlayerByUniqueId(UUID uniqueId) {
@@ -208,5 +210,5 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 	public boolean playerHasPermission(UUID uniqueId, String node) {
 		return getPlayerByUniqueId(uniqueId) == null ? false : getPlayerByUniqueId(uniqueId).hasPermission(node);
 	}
-	
+
 }
