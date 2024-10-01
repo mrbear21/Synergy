@@ -4,22 +4,32 @@ import java.io.File;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
+import me.synergy.commands.DiscordCommand;
 import me.synergy.commands.LanguageCommand;
 import me.synergy.commands.SynergyCommand;
 import me.synergy.commands.ThemeCommand;
 import me.synergy.commands.VoteCommand;
+import me.synergy.discord.Discord;
 import me.synergy.events.SynergyEvent;
 import me.synergy.handlers.LocalesListener;
 import me.synergy.handlers.PlaceholdersBreadDataListener;
@@ -28,21 +38,22 @@ import me.synergy.handlers.PlayerJoinListener;
 import me.synergy.handlers.ResourcePackListener;
 import me.synergy.handlers.ServerListPingListener;
 import me.synergy.handlers.VoteListener;
+import me.synergy.integrations.EssentialsAPI;
+import me.synergy.integrations.VaultAPI;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
-import me.synergy.modules.Discord;
 import me.synergy.modules.LocalesManager;
 import me.synergy.modules.WebServer;
+import me.synergy.objects.BreadMaker;
+import me.synergy.utils.ToastMessage;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
-public class Spigot extends JavaPlugin implements PluginMessageListener {
+public class Spigot extends JavaPlugin implements PluginMessageListener, Listener {
 
     private static Spigot INSTANCE;
-    private FileConfiguration LOCALESFILE;
-    private FileConfiguration DATAFILE;
     private ProtocolManager PROTOCOLMANAGER;
     private static Economy econ;
     private static Permission perms;
@@ -57,38 +68,81 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
         getServer().getMessenger().registerIncomingPluginChannel(this, "net:synergy", this);
 
         PROTOCOLMANAGER = ProtocolLibrary.getProtocolManager();
-        DATAFILE = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "data.yml"));
-        LOCALESFILE = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "locales.yml"));
 
         new Config().initialize();
+        new DataManager().initialize();
+        new LocalesManager().initialize();
         new SynergyCommand().initialize();
         new VoteCommand().initialize();
-        new LocalesManager().initialize();
         new LocalesListener().initialize();
         new ChatManager().initialize();
         new Discord().initialize();
+        new DiscordCommand().initialize();
         new VoteListener().initialize();
-        new SynergyEvent().initialize();
         new ServerListPingListener().initialize();
-        new DataManager().initialize();
         new PlayerJoinListener().initialize();
         new LanguageCommand().initialize();
         new WebServer().initialize();
         new ResourcePackListener().initialize();
         new ThemeCommand().initialize();
-
+        new EssentialsAPI().initialize();
+        new VaultAPI().initialize();
+        
         setupEconomy();
         setupPermissions();
-        setupChat();
+        //setupChat();
 
 		if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
 			new PlaceholdersLocalesListener().register();
 			new PlaceholdersBreadDataListener().register();
 		}
+		
+        getServer().getPluginManager().registerEvents(this, this);
 
         getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
     }
 
+    @Override
+    public void onPluginMessageReceived(String channel, Player p, byte[] message) {
+        if (!channel.equals("net:synergy")) {
+            return;
+        }
+        ByteArrayDataInput in = ByteStreams.newDataInput(message);
+        String token = in.readUTF();
+	    String identifier = in.readUTF();
+	    String stringUUID = in.readUTF();
+	    
+	    UUID uuid = null;
+	    if (stringUUID != null && !stringUUID.isEmpty()) {
+	        try {
+	            uuid = UUID.fromString(stringUUID);
+	        } catch (IllegalArgumentException e) {
+	            //getLogger().warning("Received invalid UUID string: " + stringUUID);
+	        }
+	    }
+	    
+	    String data = in.readUTF();
+        if (token.equals(Synergy.getSynergyToken())) {
+        	new SynergyEvent(identifier, uuid, data).fireEvent();
+        }
+    }
+
+    public void sendPluginMessage(byte[] data) {
+    //	Bukkit.getServer().sendPluginMessage(this, "net:synergy", data);
+    	Player player = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
+    	if (player != null) {
+    		player.sendPluginMessage(this, "net:synergy", data);
+    	}
+    }
+    
+   
+    @Override
+	public void onDisable() {
+        new Discord().shutdown();
+        new WebServer().shutdown();
+        getLogger().info("Synergy has stopped it's service!");
+    }
+    
     private boolean setupEconomy() {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
 			return false;
@@ -146,40 +200,7 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
     public ProtocolManager getProtocolManager() {
         return this.PROTOCOLMANAGER;
     }
-
-    @Override
-    public void onPluginMessageReceived(String channel, Player p, byte[] message) {
-        if (!channel.equals("net:synergy")) {
-            return;
-        }
-        ByteArrayDataInput in = ByteStreams.newDataInput(message);
-        String token = in.readUTF();
-        String identifier = in.readUTF();
-        UUID uuid = UUID.nameUUIDFromBytes(in.readUTF().getBytes());
-        @SuppressWarnings("unused")
-		String waitForPlayer = in.readUTF();
-		String options = in.readUTF();
-
-        if (token.equals(Synergy.getSynergyToken())) {
-        	Bukkit.getServer().getPluginManager().callEvent(new SynergyEvent(identifier, uuid, options));
-        }
-    }
-
-    @Override
-	public void onDisable() {
-        Synergy.getDiscord().shutdown();
-        new WebServer().shutdown();
-        getLogger().info("Synergy has stopped it's service!");
-    }
-
-	public FileConfiguration getLocalesFile() {
-		return LOCALESFILE;
-	}
-
-	public FileConfiguration getDataFile() {
-		return DATAFILE;
-	}
-
+	
 	public static Spigot getInstance() {
 		return INSTANCE;
 	}
@@ -207,8 +228,63 @@ public class Spigot extends JavaPlugin implements PluginMessageListener {
 		return Bukkit.getPlayer(uniqueId);
 	}
 
+	public OfflinePlayer getOfflinePlayerByUniqueId(UUID uniqueId) {
+		return Bukkit.getOfflinePlayer(uniqueId);
+	}
+	
 	public boolean playerHasPermission(UUID uniqueId, String node) {
 		return getPlayerByUniqueId(uniqueId) == null ? false : getPlayerByUniqueId(uniqueId).hasPermission(node);
 	}
 
+	public void dispatchCommand(String string) {
+	    Bukkit.getScheduler().runTask(this, new Runnable() {
+	        @Override
+	        public void run() {
+	            Bukkit.dispatchCommand(Bukkit.getServer().getConsoleSender(), string);
+	        }
+	    });
+	}
+
+	public void executeInteractive(String json, BreadMaker bread) {
+    	try {
+	        Gson gson = new Gson();
+	        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+	        if (jsonObject.has("extra")) {
+	            JsonArray extraArray = jsonObject.getAsJsonArray("extra");
+	            for (JsonElement element : extraArray) {
+	                JsonObject extraObject = element.getAsJsonObject();
+	                
+	                if (extraObject.has("soundEvent")) {
+	                    JsonObject soundEvent = extraObject.getAsJsonObject("soundEvent");
+	                    if (soundEvent.has("sound")) {
+	                    	Synergy.getSpigot().getPlayerByUniqueId(bread.getUniqueId()).playSound(Bukkit.getPlayer(bread.getUniqueId()), Sound.valueOf(soundEvent.get("sound").getAsString().toUpperCase()), 1,1);
+	                    }
+	                }
+	                
+	                if (extraObject.has("titleEvent")) {
+	                    JsonObject titleEvent = extraObject.getAsJsonObject("titleEvent");
+
+	                    Bukkit.getPlayer(bread.getUniqueId()).sendTitle(
+                			titleEvent.has("title") ? Synergy.translate(titleEvent.get("title").getAsString(), bread.getLanguage()).setPlaceholders(bread).getLegacyColored(bread.getTheme()) : "",
+                			titleEvent.has("subtitle") ? Synergy.translate(titleEvent.get("subtitle").getAsString(), bread.getLanguage()).setPlaceholders(bread).getLegacyColored(bread.getTheme()) : "",
+                			3,
+                			titleEvent.get("duration").getAsInt(),
+                			3
+                    	);
+	                    
+	                }
+	                
+	                if (extraObject.has("toastEvent")) {
+	                    JsonObject toastEvent = extraObject.getAsJsonObject("toastEvent");
+	                    if (toastEvent.has("text")) {
+	                    	ToastMessage.displayTo(org.bukkit.Bukkit.getPlayer(bread.getUniqueId()), "sunflower", toastEvent.get("text").getAsString(), ToastMessage.Style.GOAL);
+	                    }
+	                }
+	                
+	            }
+	        }
+    	} catch (Exception c) {
+    		//Synergy.getLogger().error("Error while executing interactive: " + c.getLocalizedMessage());
+    	}
+    }
 }

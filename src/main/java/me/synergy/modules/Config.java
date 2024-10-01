@@ -14,8 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -33,14 +31,6 @@ public class Config {
 
             addDefault("localizations.enabled", true);
             addDefault("localizations.default-language", "en");
-            addDefault("localizations.color-themes.default.primary", "<#1abc9c>");
-            addDefault("localizations.color-themes.default.secondary", "<#3498db>");
-            addDefault("localizations.color-themes.default.success", "<#2ecc71>");
-            addDefault("localizations.color-themes.default.danger", "<#e74c3c>");
-
-            addDefault("motd.enabled", true);
-            addDefault("motd.message", "Message of The Day Example");
-            addDefault("motd.max-players", 100);
 
             addDefault("openai.enabled", false);
             addDefault("openai.token", "token");
@@ -52,11 +42,13 @@ public class Config {
             addDefault("discord.bot-token", "token");
             addDefault("discord.invite-link", "https://discord.gg/example");
             addDefault("discord.activities", new String[] {"Activity Example", "Another Activity Example"});
-            addDefault("discord.channels.global-chat-channel", "00000000000000000");
-            addDefault("discord.channels.admin-chat-channel", "00000000000000000");
-            addDefault("discord.channels.console-channel", "00000000000000000");
-            addDefault("discord.channels.log-channel", "00000000000000000");
-            addDefault("discord.channels.announcements-channel", "00000000000000000");
+            addDefault("discord.avatar-link", "https://minotar.net/helm/");
+            addDefault("discord.channels.global", "00000000000000000");
+            addDefault("discord.channels.admin", "00000000000000000");
+            addDefault("discord.channels.console", "00000000000000000");
+            addDefault("discord.channels.log", "00000000000000000");
+            addDefault("discord.channels.broadcast", "00000000000000000");
+            addDefault("discord.channels.merge-similar-embeds", false);
             addDefault("discord.synchronization.sync-roles-from-discord-to-mc", false);
             addDefault("discord.synchronization.sync-roles-form-mc-to-discord", false);
             addDefault("discord.synchronization.use-vault", true);
@@ -75,18 +67,6 @@ public class Config {
             addDefault("discord.hightlights.channels", new String[] {"00000000000000000"});
             addDefault("discord.hightlights.reaction-emoji", "♥");
 
-            addDefault("chat-manager.custom-emojis.<3", "❤");
-            addDefault("chat-manager.custom-emojis.:flip:", "(╯°益°）╯︵ ┻━┻");
-            addDefault("chat-manager.custom-emojis.:v:", "✔");
-            addDefault("chat-manager.custom-emojis.:x:", "✘");
-            addDefault("chat-manager.custom-emojis.(c)", "©");
-            addDefault("chat-manager.custom-emojis.:hi:", "(´• ω •`)ﾉ");
-            addDefault("chat-manager.custom-emojis.:love:", "╰(❤ω❤)╯");
-            addDefault("chat-manager.custom-emojis.:cry:", "o(╥﹏╥)o");
-            addDefault("chat-manager.custom-emojis.(r)", "®");
-            addDefault("chat-manager.custom-emojis.:hugs:", "⊂(￣▽￣)⊃");
-            addDefault("chat-manager.custom-emojis.:hid:", "┬┴┤･ω･)ﾉ");
-
             addDefault("web-server.enabled", false);
             addDefault("web-server.domain", "example.com");
             addDefault("web-server.custom-texturepack", false);
@@ -97,10 +77,22 @@ public class Config {
             addDefault("votifier.rewards", new String[] {"eco give %PLAYER% 1"});
             addDefault("votifier.monitorings", new String[] {"https://example.com/vote/example"});
 
-            if (Synergy.isSpigot()) {
+            if (Synergy.isRunningSpigot()) {
 
+                addDefault("motd.enabled", true);
+                addDefault("motd.message", "Message of The Day Example");
+                addDefault("motd.max-players", 100);
+                
+                addDefault("placeholder-output-replacements.%faction_name%.%faction_name%", "[%faction_name%] ");
+                addDefault("placeholder-output-replacements.%faction_name%.%none%", "");
+                
+                addDefault("localizations.color-themes.default.primary", "<#1abc9c>");
+                addDefault("localizations.color-themes.default.secondary", "<#3498db>");
+                addDefault("localizations.color-themes.default.success", "<#2ecc71>");
+                addDefault("localizations.color-themes.default.danger", "<#e74c3c>");
+            	
                 addDefault("synergy-plugin-messaging.enabled", false);
-                addDefault("synergy-plugin-messaging.servername", Bukkit.getServer().getMotd());
+                addDefault("synergy-plugin-messaging.servername", "SomeFabulousServer");
                 addDefault("synergy-plugin-messaging.token", "Copy plugin-messaging-token from config.yml of Synergy in your Proxy folder");
 
                 addDefault("chat-manager.enabled", true);
@@ -110,26 +102,46 @@ public class Config {
                 addDefault("chat-manager.chat-filter.ignored-words", new String[] {"чіпідрос", "книга"});
                 addDefault("chat-manager.chat-filter.blocked-words-tolerance-percentage", 38.5);
                 addDefault("chat-manager.local-chat-radius", 500);
-                addDefault("chat-manager.local-chat-per-plotsquared-plot", false);
+                addDefault("chat-manager.integrations.plotsquared-plot-chat", false);
+                addDefault("chat-manager.integrations.factions-chat", false);
                 addDefault("chat-manager.cross-server-global-chat", true);
-                addDefault("chat-manager.colors.global-chat", "&e");
-                addDefault("chat-manager.colors.local-chat", "&f");
-                addDefault("chat-manager.colors.plot-chat", "&f");
-                addDefault("chat-manager.colors.discord-chat", "&b");
-                addDefault("chat-manager.colors.admin-chat", "&c");
-                addDefault("chat-manager.colors.discord_admin-chat", "&c");
-                addDefault("chat-manager.format", "%COLOR%[%CHAT%] %DISPLAYNAME%%COLOR%: %MESSAGE%");
+                
+                addDefault("chat-manager.colors.global", "&e");
+                addDefault("chat-manager.colors.local", "&f");
+                addDefault("chat-manager.colors.discord", "&b");
+                addDefault("chat-manager.colors.admin", "&c");
+                addDefault("chat-manager.colors.discord_admin", "&c");
+                
+                addDefault("chat-manager.chat-tag.global", "[G]");
+                addDefault("chat-manager.chat-tag.discord", "[Discord]");
+                addDefault("chat-manager.chat-tag.discord_admin", "[Discord]");
+                addDefault("chat-manager.chat-tag.admin", "[A]");
+                addDefault("chat-manager.chat-tag.local", "[L]");
+                
+                addDefault("chat-manager.format", "%COLOR%%CHAT% %DISPLAYNAME%%COLOR%: %MESSAGE%");
+                
+                addDefault("chat-manager.custom-emojis.<3", "❤");
+                addDefault("chat-manager.custom-emojis.:flip:", "(╯°益°）╯︵ ┻━┻");
+                addDefault("chat-manager.custom-emojis.:v:", "✔");
+                addDefault("chat-manager.custom-emojis.:x:", "✘");
+                addDefault("chat-manager.custom-emojis.(c)", "©");
+                addDefault("chat-manager.custom-emojis.:hi:", "(´• ω •`)ﾉ");
+                addDefault("chat-manager.custom-emojis.:love:", "╰(❤ω❤)╯");
+                addDefault("chat-manager.custom-emojis.:cry:", "o(╥﹏╥)o");
+                addDefault("chat-manager.custom-emojis.(r)", "®");
+                addDefault("chat-manager.custom-emojis.:hugs:", "⊂(￣▽￣)⊃");
+                addDefault("chat-manager.custom-emojis.:hid:", "┬┴┤･ω･)ﾉ");
 
                 Synergy.getSpigot().getConfig().options().copyDefaults(true);
                 Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " file has been initialized!");
 
             }
 
-            if (Synergy.isRunningVelocity()) {
+            if (Synergy.isRunningVelocity() || Synergy.isRunningBungee()) {
 
                 addDefault("synergy-plugin-messaging.enabled", true);
                 addDefault("synergy-plugin-messaging.servername", "Proxy");
-                addDefault("synergy-plugin-messaging.token", (new Utils()).generateRandomString(50));
+                addDefault("synergy-plugin-messaging.token", Utils.generateRandomString(50));
 
                 Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " file has been initialized!");
 
@@ -144,37 +156,26 @@ public class Config {
 
     private void loadConfig() {
         try {
-            if (Synergy.isSpigot()) {
-                if (!(new File(Synergy.getSpigot().getDataFolder(), "config.yml")).exists()) {
-                    Synergy.getLogger().info("Creating config file...");
-                    try {
-                        Synergy.getSpigot().saveResource("config.yml", false);
-                    } catch (Exception c) {
-                        c.printStackTrace();
-                    }
-                }
-            } else {
-                configValues = new HashMap<>();
-    	        File file = new File(configFile);
-    	        if (!file.exists()) {
-    	            file.getParentFile().mkdirs();
-    	            file.createNewFile();
-    	            try (InputStream defaultConfigStream = getClass().getClassLoader().getResourceAsStream("config.yml")) {
-    	                if (defaultConfigStream != null) {
-    	                    Path configFilePath = Path.of(configFile);
-    	                    Files.copy(defaultConfigStream, configFilePath, StandardCopyOption.REPLACE_EXISTING);
-    	                }
-    	            } catch (IOException e) {
-    	                e.printStackTrace();
-    	            }
-    	        }
-    	        InputStream input = new FileInputStream(file);
-    	        Yaml yaml = new Yaml();
-    	        Map<? extends String, ? extends Object> s = yaml.load(input);
-    	        if (s != null) {
-    	        	configValues.putAll(s);
-    	        }
-            }
+            configValues = new HashMap<>();
+	        File file = new File(configFile);
+	        if (!file.exists()) {
+	            file.getParentFile().mkdirs();
+	            file.createNewFile();
+	            try (InputStream defaultConfigStream = getClass().getClassLoader().getResourceAsStream("config.yml")) {
+	                if (defaultConfigStream != null) {
+	                    Path configFilePath = Path.of(configFile);
+	                    Files.copy(defaultConfigStream, configFilePath, StandardCopyOption.REPLACE_EXISTING);
+	                }
+	            } catch (IOException e) {
+	                e.printStackTrace();
+	            }
+	        }
+	        InputStream input = new FileInputStream(file);
+	        Yaml yaml = new Yaml();
+	        Map<? extends String, ? extends Object> s = yaml.load(input);
+	        if (s != null) {
+	        	configValues.putAll(s);
+	        }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -182,15 +183,11 @@ public class Config {
 
     private void saveConfig() {
         try {
-            if (Synergy.isSpigot()) {
-                Synergy.getSpigot().saveConfig();
-            } else {
-                OutputStream output = new FileOutputStream(this.configFile);
-                DumperOptions options = new DumperOptions();
-                options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-                Yaml yaml = new Yaml(options);
-                yaml.dump(configValues, new OutputStreamWriter(output));
-            }
+	        OutputStream output = new FileOutputStream(this.configFile);
+	        DumperOptions options = new DumperOptions();
+	        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+	        Yaml yaml = new Yaml(options);
+	        yaml.dump(configValues, new OutputStreamWriter(output));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -198,103 +195,77 @@ public class Config {
 
     @SuppressWarnings("unchecked")
     public Object get(String key) {
-        if (Synergy.isSpigot()) {
-            return Synergy.getSpigot().getConfig().get(key);
-        } else {
-            String[] keys = key.split("\\.");
-            Map<String, Object> currentMap = configValues;
-            for (String k : keys) {
-                if (currentMap.containsKey(k) && currentMap.get(k) instanceof Map) {
-                    currentMap = (Map<String, Object>) currentMap.get(k);
-                } else {
-                    Object value = currentMap.get(k);
-                    return value;
-                }
+        String[] keys = key.split("\\.");
+        Map<String, Object> currentMap = configValues;
+        for (String k : keys) {
+            if (currentMap.containsKey(k) && currentMap.get(k) instanceof Map) {
+                currentMap = (Map<String, Object>) currentMap.get(k);
+            } else {
+                Object value = currentMap.get(k);
+                return value;
             }
-            return null;
         }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
     public void set(String key, Object value) {
-        if (Synergy.isSpigot()) {
-            Synergy.getSpigot().getConfig().set(key, value);
+        String[] keys = key.split("\\.");
+        Map<String, Object> currentMap = configValues;
+        for (int i = 0; i < keys.length - 1; i++) {
+            currentMap.computeIfAbsent(keys[i], k -> new HashMap<>());
+            currentMap = (Map<String, Object>) currentMap.get(keys[i]);
+        }
+        if (value instanceof Map) {
+            currentMap.put(keys[keys.length - 1], new HashMap<>((Map<String, Object>) value));
         } else {
-            String[] keys = key.split("\\.");
-            Map<String, Object> currentMap = configValues;
-            for (int i = 0; i < keys.length - 1; i++) {
-                currentMap.computeIfAbsent(keys[i], k -> new HashMap<>());
-                currentMap = (Map<String, Object>) currentMap.get(keys[i]);
-            }
-            if (value instanceof Map) {
-                currentMap.put(keys[keys.length - 1], new HashMap<>((Map<String, Object>) value));
-            } else {
-                currentMap.put(keys[keys.length - 1], value);
-            }
+            currentMap.put(keys[keys.length - 1], value);
         }
         saveConfig();
     }
 
     private void addDefault(String key, String[] value) {
-        if (Synergy.isSpigot()) {
-            Synergy.getSpigot().getConfig().addDefault(key, value);
-        } else if (get(key) == null) {
+    	if (get(key) == null) {
             set(key, value);
-        }
+    	}
+        
     }
 
     private void addDefault(String key, String value) {
-        if (Synergy.isSpigot()) {
-            Synergy.getSpigot().getConfig().addDefault(key, value);
-        } else if (get(key) == null) {
+       if (get(key) == null) {
             set(key, value);
         }
     }
 
     private void addDefault(String key, double value) {
-        if (Synergy.isSpigot()) {
-            Synergy.getSpigot().getConfig().addDefault(key, Double.valueOf(value));
-        } else if (get(key) == null) {
+        if (get(key) == null) {
             set(key, Double.valueOf(value));
         }
     }
 
     private void addDefault(String key, boolean value) {
-        if (Synergy.isSpigot()) {
-            Synergy.getSpigot().getConfig().addDefault(key, Boolean.valueOf(value));
-        } else if (get(key) == null) {
+        if (get(key) == null) {
             set(key, Boolean.valueOf(value));
         }
     }
 
     private void addDefault(String key, int value) {
-        if (Synergy.isSpigot()) {
-            Synergy.getSpigot().getConfig().addDefault(key, Integer.valueOf(value));
-        } else if (get(key) == null) {
+        if (get(key) == null) {
             set(key, Integer.valueOf(value));
         }
     }
 
     public boolean getBoolean(String key) {
-        if (Synergy.isSpigot()) {
-			return Synergy.getSpigot().getConfig().getBoolean(key);
-		}
         Object value = get(key);
         return value != null ? (Boolean) value : null;
     }
 
     public Integer getInt(String key) {
-        if (Synergy.isSpigot()) {
-			return Integer.valueOf(Synergy.getSpigot().getConfig().getInt(key));
-		}
         Object value = get(key);
         return value != null ? (int) value : null;
     }
 
     public String getString(String key) {
-        if (Synergy.isSpigot()) {
-			return Synergy.getSpigot().getConfig().getString(key);
-		}
         Object value = get(key);
         return value != null ? (String) value : null;
     }
@@ -304,18 +275,12 @@ public class Config {
     }
 
     public double getDouble(String key) {
-        if (Synergy.isSpigot()) {
-			return Synergy.getSpigot().getConfig().getDouble(key);
-		}
         Object value = get(key);
         return value != null ? (double) value : null;
     }
 
     @SuppressWarnings("unchecked")
     public List <String> getStringList(String key) {
-        if (Synergy.isSpigot()) {
-			return Synergy.getSpigot().getConfig().getStringList(key);
-		}
         Object value = get(key);
         return (value != null) ? (List <String>) value : null;
     }
@@ -324,10 +289,22 @@ public class Config {
         return (get(key) != null);
     }
 
-	public ConfigurationSection getConfigurationSection(String path) {
-        if (Synergy.isSpigot()) {
-			return Synergy.getSpigot().getConfig().getConfigurationSection(path);
-		}
-		return null;
-	}
+	@SuppressWarnings("unchecked")
+    public Map<String, Object> getConfigurationSection(String path) {
+        if (path == null || path.isEmpty()) {
+            return configValues;
+        }
+        String[] keys = path.split("\\.");
+        Map<String, Object> section = configValues;
+        for (String key : keys) {
+            if (section == null) {
+                return new HashMap<String, Object>();
+            }
+            if (!(section.get(key) instanceof Map)) {
+                return new HashMap<String, Object>();
+            }
+            section = (Map<String, Object>) section.get(key);
+        }
+        return section != null ? section : new HashMap<String, Object>();
+    }
 }

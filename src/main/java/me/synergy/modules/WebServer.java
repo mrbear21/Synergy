@@ -9,13 +9,11 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
-import org.bukkit.event.Listener;
-
 import com.sun.net.httpserver.HttpServer;
 
 import me.synergy.brains.Synergy;
 
-public class WebServer implements Listener {
+public class WebServer{
 
     private static HttpServer server;
     private static int port = Synergy.getConfig().getInt("web-server.port");
@@ -27,7 +25,6 @@ public class WebServer implements Listener {
     		return;
     	}
 
-    	Synergy.getSpigot().getServer().getPluginManager().registerEvents(this, Synergy.getSpigot());
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
             server.createContext("/", new TexturePackHandler());
@@ -38,7 +35,7 @@ public class WebServer implements Listener {
         	Synergy.getLogger().warning("Failed to start web server: " + e.getMessage());
         }
         loadWebFiles();
-        if (Synergy.isSpigot()) {
+        if (Synergy.isRunningSpigot()) {
         	loadResourcePackFolder();
         }
     }
@@ -52,7 +49,7 @@ public class WebServer implements Listener {
             	Synergy.getLogger().warning("Failed to create the 'web' folder!");
                 return;
             }
-            try (InputStream inputStream = Synergy.getSpigot().getResource("index.html")) {
+            try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("index.html")) {
                 File indexFile = new File(webFolder, "index.html");
                 Files.copy(inputStream, indexFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 Synergy.getLogger().info("Copied index.html to the 'web' folder.");

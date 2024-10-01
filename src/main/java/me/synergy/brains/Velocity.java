@@ -1,27 +1,28 @@
 package me.synergy.brains;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 
 import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Inject;
-import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
-import com.velocitypowered.api.proxy.server.RegisteredServer;
 
-import me.synergy.events.SynergyVelocityEvent;
+import me.synergy.anotations.SynergyHandler;
+import me.synergy.bungee.handlers.PlayerJoinListener;
+import me.synergy.bungee.handlers.SynergyCommand;
+import me.synergy.discord.Discord;
+import me.synergy.events.SynergyEvent;
 import me.synergy.modules.Config;
-import me.synergy.modules.Discord;
+import me.synergy.modules.DataManager;
+import me.synergy.modules.LocalesManager;
 
 @Plugin(id = "synergy", name = "Synergy", version = "0.0.2-SNAPSHOT",
 url = "archi.quest", description = "Basic tools and messaging plugin", authors = {"mrbear22"})
@@ -50,7 +51,11 @@ public class Velocity {
     	Synergy.platform = "velocity";
 	    server.getChannelRegistrar().register(IDENTIFIER);
 	    new Config().initialize();
+	    new DataManager().initialize();
+        new LocalesManager().initialize();
 	    new Discord().initialize();
+	    new PlayerJoinListener().initialize();
+	    new SynergyCommand().initialize();
     }
 
     @Subscribe
@@ -58,48 +63,21 @@ public class Velocity {
         if (!event.getIdentifier().equals(IDENTIFIER)) {
             return;
         }
-
         ByteArrayDataInput in = ByteStreams.newDataInput(event.getData());
-        String token = Synergy.getSynergyToken();
         String identifier = in.readUTF();
-        String player = in.readUTF();
-        String waitForPlayer = in.readUTF();
-        List<String> argsList = new ArrayList<>();
-        try {
-            while (true) {
-                argsList.add(in.readUTF());
-            }
-        } catch (Exception ignored) {}
-        String[] args = argsList.toArray(new String[0]);
+        UUID uuid = UUID.nameUUIDFromBytes(in.readUTF().getBytes());
+        String data = in.readUTF();
 
-        if (!Boolean.valueOf(waitForPlayer)) {
-	        server.getEventManager().fire(new SynergyVelocityEvent(identifier, player, args));
-
-	        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-	        out.writeUTF(token);
-	        out.writeUTF(identifier);
-	        out.writeUTF(player);
-	        out.writeUTF(waitForPlayer);
-	        for (String arg : argsList) {
-		        out.writeUTF(arg);
-	        }
-
-	        for (RegisteredServer registeredServer : server.getAllServers()) {
-	            registeredServer.sendPluginMessage(IDENTIFIER, out.toByteArray());
-	        }
-
-        } else {
-
-        }
-
+        new SynergyEvent(identifier, uuid, data).send();
+        new SynergyEvent(identifier, uuid, data).fireEvent();
     }
 
-	@Subscribe(order = PostOrder.EARLY)
-	public void onEvent(SynergyVelocityEvent e) {
-        if (!e.getIdentifier().equals("chat")) {
+	@SynergyHandler
+	public void onEvent(SynergyEvent event) {
+        if (!event.getIdentifier().equals("chat")) {
             return;
         }
-		getLogger().info(e.getIdentifier());
+		getLogger().info(event.getIdentifier());
 	}
 
     public static Logger getLogger() {

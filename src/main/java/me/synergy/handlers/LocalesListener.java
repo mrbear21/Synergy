@@ -1,5 +1,6 @@
 package me.synergy.handlers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -44,10 +45,9 @@ public class LocalesListener implements Listener {
 		                List<WrappedChatComponent> components = packet.getChatComponents().getValues();
 		                for (WrappedChatComponent component : components) {
 				            try {
-			                	component.setJson(Synergy.translate(component.getJson(), bread.getLanguage()).setExecuteInteractive(bread).getColored(bread.getTheme()));
+			                	component.setJson(Synergy.translate(component.getJson(), bread.getLanguage()).setExecuteInteractive(bread).setPlaceholders(bread).getColored(bread.getTheme()));
 					            packet.getChatComponents().write(components.indexOf(component), component);
 				            } catch (Exception e) {
-
 			                	component.setJson(Synergy.translate(component.getJson(), bread.getLanguage()).getLegacyColored(bread.getTheme()));
 					            packet.getChatComponents().write(components.indexOf(component), component);
 				                Synergy.getLogger().error("Error while processing chat message: " + e.getMessage());
@@ -75,6 +75,17 @@ public class LocalesListener implements Listener {
 				                            item = item.clone();
 				                            ItemMeta meta = item.getItemMeta();
 				                            meta.setDisplayName(Synergy.translate(meta.getDisplayName(), bread.getLanguage()).getLegacyColored(bread.getTheme()));
+
+				                            List<String> lore = meta.getLore();
+				                            if (lore != null) {
+				                                List<String> translatedLore = new ArrayList<>();
+				                                for (String line : lore) {
+				                                    String translatedLine = Synergy.translate(line, bread.getLanguage()).getLegacyColored(bread.getTheme());
+				                                    translatedLore.add(translatedLine);
+				                                }
+				                                meta.setLore(translatedLore);
+				                            }
+				                            
 				                            item.setItemMeta(meta);
 				                            items.set(i, item);
 				                        }
@@ -86,6 +97,15 @@ public class LocalesListener implements Listener {
 				                        item = item.clone();
 				                        ItemMeta meta = item.getItemMeta();
 			                            meta.setDisplayName(Synergy.translate(meta.getDisplayName(), bread.getLanguage()).getLegacyColored(bread.getTheme()));
+			                            List<String> lore = meta.getLore();
+			                            if (lore != null) {
+			                                List<String> translatedLore = new ArrayList<>();
+			                                for (String line : lore) {
+			                                    String translatedLine = Synergy.translate(line, bread.getLanguage()).getLegacyColored(bread.getTheme());
+			                                    translatedLore.add(translatedLine);
+			                                }
+			                                meta.setLore(translatedLore);
+			                            }
 				                        item.setItemMeta(meta);
 				                        packet.getItemModifier().write(0, item);
 				                    }

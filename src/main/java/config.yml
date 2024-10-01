@@ -12,11 +12,7 @@ openai:
 #You can also make a chatbot with any personality you want
 discord:
   enabled: false
-  channels:
-    log-channel: '00000000000000000'
-    global-chat-channel: '00000000000000000'
-    admin-chat-channel: '00000000000000000'
-    console-channel: '00000000000000000'
+  channels: {}
   bot-token: token
   gpt-bot:
     enabled: false

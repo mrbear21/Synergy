@@ -14,6 +14,7 @@ public class ResourcePackListener implements Listener {
 
     public void initialize() {
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
+        Synergy.getEventManager().registerEvents(this);
     }
 
     @EventHandler

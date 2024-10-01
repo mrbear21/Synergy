@@ -3,10 +3,6 @@ package me.synergy.utils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Sound;
-
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -14,7 +10,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import me.synergy.brains.Synergy;
-import me.synergy.objects.BreadMaker;
 
 public class Interactive {
 
@@ -64,27 +59,6 @@ public class Interactive {
 
     public static String removeInteractiveTags(String string) {
     	return string.replaceAll("<interactive>(.*?)</interactive>", "");
-    }
-
-	public static void executeInteractive(String json, BreadMaker bread) {
-    	try {
-	        Gson gson = new Gson();
-	        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
-	        if (jsonObject.has("extra")) {
-	            JsonArray extraArray = jsonObject.getAsJsonArray("extra");
-	            for (JsonElement element : extraArray) {
-	                JsonObject extraObject = element.getAsJsonObject();
-	                if (extraObject.has("soundEvent")) {
-	                    JsonObject soundEvent = extraObject.getAsJsonObject("soundEvent");
-	                    if (soundEvent.has("sound")) {
-	                		Utils.playSound(Sound.valueOf(soundEvent.get("sound").getAsString().toUpperCase()), Bukkit.getPlayer(bread.getUniqueId()));
-	                    }
-	                }
-	            }
-	        }
-    	} catch (Exception c) {
-    		//Synergy.getLogger().error("Error while executing interactive: " + c.getLocalizedMessage());
-    	}
     }
 
     private static void splitInteractiveText(JsonObject object, JsonArray dividedExtra) {
@@ -147,6 +121,33 @@ public class Interactive {
             	interactiveObject.add("clickEvent", commmandEvent);
             }
 
+        	JsonObject titleEvent = new JsonObject();
+            pattern = Pattern.compile("<title>(.*?)</title>");
+            matcher = pattern.matcher(interactivePart);
+            if (matcher.find()) {
+            	titleEvent.addProperty("title", matcher.group(1));
+                interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
+            }
+            pattern = Pattern.compile("<subtitle>(.*?)</subtitle>");
+            matcher = pattern.matcher(interactivePart);
+            if (matcher.find()) {
+            	titleEvent.addProperty("subtitle", matcher.group(1));
+                interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
+            }
+        	if (!titleEvent.isEmpty()) {
+            	titleEvent.addProperty("duration", 20*10);
+        		interactiveObject.add("titleEvent", titleEvent);
+        	}
+        	
+            pattern = Pattern.compile("<toast>(.*?)</toast>");
+            matcher = pattern.matcher(interactivePart);
+            if (matcher.find()) {
+            	JsonObject toastEvent = new JsonObject();
+            	toastEvent.addProperty("text", matcher.group(1));
+            	interactiveObject.add("toastEvent", toastEvent);
+                interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
+            }
+        	
             interactiveObject.addProperty("text", interactivePart);
             inheritProperties(object, interactiveObject);
 

@@ -4,60 +4,37 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import me.synergy.brains.Bungee;
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
 import me.synergy.objects.DataObject;
+import net.md_5.bungee.api.config.ServerInfo;
 
-public class SynergyEvent extends Event implements Listener {
-    private static final HandlerList HANDLER_LIST = new HandlerList();
+public class SynergyEvent {
 
     private String identifier;
-
     private Map<String, String> options = new HashMap<>();
-
     private UUID uuid;
-
-    private boolean waitForPlayer = false;
-
-    public SynergyEvent(String identifier) {
-        this.identifier = identifier;
-    }
-
+	
     public SynergyEvent(String identifier, UUID uuid, String options) {
         this.identifier = identifier;
         this.uuid = uuid;
         this.options = getOptionsAsMap(options);
-
 	}
 
-	public SynergyEvent() {
+	public SynergyEvent(String identifier) {
+        this.identifier = identifier;
 	}
-
-	public void initialize() {
-        Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
-    }
-
-    @Override
-	public HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
 
     public String getIdentifier() {
         return this.identifier;
@@ -67,30 +44,19 @@ public class SynergyEvent extends Event implements Listener {
         return new DataObject(options.get(option));
     }
 
-    public boolean getWaitForPlayerIfOffline() {
-        return this.waitForPlayer;
-    }
-
-	public SynergyEvent setPlayerUniqueId(UUID UUID) {
-		this.uuid = UUID;
-        return this;
-	}
-
 	public UUID getPlayerUniqueId() {
 		return uuid;
 	}
 
-    public SynergyEvent setOption(String option, String value) {
-        this.options.put(option, value);
-        return this;
-    }
-
-    public SynergyEvent setWaitForPlayerIfOffline(boolean waitPlayer) {
-        this.waitForPlayer = waitPlayer;
-        return this;
-    }
-
-    private String getOptionsAsJson() {
+	public BreadMaker getBread() {
+		return new BreadMaker(getPlayerUniqueId());
+	}
+	
+	public OfflinePlayer getOfflinePlayer() {
+		return getPlayerUniqueId() == null ? null : Bukkit.getOfflinePlayer(getPlayerUniqueId());
+	}
+	
+	public String getOptionsAsJson() {
         Gson gson = new Gson();
         return gson.toJson(options);
     }
@@ -100,41 +66,43 @@ public class SynergyEvent extends Event implements Listener {
         Type type = new TypeToken<Map<String, String>>(){}.getType();
         return gson.fromJson(options, type);
     }
+	
+    public SynergyEvent setOption(String option, String value) {
+        this.options.put(option, value);
+        return this;
+    }
 
+	public SynergyEvent setPlayerUniqueId(UUID UUID) {
+		this.uuid = UUID;
+        return this;
+	}
+	
     public void send() {
         if (Synergy.getConfig().getBoolean("synergy-plugin-messaging.enabled")) {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
-            out.writeUTF(identifier);
-            out.writeUTF(uuid.toString());
-            out.writeUTF(String.valueOf(waitForPlayer));
+            if (Synergy.isRunningBungee() || Synergy.isRunningVelocity()) {
+                out.writeUTF(Synergy.getSynergyToken());
+            }
+            out.writeUTF(getIdentifier());
+            out.writeUTF(String.valueOf(getPlayerUniqueId()));
             out.writeUTF(getOptionsAsJson());
-
-            Bukkit.getServer().sendPluginMessage(Synergy.getSpigot(), "net:synergy", out.toByteArray());
-        } else if (getWaitForPlayerIfOffline() && Bukkit.getPlayer(this.uuid) == null) {
-            ConfigurationSection objs = Synergy.getDataManager().getConfigurationSection("synergy-event-waiting." + this.uuid.toString() + "." + this.identifier);
-            int obj = (objs != null) ? (objs.getKeys(false).size() + 1) : 1;
-            Synergy.getDataManager().getConfig().set("synergy-event-waiting."+this.uuid.toString()+"."+this.identifier+"." + obj, getOptionsAsJson());
-            Synergy.getDataManager().saveConfig();
+            if (Synergy.isRunningSpigot()) {
+            	Synergy.getSpigot().sendPluginMessage(out.toByteArray());
+            }
+            if (Synergy.isRunningBungee()) {
+	            for (Entry<String, ServerInfo> server : Bungee.getInstance().getProxy().getServers().entrySet()) {
+	            	server.getValue().sendData("net:synergy", out.toByteArray());
+	            } 
+            }
+            //Synergy.getLogger().info("ПІСЛАВ: "+getIdentifier()+"/"+String.valueOf(getPlayerUniqueId())+"/"+getOptionsAsJson());
         } else {
-            triggerEvent();
+        	fireEvent();
         }
     }
-
-    public void triggerEvent() {
-        Bukkit.getScheduler().runTask(Synergy.getSpigot(), new Runnable() {
-            @Override
-			public void run() {
-                Bukkit.getServer().getPluginManager().callEvent(new SynergyEvent(identifier, uuid, getOptionsAsJson()));
-            }
-        });
-    }
-
-	public BreadMaker getBread() {
-		return new BreadMaker(getPlayerUniqueId());
-	}
-
-	public OfflinePlayer getOfflinePlayer() {
-		return getPlayerUniqueId() == null ? null : Bukkit.getOfflinePlayer(getPlayerUniqueId());
+    
+	public void fireEvent() {
+    	Synergy.getEventManager().fireEvent(new SynergyEvent(getIdentifier(), getPlayerUniqueId(), getOptionsAsJson()));
+        //Synergy.getLogger().info("ПОЛУЧІВ: "+getIdentifier()+"/"+String.valueOf(getPlayerUniqueId())+"/"+getOptionsAsJson());
 	}
 
 }

@@ -3,14 +3,13 @@ package me.synergy.utils;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,20 +19,20 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.brains.Synergy;
-import me.synergy.objects.BreadMaker;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.chat.ComponentSerializer;
 
 public class Utils {
-    private String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	
+    private static String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    public String generateRandomString(int length) {
+    public static String generateRandomString(int length) {
         SecureRandom random = new SecureRandom();
         StringBuilder randomString = new StringBuilder();
         for (int i = 0; i < length; i++) {
-            int randomIndex = random.nextInt(this.CHARACTERS.length());
-            char randomChar = this.CHARACTERS.charAt(randomIndex);
+            int randomIndex = random.nextInt(CHARACTERS.length());
+            char randomChar = CHARACTERS.charAt(randomIndex);
             randomString.append(randomChar);
         }
         return randomString.toString();
@@ -166,26 +165,9 @@ public class Utils {
         return sentence;
     }
 
-	public static String detectPlayernamePlaceholder(String text, String defaultIfNull) {
-	    int startIdx = text.indexOf("%");
-	    if (startIdx == -1) {
-	        return defaultIfNull;
-	    }
-	    int nameIdx = text.indexOf("name", startIdx);
-	    if (nameIdx == -1) {
-	        return defaultIfNull;
-	    }
-	    int leftPercentIdx = text.lastIndexOf("%", nameIdx);
-	    int rightPercentIdx = text.indexOf("%", nameIdx + 1);
-	    if (leftPercentIdx == -1 || rightPercentIdx == -1) {
-	        return defaultIfNull;
-	    }
-	    return text.substring(leftPercentIdx, rightPercentIdx + 1);
-	}
-
 	public static String translateSmiles(String string) {
-		for (String e : Synergy.getConfig().getConfigurationSection("chat-manager.custom-emojis").getKeys(false)) {
-			string = string.replace(e, Synergy.getConfig().getString("chat-manager.custom-emojis."+e));
+		for (Entry<String, Object> e : Synergy.getConfig().getConfigurationSection("chat-manager.custom-emojis").entrySet()) {
+			string = string.replace(e.getKey(), Synergy.getConfig().getString("chat-manager.custom-emojis."+e.getKey()));
 		}
 		return string;
 	}
@@ -364,12 +346,6 @@ public class Utils {
         }
     }
 
-    public static void main(String[] args) {
-        String json = "{\"text\":\"\",\"extra\":[\"<primary>Добро пожаловать на\\n <danger>&lSanctuary<primary>\\n\\n<primary>Стримерка <interactive><danger>&nmeitene<hover>Перейти на Twitch</hover><url>https://twitch.tv/meitene_space</url></interactive> <primary>приглашает тебя создавать свои шедевры!\\n\\n\\n<secondary>&oСервер открыт для всех. Общение в чате на латышском, русском или английском языке.\\n\"]}";
-        String text = extractText(json);
-        System.out.println(text);
-    }
-
     public static JsonArray insertJsonElementIntoArray(int index, JsonElement val, JsonArray currentArray) {
         JsonArray newArray = new JsonArray();
         for (int i = 0; i < index; i++) {
@@ -381,34 +357,50 @@ public class Utils {
         }
         return newArray;
     }
-
-    public static void playSound(Sound sound, Player player) {
-    	try {
-    		player.playSound(player.getLocation(), sound, 1.0F, 1.0F);
-    	} catch (Exception c) {
-    		Synergy.getLogger().error(c.getLocalizedMessage());
+    
+    public static List<String> getPlayers() {
+    	List<String> players = new ArrayList<String>();
+    	if (Synergy.isRunningSpigot()) {
+    		Bukkit.getOnlinePlayers().stream().forEach(p -> players.add(p.getName()));
     	}
+    	if (Synergy.isRunningBungee()) {
+    		Synergy.getBungee().getProxy().getServers().entrySet().stream().forEach(s -> s.getValue().getPlayers().forEach(p -> players.add(p.getName())));
+    	}
+    	return players;
     }
+    
+    public static String replacePlaceholderOutputs(OfflinePlayer player, String format) {
+        StringBuilder result = new StringBuilder(format);
+        Set<Entry<String, Object>> placeholdersKeys = Synergy.getConfig().getConfigurationSection("placeholder-output-replacements").entrySet();
 
-    public static void sendFakeBook(Player player, String title, String content) {
-        BreadMaker bread = Synergy.getBread(player.getUniqueId());
-        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-        BookMeta meta = (BookMeta) book.getItemMeta();
-        meta.setTitle(title);
+        for (Entry<String, Object> entry : placeholdersKeys) {
+            String placeholderKey = entry.getKey();
+            String replacementKey = "";
+            try {
+                replacementKey = PlaceholderAPI.setPlaceholders(player, placeholderKey);
+            } catch (Exception e) {}
+            Set<Entry<String, Object>> placeholders = Synergy.getConfig().getConfigurationSection("placeholder-output-replacements." + placeholderKey).entrySet();
+            for (Entry<String, Object> p : placeholders) {
+                String configKey = p.getKey();
+                String configValue = (String) p.getValue();
 
-        content = Translation.processLangTags(content, bread.getLanguage());
-
-        String[] pages = content.split("%np%");
-
-        for (String page : pages) {
-        	page = Synergy.translate(page, bread.getLanguage()).setExecuteInteractive(bread).getColored(bread.getTheme());
-            meta.spigot().addPage(ComponentSerializer.parse(page));
+                if (replacementKey.isEmpty() && configKey.equals("%none%")) {
+                    replaceInResult(result, placeholderKey, configValue);
+                } else if (!replacementKey.isEmpty() && configKey.equals(placeholderKey)) {
+                    String formattedValue = configValue.replace(placeholderKey, replacementKey);
+                    replaceInResult(result, placeholderKey, formattedValue);
+                }
+            }
         }
 
-        meta.setAuthor("synergy");
-        book.setItemMeta(meta);
-        player.openBook(book);
-        playSound(Sound.ITEM_BOOK_PAGE_TURN, player);
+        return result.toString();
+    }
+    private static void replaceInResult(StringBuilder result, String placeholderKey, String replacementValue) {
+        int index = result.indexOf(placeholderKey);
+        while (index != -1) {
+            result.replace(index, index + placeholderKey.length(), replacementValue);
+            index = result.indexOf(placeholderKey, index + replacementValue.length());
+        }
     }
 
 }

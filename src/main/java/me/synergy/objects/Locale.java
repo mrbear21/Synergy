@@ -1,5 +1,7 @@
 package me.synergy.objects;
 
+import me.clip.placeholderapi.PlaceholderAPI;
+import me.synergy.brains.Synergy;
 import me.synergy.utils.Color;
 import me.synergy.utils.Interactive;
 import me.synergy.utils.Translation;
@@ -17,10 +19,20 @@ public class Locale {
 
 	public Locale setExecuteInteractive(BreadMaker bread) {
 		string = Interactive.processInteractive(string);
-		Interactive.executeInteractive(string, bread);
+		if (Synergy.isRunningSpigot()) {
+			Synergy.getSpigot().executeInteractive(string, bread);
+		}
 		return this;
 	}
 
+	public Locale setPlaceholders(BreadMaker bread) {
+		if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
+			string = Utils.replacePlaceholderOutputs(Synergy.getSpigot().getOfflinePlayerByUniqueId(bread.getUniqueId()), string);
+			string = PlaceholderAPI.setPlaceholders(Synergy.getSpigot().getOfflinePlayerByUniqueId(bread.getUniqueId()), string);
+		}
+		return this;
+	}
+	
 	public String getColored(String theme) {
 		string = Interactive.removeInteractiveTags(string);
 		string = Color.processColors(string, theme);
@@ -35,6 +47,7 @@ public class Locale {
 	}
 
 	public String getStripped() {
+		string = Translation.removeAllTags(string);
 		string = Utils.isValidJson(string) ? Utils.extractText(string) : string;
 		string = Color.removeColor(string);
 		string = Interactive.removeInteractiveTags(string);

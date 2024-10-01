@@ -18,7 +18,7 @@ public class BreadMaker {
 		if (getData("language").isSet()) {
 			return getData("language").getAsString();
 		}
-		if (Synergy.isSpigot() && isOnline()) {
+		if (Synergy.isRunningSpigot() && isOnline()) {
 			return Synergy.getSpigot().getPlayerLanguage(getUniqueId());
 		}
 		return Synergy.getConfig().getString("localizations.default-language", "en");
@@ -33,37 +33,43 @@ public class BreadMaker {
 	}
 
 	public boolean isMuted() {
-		return EssentialsAPI.essentialsIsPlayerMuted(getName());
+		return Synergy.isRunningSpigot() ? EssentialsAPI.essentialsIsPlayerMuted(getName()) : false;
 	}
 
 	public String getName() {
-		return Synergy.isSpigot() ? Synergy.getSpigot().getPlayerName(getUniqueId()) : null;
+		if (Synergy.isRunningSpigot()) {
+			return Synergy.getSpigot().getPlayerName(getUniqueId());
+		}
+		if (Synergy.isRunningBungee()) {
+			return Synergy.getBungee().getPlayerName(getUniqueId());
+		}
+		return null;
 	}
 
 	public DataObject getData(String option) {
-		return Synergy.getDataManager().getData("players."+"."+getUniqueId()+"."+option);
+		return new DataObject(Synergy.getDataManager().get("players."+getUniqueId()+"."+option));
 	}
 
 	public void setData(String option, String value) {
-		 Synergy.getDataManager().setData("players."+"."+getUniqueId()+"."+option, value);
+		 Synergy.getDataManager().set("players."+getUniqueId()+"."+option, value);
 	}
-
+	
 	public boolean isOnline() {
-		if (Synergy.isSpigot()) {
+		if (Synergy.isRunningSpigot()) {
 			return getUniqueId() == null ? false : Synergy.getSpigot().getPlayerByUniqueId(getUniqueId()) != null ? Synergy.getSpigot().getPlayerByUniqueId(getUniqueId()).isOnline() : false;
 		}
 		return false;
 	}
 
     public boolean isAuthenticated() {
-		if (Synergy.isSpigot() && Synergy.isDependencyAvailable("Authme")) {
+		if (Synergy.isRunningSpigot() && Synergy.isDependencyAvailable("Authme")) {
 			return AuthmeAPI.isAuthenticated(Synergy.getSpigot().getPlayerByUniqueId(uuid));
 		}
 		return true;
     }
 
 	public boolean hasPermission(String node) {
-		if (Synergy.isSpigot()) {
+		if (Synergy.isRunningSpigot()) {
 			return Synergy.getSpigot().playerHasPermission(getUniqueId(), node);
 		}
 		return false;

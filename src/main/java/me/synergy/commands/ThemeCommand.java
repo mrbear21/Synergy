@@ -12,8 +12,8 @@ import org.bukkit.entity.Player;
 
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.BookMessage;
 import me.synergy.utils.Translation;
-import me.synergy.utils.Utils;
 
 public class ThemeCommand implements CommandExecutor, TabCompleter {
 
@@ -31,7 +31,7 @@ public class ThemeCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
     	if (args.length < 2) {
-	        Set<String> themes = Synergy.getConfig().getConfigurationSection("localizations.color-themes").getKeys(false);
+	        Set<String> themes = Synergy.getConfig().getConfigurationSection("localizations.color-themes").keySet();
 	        return new ArrayList<>(themes);
     	}
     	return null;
@@ -41,21 +41,21 @@ public class ThemeCommand implements CommandExecutor, TabCompleter {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     	Player player = (Player) sender;
     	BreadMaker bread = new BreadMaker(player.getUniqueId());
-    	Set<String> themes = Synergy.getConfig().getConfigurationSection("localizations.color-themes").getKeys(false);
+    	Set<String> themes = Synergy.getConfig().getConfigurationSection("localizations.color-themes").keySet();
     	if (args.length > 0 && themes.contains(args[0].toLowerCase())) {
     		bread.setData("theme", args[0].toLowerCase());
-    		bread.sendMessage(Translation.processLangTags("<lang>synergy-selected-theme</lang>", bread.getLanguage()).replace("%THEME%", args[0]));
+    		sender.sendMessage(Translation.processLangTags("<lang>synergy-selected-theme</lang>", bread.getLanguage()).replace("%THEME%", args[0]));
     		return true;
     	} else if (args.length > 0 && args[0].equalsIgnoreCase("auto")) {
     		bread.setData("theme", null);
-    		bread.sendMessage(Translation.processLangTags("<lang>synergy-selected-theme</lang>", bread.getLanguage()).replace("%THEME%", args[0]));
+    		sender.sendMessage(Translation.processLangTags("<lang>synergy-selected-theme</lang>", bread.getLanguage()).replace("%THEME%", args[0]));
     		return true;
     	} else if (args.length > 0) {
     		sender.sendMessage("<lang>synergy-command-usage</lang> /theme "+themes);
     		return true;
     	}
 
-    	Utils.sendFakeBook(player, "Themes", "<lang>synergy-themes</lang>");
+    	BookMessage.sendFakeBook(player, "Themes", "<lang>synergy-themes</lang>");
         return true;
     }
 }

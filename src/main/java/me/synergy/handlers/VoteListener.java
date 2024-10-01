@@ -1,7 +1,5 @@
 package me.synergy.handlers;
 
-import java.util.UUID;
-
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -10,6 +8,7 @@ import org.bukkit.event.Listener;
 import com.vexsoftware.votifier.model.Vote;
 import com.vexsoftware.votifier.model.VotifierEvent;
 
+import me.synergy.anotations.SynergyHandler;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.objects.BreadMaker;
@@ -29,25 +28,28 @@ public class VoteListener implements Listener {
             Synergy.getLogger().warning("NuVotifier is required to initialize " + getClass().getSimpleName() + " module!");
             return;
         }
+        
+        Synergy.getEventManager().registerEvents(this);
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
         Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
     }
 
-    @EventHandler
+    @SynergyHandler
     public void onSynergyPluginMessage(SynergyEvent event) {
         if (!event.getIdentifier().equals("votifier")) {
             return;
         }
 
         String service = event.getOption("service").getAsString();
-        BreadMaker bread = event.getBread();
+        String username = event.getOption("username").getAsString();
+        BreadMaker bread = Synergy.getBread(Synergy.getSpigot().getUniqueIdFromName(username));
 
         if (bread.isOnline()) {
         	bread.sendMessage(Translation.processLangTags("<lang>synergy-voted-successfully</lang>", bread.getLanguage()).replace("%SERVICE%", service));
         }
 
-    	Synergy.createSynergyEvent("announcement").setOption("message", "<lang>synergy-player-voted</lang>").setOption("argument", bread.getName()).send();
-    	Synergy.createSynergyEvent("discord-announcement").setOption("message", "<lang>synergy-player-voted</lang>").setOption("argument", bread.getName()).send();
+    	Synergy.createSynergyEvent("broadcast").setOption("message", "<lang>synergy-player-voted<arg>"+bread.getName()+"</arg></lang>").send();
+    	Synergy.createSynergyEvent("discord-broadcast").setOption("message", "<lang>synergy-player-voted<arg>"+bread.getName()+"</arg></lang>").send();
 
         for (String command : Synergy.getConfig().getStringList("votifier.rewards")) {
         	Synergy.executeConsoleCommand(command.replace("%PLAYER%", bread.getName()));
@@ -57,7 +59,6 @@ public class VoteListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onVotifierEvent(VotifierEvent event) {
         Vote vote = event.getVote();
-        UUID uuid = Synergy.getUniqueIdFromName(vote.getUsername());
-        Synergy.createSynergyEvent("votifier").setPlayerUniqueId(uuid).setOption("service", vote.getServiceName()).send();
+        Synergy.createSynergyEvent("votifier").setOption("service", vote.getServiceName()).setOption("username", vote.getUsername()).send();
     }
 }

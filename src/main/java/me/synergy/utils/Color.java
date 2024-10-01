@@ -2,6 +2,7 @@ package me.synergy.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -66,9 +67,9 @@ public class Color {
     public static String processThemeTags(String input, String theme) {
         for (String t : new String[]{theme, "default"}) {
             try {
-                for (String c : Synergy.getConfig().getConfigurationSection("localizations.color-themes." + t).getKeys(false)) {
-                    String hexCode = Synergy.getConfig().getString("localizations.color-themes." + t + "." + c);
-                    input = input.replace("<" + c + ">", hexCode);
+                for (Entry<String, Object> c : Synergy.getConfig().getConfigurationSection("localizations.color-themes." + t).entrySet()) {
+                    String hexCode = Synergy.getConfig().getString("localizations.color-themes." + t + "." + c.getKey());
+                    input = input.replace("<" + c.getKey() + ">", hexCode);
                 }
             } catch (Exception e) {
             	Synergy.getLogger().error("Error while processing theme tags: " + e.getLocalizedMessage());
@@ -79,9 +80,9 @@ public class Color {
 
     private static String processColorReplace(String input, String theme) {
         try {
-            for (String c : Synergy.getConfig().getConfigurationSection("localizations.color-replace").getKeys(false)) {
-                String hexCode = processThemeTags(Synergy.getConfig().getString("localizations.color-replace." + c), theme);
-                input = input.replace("\"" + c + "\"", "\"" + hexCode.substring(1, 8) + "\"");
+            for (Entry<String, Object> c : Synergy.getConfig().getConfigurationSection("localizations.color-replace").entrySet()) {
+                String hexCode = processThemeTags(Synergy.getConfig().getString("localizations.color-replace." + c.getKey()), theme);
+                input = input.replace("\"" + c.getKey() + "\"", "\"" + hexCode.substring(1, 8) + "\"");
             }
         } catch (Exception e) {
         	Synergy.getLogger().error("Error while processing color replace: " + e.getLocalizedMessage());

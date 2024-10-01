@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -12,7 +11,8 @@ import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import me.synergy.brains.Synergy;
-import me.synergy.events.SynergyEvent;
+import me.synergy.discord.Discord;
+import me.synergy.discord.RolesDiscordListener;
 
 public class PlayerJoinListener implements Listener {
 
@@ -20,6 +20,7 @@ public class PlayerJoinListener implements Listener {
 
     public void initialize() {
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
+        Synergy.getEventManager().registerEvents(this);
     }
 
     @EventHandler
@@ -39,32 +40,9 @@ public class PlayerJoinListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
-        if (Synergy.getDataManager().getConfig().get("synergy-event-waiting." + uuid) != null) {
-            ConfigurationSection identifiers = Synergy.getDataManager().getConfig().getConfigurationSection("synergy-event-waiting." + uuid);
-            if (identifiers != null) {
-                for (String identifier: identifiers.getKeys(false)) {
-                    ConfigurationSection objs = Synergy.getDataManager().getConfig().getConfigurationSection("synergy-event-waiting." + uuid + "." + identifier);
-                    if (objs != null) {
-                        for (String obj: objs.getKeys(false)) {
-                            if (Synergy.getDataManager().getConfig().isSet("synergy-event-waiting." + uuid + "." + identifier + "." + obj)) {
-                                new SynergyEvent(identifier, uuid, Synergy.getDataManager().getConfig().getString("synergy-event-waiting." + uuid + "." + identifier + "." + obj)).triggerEvent();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Synergy.getSpigot().getServer().getScheduler().scheduleSyncRepeatingTask(Synergy.getSpigot(), new Runnable() {
-            @Override
-			public void run() {
-                Synergy.getDataManager().getConfig().set("synergy-event-waiting." + uuid, null);
-                Synergy.getDataManager().saveConfig();
-            }
-        }, 0, 60);
 
-        if (Synergy.getDiscord().getDiscordIdByUniqueId(uuid) != null) {
-
-        	Synergy.getDiscord().addVerifiedRole(Synergy.getDiscord().getDiscordIdByUniqueId(uuid));
+        if (Discord.getDiscordIdByUniqueId(uuid) != null) {
+        	RolesDiscordListener.addVerifiedRole(Discord.getDiscordIdByUniqueId(uuid));
 
             if (Synergy.getConfig().getBoolean("discord.synchronization.sync-roles-form-mc-to-discord")) {
                 Synergy.createSynergyEvent("sync-roles-from-mc-to-discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("group", Synergy.getSpigot().getPermissions().getPrimaryGroup(event.getPlayer())).send();

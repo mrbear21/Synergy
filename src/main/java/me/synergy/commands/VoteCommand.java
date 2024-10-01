@@ -11,8 +11,8 @@ import org.bukkit.entity.Player;
 
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.BookMessage;
 import me.synergy.utils.Translation;
-import me.synergy.utils.Utils;
 
 public class VoteCommand implements CommandExecutor {
 
@@ -47,7 +47,7 @@ public class VoteCommand implements CommandExecutor {
 
             build.append(Translation.translate("<lang>synergy-monitorings-menu</lang>", bread.getLanguage()).replace("%MONITORINGS%", list));
 
-            Utils.sendFakeBook((Player) sender, "Monitorings", build.toString());
+            BookMessage.sendFakeBook((Player) sender, "Monitorings", build.toString());
         } else {
             sender.sendMessage("<lang>synergy-no-permission</lang>");
         }

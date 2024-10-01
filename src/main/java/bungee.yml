@@ -1,5 +1,8 @@
-name: archiquestcore
-main: brain.BrainBungee
-version: 1.0
-author: breadmakers
-description: the basic plugin of archi.quest project
+name: Synergy
+main: me.synergy.brains.Bungee
+version: 0.0.3
+author: mrbear22
+description: Basic tools and server messaging plugin
+commands:
+  synergy:
+    description: Reload Synergy

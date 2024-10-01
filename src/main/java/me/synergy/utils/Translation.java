@@ -100,10 +100,13 @@ public class Translation {
 	        }
 	        matcher.appendTail(outputBuffer);
 
+	        String result = outputBuffer.toString();
+	        result = result.replace("%CLEAR%", System.lineSeparator().repeat(30));
+	        
 	        if (found) {
-	            return processLangTags(outputBuffer.toString(), language);
+	            return processLangTags(result, language);
 	        } else {
-	            return outputBuffer.toString();
+	            return result;
 	        }
         } catch (Exception c) {
     		Synergy.getLogger().error(c.getLocalizedMessage());
@@ -155,6 +158,10 @@ public class Translation {
 
     public static String removeTranslationTags(String string) {
     	return string.replaceAll("<translation>(.*?)</translation>", "");
+    }
+
+    public static String removeAllTags(String input) {
+        return input.replaceAll("<[^>]*>", "");
     }
 
 }

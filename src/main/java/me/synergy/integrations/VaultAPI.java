@@ -6,11 +6,42 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
+import me.synergy.anotations.SynergyHandler;
 import me.synergy.brains.Synergy;
+import me.synergy.events.SynergyEvent;
 import net.milkbowl.vault.permission.Permission;
 
 public class VaultAPI {
 
+	public void initialize() {
+        try {
+	        Synergy.getEventManager().registerEvents(this);
+	        Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
+	    } catch (Exception exception) {
+	        Synergy.getLogger().error(String.valueOf(getClass().getSimpleName()) + " module failed to initialize: " + exception.getMessage());
+	    	exception.printStackTrace();
+	    }
+	}
+	
+    @SynergyHandler
+    public void onSynergyEvent(SynergyEvent event) {
+        if (event.getIdentifier().equals("remove-player-group")) {
+            if (Synergy.isDependencyAvailable("Vault") && Synergy.getConfig().getBoolean("discord.synchronization.use-vault")) {
+            	Synergy.getSpigot().getPermissions().playerRemoveGroup(Bukkit.getPlayer(event.getPlayerUniqueId()), event.getOption("group").getAsString());
+            } else {
+            	Synergy.dispatchCommand(Synergy.getConfig().getString("discord.synchronization.custom-command-remove").replace("%PLAYER%", event.getBread().getName()).replace("%GROUP%", event.getOption("group").getAsString()));
+            }
+        }
+
+        if (event.getIdentifier().equals("set-player-group")) {
+            if (Synergy.isDependencyAvailable("Vault") && Synergy.getConfig().getBoolean("discord.synchronization.use-vault")) {
+                Synergy.getSpigot().getPermissions().playerAddGroup(Bukkit.getPlayer(event.getPlayerUniqueId()), event.getOption("group").getAsString());
+            } else {
+                Synergy.dispatchCommand(Synergy.getConfig().getString("discord.synchronization.custom-command-add").replace("%PLAYER%", event.getBread().getName()).replace("%GROUP%", event.getOption("group").getAsString()));
+            }
+        }
+    }
+	
     public List<OfflinePlayer> getPlayersWithPermission(String permissionNode) {
         List<OfflinePlayer> playersWithPermission = new ArrayList<>();
         if (Synergy.getSpigot().getPermissions() != null) {
