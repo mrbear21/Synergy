@@ -24,6 +24,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
+import com.massivecraft.factions.Faction;
+
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.anotations.SynergyHandler;
 import me.synergy.brains.Spigot;
@@ -31,6 +33,7 @@ import me.synergy.brains.Synergy;
 import me.synergy.discord.Discord;
 import me.synergy.events.SynergyEvent;
 import me.synergy.integrations.PlotSquaredAPI;
+import me.synergy.integrations.SaberFactionsAPI;
 import me.synergy.objects.BreadMaker;
 import me.synergy.utils.BookMessage;
 import me.synergy.utils.Cooldown;
@@ -312,15 +315,19 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 	                    break;
 	               
 	                case "faction":
-	                	if (Synergy.isDependencyAvailable("PlaceholderAPI") && PlaceholderAPI.setPlaceholders(recipient, "%faction_name%").equals(PlaceholderAPI.setPlaceholders(sender, "%faction_name%"))) {
-	                		recipient.sendMessage(format);
-	                        playMsgSound(recipient);
-		                    count++;
+	                	if (Synergy.isDependencyAvailable("Factions")) {
+	                		Faction senderFaction = SaberFactionsAPI.getFactionByPlayer(sender);
+	                		Faction recipientFaction = SaberFactionsAPI.getFactionByPlayer(recipient);
+	                		if (senderFaction != null && senderFaction.equals(recipientFaction)) {
+	                		    recipient.sendMessage(format);
+	                		    playMsgSound(recipient);
+	                		    count++;
+	                		}
 	                	}
 	            }
 	        }
 
-	        if (count == 1 && Arrays.asList(new String[] {"local", "plot"}).contains(chat)) {
+	        if (count == 1 && Arrays.asList(new String[] {"local", "plot", "faction"}).contains(chat)) {
 	        	event.getBread().sendMessage("<lang>synergy-noone-hears-you</lang>");
 	        }
         }

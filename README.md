@@ -1,19 +1,7 @@
-# Synergy [Velocity-Spigot]
+# Synergy [Velocity-Bungee-Spigot]
 Basic tools and server messaging plugin for minecraft servers. The plugin can be used both in proxy and standalone servers.
 
 > The purpose of the plugin is to create synergy between servers and unite them into a solid and seamless project
-
-# TODO List
-☑️Proxy messaging system
-☑️Localization system
-☑️Chat manager
-☑️Discord integration
-☑️Votifier (only handling for now)
-☑️Convenient API
-☑️Player data manager
-⏹️Patreon integration (maybe)
-⏹️Convenient web manager
-⏹️Security and caching features
 
 # Maven Dependency
 ```
@@ -89,9 +77,6 @@ BreadMaker bread = Synergy.getBread(uuid);
 //Get player data
 bread.getData("level").getAsInt()
 bread.getData("language").getAsString()
-
-//Save data locally (temporarily)
-bread.setData("key", "value");
 
 //Save data permanently
 bread.setData("key", "value");

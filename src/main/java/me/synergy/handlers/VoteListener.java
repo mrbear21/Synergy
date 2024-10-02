@@ -52,7 +52,7 @@ public class VoteListener implements Listener {
     	Synergy.createSynergyEvent("discord-broadcast").setOption("message", "<lang>synergy-player-voted<arg>"+bread.getName()+"</arg></lang>").send();
 
         for (String command : Synergy.getConfig().getStringList("votifier.rewards")) {
-        	Synergy.executeConsoleCommand(command.replace("%PLAYER%", bread.getName()));
+        	Synergy.dispatchCommand(command.replace("%PLAYER%", bread.getName()));
         }
     }
 

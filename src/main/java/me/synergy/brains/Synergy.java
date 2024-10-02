@@ -12,7 +12,6 @@ import me.synergy.modules.DataManager;
 import me.synergy.modules.LocalesManager;
 import me.synergy.objects.BreadMaker;
 import me.synergy.objects.Locale;
-import me.synergy.utils.Color;
 import me.synergy.utils.Cooldown;
 import me.synergy.utils.Logger;
 import me.synergy.utils.Translation;
@@ -65,10 +64,6 @@ public class Synergy {
         return new Translation();
     }
 
-    public static Color getColor() {
-        return new Color();
-    }
-    
     public static Cooldown getCooldown(UUID uuid) {
         return new Cooldown(uuid);
     }
@@ -118,12 +113,6 @@ public class Synergy {
     	return new Locale(string, language);
     }
 
-	public static void executeConsoleCommand(String command) {
-		if (isRunningSpigot()) {
-			getSpigot().executeConsoleCommand(command);
-		}
-	}
-
 	public static File getDataFolder() {
 		File dataFolder = new File("plugins/Synergy");
 		return dataFolder;
@@ -133,9 +122,9 @@ public class Synergy {
 		return SynergyEventManager.getInstance();
 	}
 
-	public static void dispatchCommand(String string) {
+	public static void dispatchCommand(String command) {
 		if (isRunningSpigot()) {
-			getSpigot().dispatchCommand(string);
+			getSpigot().dispatchCommand(command);
 		}
 	}
 }

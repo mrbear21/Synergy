@@ -20,12 +20,12 @@
 	</distributionManagement>
 	<build>
 		<finalName>Synergy</finalName>
-		<sourceDirectory>src/main/java</sourceDirectory>
+		<sourceDirectory>src/main/resources</sourceDirectory>
 		<resources>
 			<resource>
 				<targetPath>.</targetPath>
 				<filtering>true</filtering>
-				<directory>${basedir}/src/main/java/</directory>
+				<directory>${basedir}/src/main/resources</directory>
 				<includes>
 					<include>plugin.yml</include>
 					<include>bungee.yml</include>
@@ -39,7 +39,9 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>3.2.1</version>
-				<configuration></configuration>
+				<configuration>
+			        <minimizeJar>true</minimizeJar>
+				</configuration>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -213,9 +215,10 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>archi.quest</groupId>
-			<artifactId>axeofkratos</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+		    <groupId>com.github.SaberLLC</groupId>
+		    <artifactId>Saber-Factions</artifactId>
+		    <version>4.1.4-STABLE</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>
