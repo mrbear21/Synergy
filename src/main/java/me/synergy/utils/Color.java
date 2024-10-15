@@ -1,7 +1,9 @@
 package me.synergy.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -47,6 +49,7 @@ public class Color {
     public static String processLegacyColors(String string, String theme) {
         string = customColorCodes(string);
         string = processThemeTags(string, theme);
+        string = processColorCodesReplace(string, theme);
         Pattern pattern = Pattern.compile("<(#[A-Fa-f0-9]{6})>");
         Matcher matcher = pattern.matcher(string);
         while (matcher.find()) {
@@ -74,6 +77,43 @@ public class Color {
             } catch (Exception e) {
             	Synergy.getLogger().error("Error while processing theme tags: " + e.getLocalizedMessage());
             }
+        }
+        return input;
+    }
+    
+    private static String processColorCodesReplace(String input, String theme) {
+        try {
+            Map<String, String> colorCodes = new HashMap<>();
+            colorCodes.put("black", "§0");
+            colorCodes.put("dark_blue", "§1");
+            colorCodes.put("dark_green", "§2");
+            colorCodes.put("dark_aqua", "§3");
+            colorCodes.put("dark_red", "§4");
+            colorCodes.put("dark_purple", "§5");
+            colorCodes.put("gold", "§6");
+            colorCodes.put("gray", "§7");
+            colorCodes.put("dark_gray", "§8");
+            colorCodes.put("blue", "§9");
+            colorCodes.put("green", "§a");
+            colorCodes.put("aqua", "§b");
+            colorCodes.put("red", "§c");
+            colorCodes.put("light_purple", "§d");
+            colorCodes.put("yellow", "§e");
+            colorCodes.put("white", "§f");
+            for (Entry<String, Object> c : Synergy.getConfig().getConfigurationSection("localizations.color-replace").entrySet()) {
+                String hexCode = processThemeTags(Synergy.getConfig().getString("localizations.color-replace." + c.getKey()), theme);
+                if (!hexCode.startsWith("<#") || !hexCode.endsWith(">")) {
+                    continue;
+                }
+                String minecraftCode = colorCodes.get(c.getKey().toLowerCase());
+                if (minecraftCode != null) {
+                    input = input.replace(minecraftCode, hexCode);
+                } else {
+                    Synergy.getLogger().warning("Unknown color key: " + c.getKey());
+                }
+            }
+        } catch (Exception e) {
+            Synergy.getLogger().error("Error while processing color replace: " + e.getLocalizedMessage());
         }
         return input;
     }
@@ -195,5 +235,9 @@ public class Color {
             }
         }
     }
+
+	public static String getDefaultTheme() {
+		return "default";
+	}
 
 }

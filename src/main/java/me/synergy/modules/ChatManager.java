@@ -28,6 +28,7 @@ import com.massivecraft.factions.Faction;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.synergy.anotations.SynergyHandler;
+import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Spigot;
 import me.synergy.brains.Synergy;
 import me.synergy.discord.Discord;
@@ -40,7 +41,7 @@ import me.synergy.utils.Cooldown;
 import me.synergy.utils.Translation;
 import me.synergy.utils.Utils;
 
-public class ChatManager implements Listener, CommandExecutor, TabCompleter {
+public class ChatManager implements Listener, CommandExecutor, TabCompleter, SynergyListener {
 
     public void initialize() {
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
@@ -197,22 +198,34 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 		}
 
         if (!bread.isAuthenticated() || bread.isMuted()) {
+            if (synergyChatEnabled) {
+            	event.setCancelled(true);
+            }
         	return;
 		}
 
         if (cooldown.hasCooldown("chat")) {
         	event.getPlayer().sendMessage("<lang>synergy-cooldown</lang>");
+            if (synergyChatEnabled) {
+            	event.setCancelled(true);
+            }
         	return;
         }
         
         if (removeChatTypeSymbol(event.getMessage()).isEmpty()) {
         	event.getPlayer().sendMessage("<lang>synergy-message-cant-be-empty</lang>");
+            if (synergyChatEnabled) {
+            	event.setCancelled(true);
+            }
         	return;
         }
 
         if (crossServerGlobalChat) {
-	        Synergy.createSynergyEvent("discord").setPlayerUniqueId(event.getPlayer().getUniqueId()).setOption("player", event.getPlayer().getName())
-	        .setOption("message", removeChatTypeSymbol(Utils.stripColorTags(event.getMessage()))).setOption("chat", chat).send();
+	        Synergy.createSynergyEvent("discord-embed").setPlayerUniqueId(event.getPlayer().getUniqueId())
+	        .setOption("author", event.getPlayer().getName())
+	        .setOption("title", removeChatTypeSymbol(Utils.stripColorTags(event.getMessage())))
+	        .setOption("color", getChatColor(chat).substring(1, getChatColor(chat).length()-1))
+	        .setOption("chat", chat).send();
         }
 
         if (!synergyChatEnabled) {
@@ -240,7 +253,12 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
             String answer = (new OpenAi()).newPrompt(question).get(0).getText().replace("\"", "").trim();
             answer = answer.isEmpty() ? Translation.translate("<lang>synergy-service-unavailable</lang>", Translation.getDefaultLanguage()) : answer;
             Synergy.createSynergyEvent("chat").setOption("player", botName).setOption("message", answer).setOption("chat", "discord").send();
-            Synergy.createSynergyEvent("discord").setOption("player", botName).setOption("message", answer).setOption("chat", "global").send();
+            Synergy.createSynergyEvent("discord-embed").setPlayerUniqueId(event.getPlayer().getUniqueId())
+	        .setOption("author", botName)
+	        .setOption("avatar", "%self%")
+	        .setOption("title", answer)
+	        .setOption("color", getChatColor(chat).substring(1, getChatColor(chat).length()-1))
+	        .setOption("chat", "global").send();
         }
         
         Bukkit.getLogger().info("[" + chat + "] " + bread.getName() + ": " + event.getMessage());
@@ -251,7 +269,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 	public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
 		Cooldown cooldown = Synergy.getCooldown(event.getPlayer().getUniqueId());
 		if (!cooldown.hasCooldown("command")) {
-		    List<String> commands = Arrays.asList("/reg", "/register", "/l", "/login");
+		    List<String> commands = Arrays.asList("/reg", "/register", "/l", "/login", "/unregister");
 		    if (!commands.stream().anyMatch(event.getMessage()::startsWith)) {
 		        Synergy.getLogger().discord("```["+Synergy.getServerName()+"] [cmd] " + event.getPlayer().getName() + ": " + event.getMessage() + "```");
 		    }
@@ -266,10 +284,15 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
         		Bukkit.getPlayer(event.getPlayerUniqueId()).sendMessage(event.getOption("message").getAsString());
         	}
         }
+        
         if (event.getIdentifier().equals("broadcast")) {
         	for (Player p : Bukkit.getOnlinePlayers()) {
         		BreadMaker bread = Synergy.getBread(p.getUniqueId());
-        		bread.sendMessage(Translation.translate(event.getOption("message").getAsString(), bread.getLanguage()));
+        		p.sendMessage(Synergy.translate(event.getOption("message").getAsString(), bread.getLanguage())
+        				.setPlaceholders(bread)
+        				.setEndings(event.getBread().getPronoun())
+        				.setExecuteInteractive(bread)
+        			.getLegacyColored(bread.getTheme()));
         	}
         }
 
@@ -290,7 +313,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 	                    count++;
 	                    break;
 	                case "plot":
-	                    if (Synergy.isDependencyAvailable("PlotSquared") && Synergy.getConfig().getBoolean("chat-manager.local-chat-per-plotsquared-plot")) {
+	                    if (Synergy.isDependencyAvailable("PlotSquared") && Synergy.getConfig().getBoolean("chat-manager.integrations.plotsquared-plot-chat")) {
 	                    	if (recipient == sender || (PlotSquaredAPI.getCurrentPlot(sender) != null && PlotSquaredAPI.getPlayersOnPlot(PlotSquaredAPI.getCurrentPlot(sender)).contains(recipient))) {
 		                        recipient.sendMessage(format);
 		                        playMsgSound(recipient);
@@ -315,7 +338,7 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
 	                    break;
 	               
 	                case "faction":
-	                	if (Synergy.isDependencyAvailable("Factions")) {
+	                	if (Synergy.isDependencyAvailable("Factions") && Synergy.getConfig().getBoolean("chat-manager.integrations.factions-chat")) {
 	                		Faction senderFaction = SaberFactionsAPI.getFactionByPlayer(sender);
 	                		Faction recipientFaction = SaberFactionsAPI.getFactionByPlayer(recipient);
 	                		if (senderFaction != null && senderFaction.equals(recipientFaction)) {
@@ -372,15 +395,17 @@ public class ChatManager implements Listener, CommandExecutor, TabCompleter {
     }
 
     private String getChatTag(String chatType) {
-        return Synergy.getConfig().getString("chat-manager.chat-tag." + chatType, chatType);
+    		return Synergy.getConfig().getString("chat-manager.chat-tag." + chatType, chatType);
 	}
 
 	public void playMsgSound(Player player) {
-        player.playSound(player.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1.0F, 1.0F);
+    	if (Synergy.getConfig().getBoolean("chat-manager.play-sound-on-chat")) {
+    		player.playSound(player.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1.0F, 1.0F);
+    	}
     }
 
     private String getChatColor(String chatType) {
-        return Synergy.getConfig().getString("chat-manager.colors." + chatType);
+        return Synergy.getConfig().getString("chat-manager.colors." + chatType, "<#FFFFFF>");
     }
 
     private int getLocalChatRadius() {

@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import me.synergy.anotations.SynergyHandler;
+import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import net.dv8tion.jda.api.entities.Guild;
@@ -15,7 +16,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public class RolesDiscordListener extends ListenerAdapter {
+public class RolesDiscordListener extends ListenerAdapter implements SynergyListener {
 
 	public RolesDiscordListener() {
         try {

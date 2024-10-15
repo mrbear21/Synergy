@@ -9,12 +9,13 @@ import com.vexsoftware.votifier.model.Vote;
 import com.vexsoftware.votifier.model.VotifierEvent;
 
 import me.synergy.anotations.SynergyHandler;
+import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.objects.BreadMaker;
 import me.synergy.utils.Translation;
 
-public class VoteListener implements Listener {
+public class VoteListener implements Listener, SynergyListener {
 
     public VoteListener() {
 
@@ -44,16 +45,31 @@ public class VoteListener implements Listener {
         String username = event.getOption("username").getAsString();
         BreadMaker bread = Synergy.getBread(Synergy.getSpigot().getUniqueIdFromName(username));
 
+        for (String command : Synergy.getConfig().getStringList("votifier.rewards")) {
+        	Synergy.dispatchCommand(command.replace("%PLAYER%", bread.getName()));
+        }
+        
+        if (bread == null) {
+        	return;
+        }
+        
+        bread.setData("last-voted", String.valueOf(System.currentTimeMillis()));
+        
         if (bread.isOnline()) {
         	bread.sendMessage(Translation.processLangTags("<lang>synergy-voted-successfully</lang>", bread.getLanguage()).replace("%SERVICE%", service));
         }
 
-    	Synergy.createSynergyEvent("broadcast").setOption("message", "<lang>synergy-player-voted<arg>"+bread.getName()+"</arg></lang>").send();
-    	Synergy.createSynergyEvent("discord-broadcast").setOption("message", "<lang>synergy-player-voted<arg>"+bread.getName()+"</arg></lang>").send();
-
-        for (String command : Synergy.getConfig().getStringList("votifier.rewards")) {
-        	Synergy.dispatchCommand(command.replace("%PLAYER%", bread.getName()));
-        }
+    	Synergy.broadcastMessage("<lang>synergy-player-voted<arg>"+bread.getName()+"</arg></lang>", bread);
+    	
+    	Synergy.createSynergyEvent("discord-embed").setPlayerUniqueId(bread.getUniqueId())
+    	.setOption("chat", "global")
+    	.setOption("color", "#55efc4")
+    	.setOption("author", Synergy.translate("<lang>synergy-player-voted<arg>"+username+"</arg></lang>", Translation.getDefaultLanguage())
+            	.setPlaceholders(bread)
+                .setEndings(bread.getPronoun())
+                .getStripped())
+    	.send();
+    	
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

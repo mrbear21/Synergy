@@ -7,11 +7,12 @@ import org.bukkit.event.Listener;
 import com.earth2me.essentials.Essentials;
 import com.earth2me.essentials.User;
 
+import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Synergy;
 import net.ess3.api.events.JailStatusChangeEvent;
 import net.ess3.api.events.MuteStatusChangeEvent;
 
-public class EssentialsAPI implements Listener {
+public class EssentialsAPI implements Listener, SynergyListener {
 
     public void initialize() {
 		if (Synergy.isDependencyAvailable("Essentials")) {

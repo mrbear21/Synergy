@@ -29,6 +29,13 @@ public class Config {
 
             loadConfig();
 
+            addDefault("storage.type", "sqlite");
+            addDefault("storage.host", "plugins/Synergy/data.db");
+            addDefault("storage.user", "user");
+            addDefault("storage.port", "3306");
+            addDefault("storage.password", "password");
+            addDefault("storage.database", "database");
+            
             addDefault("localizations.enabled", true);
             addDefault("localizations.default-language", "en");
 
@@ -40,14 +47,13 @@ public class Config {
 
             addDefault("discord.enabled", false);
             addDefault("discord.bot-token", "token");
+            addDefault("discord.player-join-leave-messages", true);
             addDefault("discord.invite-link", "https://discord.gg/example");
             addDefault("discord.activities", new String[] {"Activity Example", "Another Activity Example"});
-            addDefault("discord.avatar-link", "https://minotar.net/helm/");
+            addDefault("discord.avatar-link", "http://example.com:8153/head/%UUID%");
             addDefault("discord.channels.global", "00000000000000000");
             addDefault("discord.channels.admin", "00000000000000000");
-            addDefault("discord.channels.console", "00000000000000000");
             addDefault("discord.channels.log", "00000000000000000");
-            addDefault("discord.channels.broadcast", "00000000000000000");
             addDefault("discord.channels.merge-similar-embeds", false);
             addDefault("discord.synchronization.sync-roles-from-discord-to-mc", false);
             addDefault("discord.synchronization.sync-roles-form-mc-to-discord", false);
@@ -70,7 +76,7 @@ public class Config {
             addDefault("web-server.enabled", false);
             addDefault("web-server.domain", "example.com");
             addDefault("web-server.custom-texturepack", false);
-            addDefault("web-server.custom-texturepack-file", "example.zip");
+            addDefault("web-server.custom-texturepack-url", "http://example.com:8153/example.zip");
             addDefault("web-server.port", 8153);
 
             addDefault("votifier.enabled", false);
@@ -90,6 +96,8 @@ public class Config {
                 addDefault("localizations.color-themes.default.secondary", "<#3498db>");
                 addDefault("localizations.color-themes.default.success", "<#2ecc71>");
                 addDefault("localizations.color-themes.default.danger", "<#e74c3c>");
+                
+                addDefault("localizations.pronouns", true);
             	
                 addDefault("synergy-plugin-messaging.enabled", false);
                 addDefault("synergy-plugin-messaging.servername", "SomeFabulousServer");
@@ -105,6 +113,7 @@ public class Config {
                 addDefault("chat-manager.integrations.plotsquared-plot-chat", false);
                 addDefault("chat-manager.integrations.factions-chat", false);
                 addDefault("chat-manager.cross-server-global-chat", true);
+                addDefault("chat-manager.play-sound-on-chat", false);
                 
                 addDefault("chat-manager.colors.global", "&e");
                 addDefault("chat-manager.colors.local", "&f");

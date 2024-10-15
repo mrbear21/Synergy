@@ -27,6 +27,9 @@ public class VoteDiscordCommand extends ListenerAdapter {
 	
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+    	if (!event.getName().equalsIgnoreCase("vote")) {
+    		return;
+    	}
     	String language = Discord.getUniqueIdByDiscordId(event.getUser().getId()) != null ? Synergy.getBread(Discord.getUniqueIdByDiscordId(event.getUser().getId())).getLanguage() : Translation.getDefaultLanguage();
     	EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle(Synergy.translate("<lang>synergy-vote-monitorings</lang>", language).getStripped());

@@ -5,10 +5,10 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 
 import me.synergy.anotations.SynergyHandler;
+import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.objects.BreadMaker;
-import me.synergy.objects.DataObject;
 import me.synergy.utils.Translation;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -28,7 +28,7 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 
-public class LinkDiscordCommand extends ListenerAdapter {
+public class LinkDiscordCommand extends ListenerAdapter implements SynergyListener {
 
 	public LinkDiscordCommand() {
         try {
@@ -136,8 +136,8 @@ public class LinkDiscordCommand extends ListenerAdapter {
                 return;
             }
 
-            Synergy.getDataManager().set("players."+uuid+".confirm-discord", event.getUser().getId());
-
+            bread.setData("confirm-discord", event.getUser().getId());
+            
             event.replyEmbeds(Discord.info(Synergy.translate("<lang>synergy-link-minecraft-confirmation</lang>", Translation.getDefaultLanguage()).getStripped())).setEphemeral(true).queue();
             bread.sendMessage(Translation.translate("<lang>synergy-link-discord-confirmation</lang>", bread.getLanguage()).replace("%ACCOUNT%", event.getUser().getEffectiveName()));
         }
@@ -145,20 +145,17 @@ public class LinkDiscordCommand extends ListenerAdapter {
     
     public void removeDiscordLink(UUID uuid) {
     	BreadMaker bread = new BreadMaker(uuid);
-        for (String link : Synergy.getDataManager().getConfigurationSection("discord.links").keySet()) {
-        	Synergy.debug(link + " = " + uuid.toString());
-            if (new DataObject(Synergy.getDataManager().get("discord.links." + link)).getAsUUID().equals(uuid)) {
-                Synergy.getDataManager().set("discord.links." + link, null);
-                bread.sendMessage("<lang>synergy-link-minecraft-unlinked</lang>");
-                return;
-            }
-        }
+    	if (bread.getData("discord") != null) {
+    		bread.setData("discord", null);
+            bread.sendMessage("<lang>synergy-link-minecraft-unlinked</lang>");
+            return;
+    	}
         bread.sendMessage("<lang>synergy-you-have-no-linked-accounts</lang>");
     }
 
     public void createDiscordLink(UUID uuid, String discordId) {
     	BreadMaker bread = new BreadMaker(uuid);
-    	Synergy.getDataManager().set("discord.links." + discordId, uuid.toString());
+    	bread.setData("discord", discordId);
 		String account = Synergy.getDiscord().getUserById(Discord.getDiscordIdByUniqueId(uuid)).getEffectiveName();
     	bread.sendMessage(Translation.translate("<lang>synergy-discord-link-success</lang>", bread.getLanguage()).replace("%ACCOUNT%", account));
     	RolesDiscordListener.addVerifiedRole(discordId);

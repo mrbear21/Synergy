@@ -12,13 +12,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import me.synergy.anotations.SynergyHandler;
+import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Synergy;
 import me.synergy.discord.Discord;
 import me.synergy.events.SynergyEvent;
 import me.synergy.objects.BreadMaker;
 import me.synergy.utils.Translation;
 
-public class DiscordCommand implements CommandExecutor, TabCompleter, Listener {
+public class DiscordCommand implements CommandExecutor, TabCompleter, Listener, SynergyListener {
 
 	public void initialize() {
         if (!Synergy.getConfig().getBoolean("discord.enabled")) {

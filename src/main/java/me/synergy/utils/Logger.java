@@ -68,6 +68,6 @@ public class Logger {
   }
 
   public void discord(String string) {
-	    Synergy.createSynergyEvent("discord-log").setOption("message", string).send();
+	    Synergy.createSynergyEvent("discord-message").setOption("message", string).setOption("chat", "log").send();
   }
 }

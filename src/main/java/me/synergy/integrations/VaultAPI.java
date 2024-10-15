@@ -7,11 +7,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
 import me.synergy.anotations.SynergyHandler;
+import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import net.milkbowl.vault.permission.Permission;
 
-public class VaultAPI {
+public class VaultAPI implements SynergyListener {
 
 	public void initialize() {
         try {

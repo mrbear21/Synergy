@@ -1,18 +1,16 @@
 package me.synergy.brains;
 
-import java.io.File;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
@@ -26,27 +24,28 @@ import com.google.gson.JsonObject;
 
 import me.synergy.commands.DiscordCommand;
 import me.synergy.commands.LanguageCommand;
+import me.synergy.commands.PronounCommand;
 import me.synergy.commands.SynergyCommand;
 import me.synergy.commands.ThemeCommand;
 import me.synergy.commands.VoteCommand;
 import me.synergy.discord.Discord;
 import me.synergy.events.SynergyEvent;
 import me.synergy.handlers.LocalesListener;
-import me.synergy.handlers.PlaceholdersBreadDataListener;
-import me.synergy.handlers.PlaceholdersLocalesListener;
-import me.synergy.handlers.PlayerJoinListener;
-import me.synergy.handlers.ResourcePackListener;
+import me.synergy.handlers.ResourcePackHandler;
 import me.synergy.handlers.ServerListPingListener;
+import me.synergy.handlers.SpigotPlayerListener;
 import me.synergy.handlers.VoteListener;
 import me.synergy.integrations.EssentialsAPI;
+import me.synergy.integrations.PlaceholdersAPI;
+import me.synergy.integrations.PlanAPI;
 import me.synergy.integrations.VaultAPI;
 import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
 import me.synergy.modules.LocalesManager;
-import me.synergy.modules.WebServer;
 import me.synergy.objects.BreadMaker;
 import me.synergy.utils.ToastMessage;
+import me.synergy.web.WebServer;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
@@ -67,34 +66,48 @@ public class Spigot extends JavaPlugin implements PluginMessageListener, Listene
         getServer().getMessenger().registerOutgoingPluginChannel(this, "net:synergy");
         getServer().getMessenger().registerIncomingPluginChannel(this, "net:synergy", this);
 
-        PROTOCOLMANAGER = ProtocolLibrary.getProtocolManager();
-
         new Config().initialize();
         new DataManager().initialize();
         new LocalesManager().initialize();
         new SynergyCommand().initialize();
         new VoteCommand().initialize();
-        new LocalesListener().initialize();
+        new PronounCommand().initialize();
+        new LanguageCommand().initialize();
+        new DiscordCommand().initialize();
         new ChatManager().initialize();
         new Discord().initialize();
-        new DiscordCommand().initialize();
-        new VoteListener().initialize();
         new ServerListPingListener().initialize();
-        new PlayerJoinListener().initialize();
-        new LanguageCommand().initialize();
+        new SpigotPlayerListener().initialize();
         new WebServer().initialize();
-        new ResourcePackListener().initialize();
+        new ResourcePackHandler().initialize();
         new ThemeCommand().initialize();
-        new EssentialsAPI().initialize();
-        new VaultAPI().initialize();
-        
-        setupEconomy();
-        setupPermissions();
-        //setupChat();
 
+		if (Synergy.isDependencyAvailable("ProtocolLib")) {
+			PROTOCOLMANAGER = ProtocolLibrary.getProtocolManager();
+	        new LocalesListener().initialize();
+		}
+        
+		if (Synergy.isDependencyAvailable("Votifier")) {
+			new VoteListener().initialize();
+		}
+        
+		if (Synergy.isDependencyAvailable("Essentials")) {
+			new EssentialsAPI().initialize();
+		}
+        
+		if (Synergy.isDependencyAvailable("Vault")) {
+			new VaultAPI().initialize();
+	        setupEconomy();
+	        setupPermissions();
+	        //setupChat();
+		}
+
+		if (Synergy.isDependencyAvailable("Plan")) {
+			new PlanAPI().initialize();
+		}
+        
 		if (Synergy.isDependencyAvailable("PlaceholderAPI")) {
-			new PlaceholdersLocalesListener().register();
-			new PlaceholdersBreadDataListener().register();
+	        new PlaceholdersAPI().initialize();
 		}
 		
         getServer().getPluginManager().registerEvents(this, this);
@@ -116,14 +129,13 @@ public class Spigot extends JavaPlugin implements PluginMessageListener, Listene
 	    if (stringUUID != null && !stringUUID.isEmpty()) {
 	        try {
 	            uuid = UUID.fromString(stringUUID);
-	        } catch (IllegalArgumentException e) {
-	            //getLogger().warning("Received invalid UUID string: " + stringUUID);
-	        }
+	        } catch (IllegalArgumentException e) { }
 	    }
 	    
 	    String data = in.readUTF();
         if (token.equals(Synergy.getSynergyToken())) {
         	new SynergyEvent(identifier, uuid, data).fireEvent();
+        	Bukkit.getServer().getPluginManager().callEvent(new me.synergy.bukkit.events.SynergyEvent(identifier, uuid, data));
         }
     }
 
@@ -164,7 +176,8 @@ public class Spigot extends JavaPlugin implements PluginMessageListener, Listene
         return false;
     }
 
-    private boolean setupChat() {
+    @SuppressWarnings("unused")
+	private boolean setupChat() {
         if (getServer().getPluginManager().isPluginEnabled("Vault")) {
             RegisteredServiceProvider <Chat> rsp = getServer().getServicesManager().getRegistration(Chat.class);
             setChat(rsp.getProvider());
@@ -287,4 +300,14 @@ public class Spigot extends JavaPlugin implements PluginMessageListener, Listene
     		//Synergy.getLogger().error("Error while executing interactive: " + c.getLocalizedMessage());
     	}
     }
+	
+    public void startSpigotMonitor() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+            	new WebServer().monitorServer();
+            }
+        }.runTaskTimerAsynchronously(this, 0L, WebServer.MONITOR_INTERVAL_SECONDS * 20L);
+    }
+
 }

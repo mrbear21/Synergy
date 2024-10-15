@@ -11,17 +11,21 @@ import java.util.concurrent.TimeUnit;
 
 import me.synergy.brains.Synergy;
 import me.synergy.integrations.PlaceholdersAPI;
-import me.synergy.objects.DataObject;
+import me.synergy.objects.BreadMaker;
 import me.synergy.utils.Translation;
 import me.synergy.utils.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -50,6 +54,7 @@ public class Discord {
             bot.addEventListeners(new VoteDiscordCommand());
             bot.addEventListeners(new RolesDiscordListener());
             bot.addEventListeners(new ChatDiscordListener());
+            bot.addEventListeners(new EmbedDiscordCommand());
       
             JDA = bot.build();
             
@@ -80,7 +85,53 @@ public class Discord {
                 Commands.slash("link", Synergy.translate("<lang>synergy-link-minecraft-title</lang>", Translation.getDefaultLanguage()).getStripped())
                     .setGuildOnly(true)
             });
-        
+        commands.addCommands(new CommandData[] {
+                Commands.slash("embed", Synergy.translate("<lang>synergy-discord-embed-new</lang>", Translation.getDefaultLanguage()).getStripped())
+                    .addOptions(new OptionData[] {
+                        (new OptionData(OptionType.CHANNEL, "channel", "Channel ID")).setRequired(true)
+                    })
+                    .addOptions(new OptionData[] {
+                        (new OptionData(OptionType.STRING, "message", "Message ID (edit a message that has already been sent)"))
+                    })
+                    .setGuildOnly(true)
+                    .setDefaultPermissions(DefaultMemberPermissions.enabledFor(new Permission[] {
+                        Permission.MESSAGE_MANAGE
+                    }))
+            });
+        commands.addCommands(new CommandData[] {
+                Commands.slash("post", Synergy.translate("<lang>synergy-create-post</lang>", Translation.getDefaultLanguage()).getStripped())
+                    .addOptions(new OptionData[] {
+                        (new OptionData(OptionType.STRING, "title", "Title")).setRequired(true)
+                    })
+                    .addOptions(new OptionData[] {
+                        (new OptionData(OptionType.STRING, "text", "Text")).setRequired(true)
+                    })
+                    .addOptions(new OptionData[] {
+                        new OptionData(OptionType.STRING, "author", "Author")
+                    })
+                    .addOptions(new OptionData[] {
+                        new OptionData(OptionType.CHANNEL, "channel", "Channel")
+                    })
+                    .addOptions(new OptionData[] {
+                        new OptionData(OptionType.STRING, "image", "Image url")
+                    })
+                    .addOptions(new OptionData[] {
+                        new OptionData(OptionType.STRING, "color", "#Color")
+                    })
+                    .addOptions(new OptionData[] {
+                        new OptionData(OptionType.STRING, "thumbnail", "Image url")
+                    })
+                    .addOptions(new OptionData[] {
+                        new OptionData(OptionType.MENTIONABLE, "mention", "Mention")
+                    })
+                    .addOptions(new OptionData[] {
+                        new OptionData(OptionType.STRING, "edit", "Message ID (edit a message that has already been sent)")
+                    })
+                    .setGuildOnly(true)
+                    .setDefaultPermissions(DefaultMemberPermissions.enabledFor(new Permission[] {
+                        Permission.MESSAGE_MANAGE
+                    }))
+            });
         commands.queue();
     }
     
@@ -100,16 +151,12 @@ public class Discord {
     
     public void shutdown() {
         if (getJda() != null) {
-            System.out.println("Registered listeners before shutdown: " + getJda().getRegisteredListeners().size());
             for (Object listener : getJda().getRegisteredListeners()) {
                 getJda().removeEventListener(listener);
             }
-            System.out.println("Registered listeners after removal: " + getJda().getRegisteredListeners().size());
-            
             getJda().shutdownNow();
         }
     }
-
     
     private void activityStatus() {
         if (Synergy.getConfig().getStringList("discord.activities").size() > 1) {
@@ -137,22 +184,13 @@ public class Discord {
     }
 
     public static String getDiscordIdByUniqueId(UUID uuid) {
-    	Set<String> links = Synergy.getDataManager().getConfigurationSection("discord.links").keySet();
-    	if (links != null) {
-	        for (String link: links) {
-	            if (new DataObject(Synergy.getDataManager().get("discord.links." + link)).getAsString().equals(uuid.toString())) {
-	                return link;
-	            }
-	        }
-    	}
-        return null;
+    	BreadMaker bread = Synergy.getBread(uuid);
+    	String discord = bread.getData("discord").getAsString();
+        return discord;
     }
     
     public static UUID getUniqueIdByDiscordId(String id) {
-    	if (Synergy.getDataManager().isSet("discord.links." + id)) {
-    		return new DataObject(Synergy.getDataManager().get("discord.links." + id)).getAsUUID();
-    	}
-        return null;
+    	return Synergy.findUserUUID("discord", id);
     }
     
     public static String getBotName() {

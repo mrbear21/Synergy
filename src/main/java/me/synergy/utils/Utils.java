@@ -307,7 +307,10 @@ public class Utils {
 
     public static String extractText(String json) {
         try {
-            // Ensure the JSON string is correctly formatted
+            json = json.replaceAll("(?<=\\S)[\\n\\r]+", "\\\\n")
+                       .replaceAll("(?<=\\S)[\\r]+", "\\\\r")
+                       .replaceAll("[\\t]+", "\\\\t");
+
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(json);
             StringBuilder combinedText = new StringBuilder();
@@ -321,14 +324,12 @@ public class Utils {
 
     private static void extractText(JsonNode node, StringBuilder combinedText) {
         if (node.isObject()) {
-            // Process the "text" field
             if (node.has("text")) {
                 JsonNode textNode = node.get("text");
                 if (textNode.isTextual()) {
                     combinedText.append(textNode.asText());
                 }
             }
-            // Process the "extra" field if it exists
             if (node.has("extra")) {
                 JsonNode extraNode = node.get("extra");
                 if (extraNode.isArray()) {

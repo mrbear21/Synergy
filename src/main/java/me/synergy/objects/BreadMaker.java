@@ -1,10 +1,12 @@
 package me.synergy.objects;
 
+import java.sql.SQLException;
 import java.util.UUID;
 
 import me.synergy.brains.Synergy;
 import me.synergy.integrations.AuthmeAPI;
 import me.synergy.integrations.EssentialsAPI;
+import me.synergy.utils.Endings.Pronoun;
 
 public class BreadMaker {
 
@@ -37,21 +39,23 @@ public class BreadMaker {
 	}
 
 	public String getName() {
-		if (Synergy.isRunningSpigot()) {
-			return Synergy.getSpigot().getPlayerName(getUniqueId());
-		}
-		if (Synergy.isRunningBungee()) {
-			return Synergy.getBungee().getPlayerName(getUniqueId());
-		}
-		return null;
+		return getData("name").isSet() ? getData("name").getAsString() : null;
 	}
 
 	public DataObject getData(String option) {
-		return new DataObject(Synergy.getDataManager().get("players."+getUniqueId()+"."+option));
+		try {
+			return new DataObject(Synergy.getDataManager().getData(getUniqueId(), option));
+		} catch (SQLException e) {
+			return new DataObject(null);
+		}
 	}
 
 	public void setData(String option, String value) {
-		 Synergy.getDataManager().set("players."+getUniqueId()+"."+option, value);
+		 try {
+			Synergy.getDataManager().setData(getUniqueId(), option, value);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public boolean isOnline() {
@@ -81,4 +85,16 @@ public class BreadMaker {
 		}
 		return "default";
 	}
+
+	public Pronoun getPronoun() {
+		if (getData("pronoun").isSet()) {
+			return getData("pronoun").getAsPronoun();
+		}
+		return Pronoun.HE;
+	}
+
+	public void clearCache() {
+		Synergy.getDataManager().clearCache(getUniqueId());
+	}
+	
 }

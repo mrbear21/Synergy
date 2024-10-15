@@ -1,9 +1,9 @@
 name: Synergy
 main: me.synergy.brains.Spigot
-version: 0.0.3
+version: 0.0.4
 api-version: 1.16
 author: mrbear22
-softdepend: [Authme, PlaceholderAPI, ProtocolLib, Votifier, Essentials]
+softdepend: [Authme, PlaceholderAPI, ProtocolLib, Votifier, Essentials, Vault, Plan, Factions]
 description: Basic tools and server messaging plugin
 commands:
     synergy:
@@ -34,3 +34,7 @@ commands:
         description: Language
         usage: <lang>synergy-command-usage</lang> /<command>
         aliases: [lang]
+    pronoun:
+        description: Pronoun
+        usage: <lang>synergy-command-usage</lang> /<command>
+        aliases: [gender, iamgirl, iamboy]

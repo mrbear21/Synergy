@@ -1,6 +1,7 @@
 package me.synergy.brains;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.UUID;
 
 import me.synergy.discord.Discord;
@@ -126,5 +127,18 @@ public class Synergy {
 		if (isRunningSpigot()) {
 			getSpigot().dispatchCommand(command);
 		}
+	}
+	
+	public static void broadcastMessage(String string, BreadMaker bread) {
+    	createSynergyEvent("broadcast").setPlayerUniqueId(bread.getUniqueId()).setOption("message", string).send();
+	}
+
+	public static UUID findUserUUID(String option, String value) {
+		try {
+			return getDataManager().findUserUUID(option, value);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

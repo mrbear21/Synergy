@@ -7,10 +7,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
+import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Synergy;
-import me.synergy.modules.WebServer;
 
-public class ResourcePackListener implements Listener {
+public class ResourcePackHandler implements Listener, SynergyListener {
 
     public void initialize() {
         Bukkit.getPluginManager().registerEvents(this, Synergy.getSpigot());
@@ -34,8 +34,7 @@ public class ResourcePackListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         if (Synergy.getConfig().getBoolean("web-server.custom-texturepack")) {
-        	String address = WebServer.getFullAddress()+"/resourcepack/"+Synergy.getConfig().getString("web-server.custom-texturepack-file");
-        	event.getPlayer().setResourcePack(address);
+        	event.getPlayer().setResourcePack(Synergy.getConfig().getString("web-server.custom-texturepack-url"));
         }
     }
 }

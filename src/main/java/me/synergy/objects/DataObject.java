@@ -2,6 +2,8 @@ package me.synergy.objects;
 
 import java.util.UUID;
 
+import me.synergy.utils.Endings.Pronoun;
+
 public class DataObject {
 
 	private Object data;
@@ -26,7 +28,12 @@ public class DataObject {
 		return data != null ? UUID.fromString(getAsString()) : null;
 	}
 
+	public Pronoun getAsPronoun() {
+		return data != null ? Pronoun.valueOf(data.toString().toUpperCase()) : null;
+	}
+	
 	public boolean isSet() {
 		return data != null;
 	}
+
 }

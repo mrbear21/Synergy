@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import me.synergy.anotations.SynergyHandler;
+import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
 import me.synergy.modules.OpenAi;
@@ -22,7 +23,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public class ChatDiscordListener extends ListenerAdapter {
+public class ChatDiscordListener extends ListenerAdapter implements SynergyListener {
 
 	public ChatDiscordListener() {
         try {
@@ -39,62 +40,87 @@ public class ChatDiscordListener extends ListenerAdapter {
 	    }
 	}
 	
+	public static MessageEmbed createEmbed(SynergyEvent event) {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        if (event.getOption("title").isSet()) {
+            embedBuilder.setTitle(event.getOption("title").getAsString());
+        }
+        if (event.getOption("color").isSet()) {
+            String colorHex = event.getOption("color").getAsString();
+            embedBuilder.setColor(Color.decode(colorHex));
+        }
+        if (event.getOption("author").isSet()) {
+	        String avatar = Synergy.getConfig().getString("discord.avatar-link");
+        	if (event.getPlayerUniqueId() != null) {
+        		avatar = avatar.replace("%UUID%", event.getPlayerUniqueId().toString());
+	        }
+	        if (event.getOption("player").isSet()) {
+	        	avatar = avatar.replace("%PLAYER%", event.getOption("player").getAsString());
+	        }
+	        if (event.getOption("uuid").isSet()) { 
+	        	avatar = avatar.replace("%UUID%", event.getOption("uuid").getAsString());
+	        }
+	        if (event.getOption("avatar").isSet()) { 
+	        	avatar = event.getOption("avatar").getAsString();
+	        	avatar = avatar.equals("%self%") ? Synergy.getDiscord().getSelfUser().getAvatarUrl() : avatar;
+	        }
+            embedBuilder.setAuthor(event.getOption("author").getAsString(), null, avatar);
+        }
+        if (event.getOption("description").isSet()) {
+            embedBuilder.setDescription(event.getOption("description").getAsString());
+        }
+        if (event.getOption("footer").isSet()) {
+            embedBuilder.setFooter(event.getOption("footer").getAsString());
+        }
+        if (event.getOption("image").isSet()) {
+            embedBuilder.setImage(event.getOption("image").getAsString());
+        }
+        if (event.getOption("thumbnail").isSet()) {
+            embedBuilder.setThumbnail(event.getOption("thumbnail").getAsString());
+        }
+        return embedBuilder.build();
+    }
+	
     @SynergyHandler
     public void onSynergyEvent(SynergyEvent event) {
     	
-    	if (event.getIdentifier().equals("discord-log")) {
-	        String logchat = Synergy.getConfig().getString("discord.channels.log");
-            if (logchat.length() == 19) {
-            	Synergy.getDiscord().getTextChannelById(logchat).sendMessage(event.getOption("message").getAsString()).queue();
+    	if (event.getIdentifier().equals("discord-message")) {
+        	String channel = event.getOption("chat").isSet() ?  Synergy.getConfig().getString("discord.channels."+event.getOption("chat").getAsString()) : Synergy.getConfig().getString("discord.channels.global");
+        	
+            if (channel == null || channel.isEmpty() || channel.length() != 19) {
+            	Synergy.getLogger().error("Channel ID cannot be null.");
+            	return;
             }
+            
+            Synergy.getDiscord().getTextChannelById(channel).sendMessage(event.getOption("message").getAsString()).queue();
+            
     	}
     	
-        if (event.getIdentifier().equals("discord-broadcast")) {
-        	String announcementschat = Synergy.getConfig().getString("discord.channels.broadcast");
-        	if (announcementschat.length() == 19) {
-        		MessageEmbed announcement = Discord.info(Synergy.translate(event.getOption("message").getAsString(), Translation.getDefaultLanguage()).getStripped());
-        		if (Synergy.getConfig().getBoolean("discord.channels.merge-similar-embeds")) {
-	        		try {
-	        			Message message = Synergy.getDiscord().getTextChannelById(announcementschat).retrieveMessageById(Synergy.getDiscord().getTextChannelById(announcementschat).getLatestMessageId()).complete();
-	        			if (ChronoUnit.MILLIS.between(message.getTimeCreated().toInstant(), Instant.now()) < 5 * 60 * 1000) {
-	        				boolean containsRelevantText = message.getEmbeds().stream().anyMatch(e -> e.getTitle().contains(announcement.getTitle()));
-	        				if (containsRelevantText) {
-	        					List<MessageEmbed> embeds = new ArrayList<>(message.getEmbeds());
-	    		                embeds.add(announcement);
-	    		                message.editMessageEmbeds(embeds).queue();
-	    		                return;
-	        		        }
-	        		    }
-	        		} catch (Exception c) {}
-        		}
-        		Synergy.getDiscord().getTextChannelById(announcementschat).sendMessageEmbeds(announcement).queue();
-        	 }
-        }
-        
-        if (event.getIdentifier().equals("discord")) {
+        if (event.getIdentifier().equals("discord-embed")) {
+        	String channel = event.getOption("chat").isSet() ? Synergy.getConfig().getString("discord.channels."+event.getOption("chat").getAsString()) : Synergy.getConfig().getString("discord.channels.global");
         	
-	        String displayname = event.getOption("player").getAsString();
-	        String message = event.getOption("message").getAsString();
-	        String chat = event.getOption("chat").getAsString();
-
-	        String globalchat = Synergy.getConfig().getString("discord.channels.global");
-	        @SuppressWarnings("unused")
-			String adminchat = Synergy.getConfig().getString("discord.channels.admin");
-
-            String[] messageParts = Utils.splitMessage(message);
-            for (String part: messageParts) {
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.setAuthor(displayname, null, Discord.getBotName().equals(displayname) ? Synergy.getDiscord().getSelfUser().getAvatarUrl() : (Synergy.getConfig().getString("discord.avatar-link") + displayname));
-                builder.setTitle(part, null);
-                if (globalchat.length() == 19 && chat.equals("global")) {
-                    builder.setColor(Color.decode("#f1c40f"));
-                    Synergy.getDiscord().getTextChannelById(globalchat).sendMessageEmbeds(builder.build()).queue();
-                }/*
-                if (adminchat.length() == 19 && chat.equals("admin") && Bukkit.getPlayer(event.getPlayerUniqueId()).hasPermission("synergy.adminchat")) {
-                    builder.setColor(Color.decode("#e74c3c"));
-                    Synergy.getDiscord().getJda().getTextChannelById(adminchat).sendMessageEmbeds(builder.build()).queue();
-                }*/
+            if (channel == null || channel.isEmpty() || channel.length() != 19) {
+            	return;
             }
+  
+            MessageEmbed embed = createEmbed(event);
+            if (Synergy.getConfig().getBoolean("discord.channels.merge-similar-embeds")) {
+                try {
+                    Message message = Synergy.getDiscord().getTextChannelById(channel)
+                            .retrieveMessageById(Synergy.getDiscord().getTextChannelById(channel).getLatestMessageId())
+                            .complete();
+                    if ((ChronoUnit.MILLIS.between(message.getTimeCreated().toInstant(), Instant.now()) < 5 * 60 * 1000)
+                        && message.getEmbeds().stream().anyMatch(e -> e.getTitle().contains(embed.getTitle())
+                        		|| e.getAuthor().equals(embed.getAuthor())
+                        		|| e.getDescription().contains(embed.getDescription()))) {
+                            List<MessageEmbed> embeds = new ArrayList<>(message.getEmbeds());
+                            embeds.add(embed);
+                            message.editMessageEmbeds(embeds).queue();
+                            return;
+                     }
+                } catch (Exception e) {}
+            }
+            Synergy.getDiscord().getTextChannelById(channel).sendMessageEmbeds(embed).queue();
         }
     }
 	

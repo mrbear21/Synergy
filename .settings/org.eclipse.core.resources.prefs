@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//src/main/java/me/synergy/commands/LanguageCommand.java=UTF-8
+encoding//src/main/java/me/synergy/commands/PronounCommand.java=UTF-8
 encoding//src/main/java/me/synergy/commands/SynergyCommand.java=UTF-8
 encoding//src/main/java/me/synergy/commands/ThemeCommand.java=UTF-8
 encoding//src/main/java/me/synergy/commands/VoteCommand.java=UTF-8

@@ -18,6 +18,7 @@
           <include>bungee.yml</include>
           <include>config.yml</include>
           <include>locales.yml</include>
+          <include>steve.png</include>
         </includes>
       </resource>
     </resources>
@@ -499,6 +500,30 @@
         <exclusion>
           <artifactId>snakeyaml</artifactId>
           <groupId>org.yaml</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.github.SaberLLC</groupId>
+      <artifactId>Saber-Factions</artifactId>
+      <version>4.1.4-STABLE</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.skinsrestorer</groupId>
+      <artifactId>skinsrestorer-api</artifactId>
+      <version>15.0.3</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.plan-player-analytics</groupId>
+      <artifactId>Plan</artifactId>
+      <version>5.6.2883</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>dagger</artifactId>
+          <groupId>com.google.dagger</groupId>
         </exclusion>
       </exclusions>
     </dependency>

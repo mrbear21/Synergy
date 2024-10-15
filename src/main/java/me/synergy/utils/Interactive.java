@@ -106,7 +106,7 @@ public class Interactive {
             if (matcher.find()) {
                 JsonObject hoverEvent = new JsonObject();
                 hoverEvent.addProperty("action", "show_text");
-                hoverEvent.addProperty("value", Color.processLegacyColors(matcher.group(1), "default"));
+                hoverEvent.addProperty("value", Color.processLegacyColors(matcher.group(1).replace("%nl%", System.lineSeparator()), "default"));
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
             	interactiveObject.add("hoverEvent", hoverEvent);
             }
@@ -135,7 +135,7 @@ public class Interactive {
                 interactivePart = interactivePart.replaceAll(pattern.pattern(), "");
             }
         	if (!titleEvent.isEmpty()) {
-            	titleEvent.addProperty("duration", 20*10);
+            	titleEvent.addProperty("duration", 20*5);
         		interactiveObject.add("titleEvent", titleEvent);
         	}
         	

@@ -1,18 +1,21 @@
 package me.synergy.brains;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
-import me.synergy.bungee.handlers.PlayerJoinListener;
-import me.synergy.bungee.handlers.SynergyCommand;
+import me.synergy.commands.SynergyProxyCommand;
 import me.synergy.discord.Discord;
 import me.synergy.events.SynergyEvent;
+import me.synergy.handlers.ProxyPlayerListener;
+import me.synergy.integrations.PlanAPI;
 import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
 import me.synergy.modules.LocalesManager;
-import me.synergy.modules.WebServer;
+import me.synergy.web.WebServer;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -32,9 +35,10 @@ public class Bungee extends Plugin implements Listener {
 	    new DataManager().initialize();
         new LocalesManager().initialize();
 	    new Discord().initialize();
-	    new PlayerJoinListener().initialize();
-	    new SynergyCommand().initialize();
+	    new ProxyPlayerListener().initialize();
+	    new SynergyProxyCommand().initialize();
 	    new WebServer().initialize();
+        new PlanAPI().initialize();
 
 	    getProxy().getPluginManager().registerListener(this, this);
 	    
@@ -71,7 +75,6 @@ public class Bungee extends Plugin implements Listener {
 	        try {
 	            uuid = UUID.fromString(stringUUID);
 	        } catch (IllegalArgumentException e) {
-	            //getLogger().warning("Received invalid UUID string: " + stringUUID);
 	        }
 	    }
 	    
@@ -84,5 +87,14 @@ public class Bungee extends Plugin implements Listener {
 	public String getPlayerName(UUID uniqueId) {
 		return getProxy().getPlayer(uniqueId).getDisplayName();
 	}
+	
+    public void startBungeeMonitor() {
+    	ProxyServer.getInstance().getScheduler().schedule(this, new Runnable() {
+           @Override
+           public void run() {
+        	   new WebServer().monitorServer();
+           }
+	   }, 0L, WebServer.MONITOR_INTERVAL_SECONDS, TimeUnit.SECONDS);
+   }
 	
 }

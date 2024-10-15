@@ -16,10 +16,10 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 
 import me.synergy.anotations.SynergyHandler;
-import me.synergy.bungee.handlers.PlayerJoinListener;
-import me.synergy.bungee.handlers.SynergyCommand;
+import me.synergy.commands.SynergyProxyCommand;
 import me.synergy.discord.Discord;
 import me.synergy.events.SynergyEvent;
+import me.synergy.handlers.ProxyPlayerListener;
 import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
 import me.synergy.modules.LocalesManager;
@@ -54,8 +54,8 @@ public class Velocity {
 	    new DataManager().initialize();
         new LocalesManager().initialize();
 	    new Discord().initialize();
-	    new PlayerJoinListener().initialize();
-	    new SynergyCommand().initialize();
+	    new ProxyPlayerListener().initialize();
+	    new SynergyProxyCommand().initialize();
     }
 
     @Subscribe
