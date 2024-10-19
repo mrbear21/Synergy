@@ -7,7 +7,6 @@ import java.util.UUID;
 import me.synergy.discord.Discord;
 import me.synergy.events.SynergyEvent;
 import me.synergy.events.SynergyEventManager;
-import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
 import me.synergy.modules.LocalesManager;
@@ -67,10 +66,6 @@ public class Synergy {
 
     public static Cooldown getCooldown(UUID uuid) {
         return new Cooldown(uuid);
-    }
-    
-    public static ChatManager getChatManager() {
-        return new ChatManager();
     }
 
     public static LocalesManager getLocalesManager() {

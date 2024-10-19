@@ -145,7 +145,7 @@ public class LinkDiscordCommand extends ListenerAdapter implements SynergyListen
     
     public void removeDiscordLink(UUID uuid) {
     	BreadMaker bread = new BreadMaker(uuid);
-    	if (bread.getData("discord") != null) {
+    	if (bread.getData("discord").isSet()) {
     		bread.setData("discord", null);
             bread.sendMessage("<lang>synergy-link-minecraft-unlinked</lang>");
             return;

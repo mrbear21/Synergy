@@ -14,6 +14,7 @@ import me.synergy.brains.Synergy;
 import me.synergy.discord.Discord;
 import me.synergy.discord.RolesDiscordListener;
 import me.synergy.objects.BreadMaker;
+import me.synergy.objects.Chat;
 import me.synergy.utils.Translation;
 
 public class SpigotPlayerListener implements Listener {
@@ -27,14 +28,15 @@ public class SpigotPlayerListener implements Listener {
     	Player player = event.getPlayer();
         UUID uuid = event.getPlayer().getUniqueId();
         BreadMaker bread = Synergy.getBread(uuid);
+        String channel = new Chat("global").getDiscord().getChannel();
         
     	event.setQuitMessage("<lang>synergy-player-quit-message<arg>"+event.getPlayer().getName()+"</arg></lang>");
     	
-    	Synergy.getDataManager().clearCache(event.getPlayer().getUniqueId());
+    	bread.clearCache();
     	
     	Synergy.getLogger().discord("```Player "+event.getPlayer().getName()+" has left ```");
     	
-    	if (Synergy.getConfig().getBoolean("discord.enabled") && Synergy.getConfig().getBoolean("discord.player-join-leave-messages")) {
+    	if (Synergy.getConfig().getBoolean("discord.enabled") && Synergy.getConfig().getBoolean("discord.player-join-leave-messages") && channel.length( )== 19) {
     		Synergy.createSynergyEvent("discord-embed")
 				   .setPlayerUniqueId(player.getUniqueId())
 				   .setOption("chat", "global")
@@ -50,16 +52,18 @@ public class SpigotPlayerListener implements Listener {
     	Player player = event.getPlayer();
         UUID uuid = event.getPlayer().getUniqueId();
         BreadMaker bread = Synergy.getBread(uuid);
+        String channel = new Chat("global").getDiscord().getChannel();
+    	bread.clearCache();
         bread.setData("name", event.getPlayer().getName());
     	event.setJoinMessage("<lang>synergy-player-join-message<arg>"+event.getPlayer().getName()+"</arg></lang>");
     	
     	Synergy.getLogger().discord("```Player "+event.getPlayer().getName()+" has joined with IP "+event.getPlayer().getAddress()+" ```");
     	
-    	if (Synergy.getConfig().getBoolean("discord.enabled") && Synergy.getConfig().getBoolean("discord.player-join-leave-messages")) {
+    	if (Synergy.getConfig().getBoolean("discord.enabled") && Synergy.getConfig().getBoolean("discord.player-join-leave-messages") && channel.length( )== 19) {
         	Synergy.createSynergyEvent("discord-embed").setPlayerUniqueId(player.getUniqueId())
-        	.setOption("chat", "global")
-        	.setOption("color", "#81ecec")
-        	.setOption("author", Synergy.translate("<lang>synergy-player-join-message<arg>"+player.getName()+"</arg></lang>", Translation.getDefaultLanguage())
+		           .setOption("channel", channel)
+		           .setOption("color", "#81ecec")
+		           .setOption("author", Synergy.translate("<lang>synergy-player-join-message<arg>"+player.getName()+"</arg></lang>", Translation.getDefaultLanguage())
 					        			.setEndings(bread.getPronoun())
 					        			.getStripped()).fireEvent();
     	}

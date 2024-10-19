@@ -5,17 +5,13 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import me.synergy.anotations.SynergyHandler;
 import me.synergy.anotations.SynergyListener;
 import me.synergy.brains.Synergy;
 import me.synergy.events.SynergyEvent;
-import me.synergy.modules.OpenAi;
 import me.synergy.utils.Translation;
-import me.synergy.utils.Utils;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
@@ -85,19 +81,17 @@ public class ChatDiscordListener extends ListenerAdapter implements SynergyListe
     public void onSynergyEvent(SynergyEvent event) {
     	
     	if (event.getIdentifier().equals("discord-message")) {
-        	String channel = event.getOption("chat").isSet() ?  Synergy.getConfig().getString("discord.channels."+event.getOption("chat").getAsString()) : Synergy.getConfig().getString("discord.channels.global");
+        	String channel = event.getOption("channel").isSet() ?  Synergy.getConfig().getString("discord.channels."+event.getOption("channel").getAsString()) : null;
         	
             if (channel == null || channel.isEmpty() || channel.length() != 19) {
-            	Synergy.getLogger().error("Channel ID cannot be null.");
             	return;
             }
             
             Synergy.getDiscord().getTextChannelById(channel).sendMessage(event.getOption("message").getAsString()).queue();
-            
     	}
     	
         if (event.getIdentifier().equals("discord-embed")) {
-        	String channel = event.getOption("chat").isSet() ? Synergy.getConfig().getString("discord.channels."+event.getOption("chat").getAsString()) : Synergy.getConfig().getString("discord.channels.global");
+        	String channel = event.getOption("channel").isSet() ? event.getOption("channel").getAsString() : Synergy.getConfig().getString("discord.channels.broadcast");
         	
             if (channel == null || channel.isEmpty() || channel.length() != 19) {
             	return;
@@ -129,75 +123,25 @@ public class ChatDiscordListener extends ListenerAdapter implements SynergyListe
         Message message = event.getMessage();
         User user = event.getAuthor();
         String channelId = event.getChannel().getId();
-
-        UUID uuid = Discord.getUniqueIdByDiscordId(user.getId());
-
-        if (!event.getAuthor().isBot()) {
-
-            if (channelId.equals(Synergy.getConfig().getString("discord.channels.global"))) {
-                if (uuid == null) {
-                	event.getChannel().sendMessageEmbeds(Discord.warning(Synergy.translate("<lang>synergy-you-have-to-link-account</lang>", Translation.getDefaultLanguage()).getStripped())).queue();
-                    return;
-                }
-                if (Synergy.getBread(uuid).isMuted()) {
-                	event.getMessage().replyEmbeds(Discord.warning(Synergy.translate("<lang>synergy-you-are-muted</lang>", Translation.getDefaultLanguage()).getStripped())).queue();
-                	return;
-                }
-
-	            Synergy.createSynergyEvent("chat").setPlayerUniqueId(uuid).setOption("player", event.getAuthor().getEffectiveName())
-	            	.setOption("chat", "discord").setOption("message", message.getContentDisplay()).send();
-
-            }
-
-            if (channelId.equals(Synergy.getConfig().getString("discord.channels.admin"))) {
-                if (uuid == null) {
-                	event.getChannel().sendMessageEmbeds(Discord.warning(Synergy.translate("<lang>synergy-you-have-to-link-account</lang>", Translation.getDefaultLanguage()).getStripped())).queue();
-                    return;
-                }
-                Synergy.createSynergyEvent("chat").setPlayerUniqueId(uuid).setOption("player", event.getAuthor().getEffectiveName())
-	            	.setOption("chat", "discord_admin").setOption("message", message.getContentDisplay()).send();
-            }
-
-            if (Synergy.getConfig().getBoolean("discord.gpt-bot.enabled")) {
-
-                try {
-                    boolean startsWithBotName = message.getContentDisplay().toLowerCase().startsWith(Discord.getBotName().toLowerCase());
-                    boolean isGlobalChatChannel = channelId.equals(Synergy.getConfig().getString("discord.channels.global"));
-                    boolean mentionedBot = message.getMentions().isMentioned((IMentionable) event.getJDA().getSelfUser(), Message.MentionType.USER);
-                    boolean isReplyToBot = message.getReferencedMessage() != null && message.getReferencedMessage().getAuthor().equals(event.getJDA().getSelfUser());
-
-                    if ((startsWithBotName && !isGlobalChatChannel) || mentionedBot || isReplyToBot) {
-                        message.getChannel().sendTyping().queue();
-                        String question = Synergy.getConfig().getString("discord.gpt-bot.personality")
-                            .replace("%MESSAGE%", Utils.removeIgnoringCase(Discord.getBotName(), event.getMessage().getContentRaw())
-                                .replace(event.getJDA().getSelfUser().getAsMention(), ""));
-                        //String.valueOf((event.getMessage().getReferencedMessage() != null) ? event.getMessage().getReferencedMessage().getContentRaw() : "");
-                        String answer = new OpenAi().newPrompt(question).get(0).getText().replace("\"", "");
-                        message.reply(answer).queue();
-                    }
-
-                    if (startsWithBotName && isGlobalChatChannel) {
-                        String question = Synergy.getConfig().getString("discord.gpt-bot.personality").replace("%MESSAGE%", Utils.removeIgnoringCase(Discord.getBotName(), message.getContentDisplay()));
-                        String answer = (new OpenAi().newPrompt(question).get(0)).getText().replace("\"", "").trim();
-                        Synergy.createSynergyEvent("chat").setOption("player", Discord.getBotName())
-                    		.setOption("chat", "discord").setOption("message", answer).send();
-                        Synergy.createSynergyEvent("discord").setOption("player", Discord.getBotName())
-	                        .setOption("chat", "global").setOption("message", answer).send();
-                    }
-
-                } catch (Exception c) {
-                    Synergy.getLogger().error(c.getMessage());
-                    event.getMessage().replyEmbeds(Discord.warning(Synergy.translate("<lang>synergy-service-unavailable</lang>", Translation.getDefaultLanguage()).getStripped())).queue();
-                }
-            }
-
-            if (Synergy.getConfig().getBoolean("discord.hightlights.enabled") &&
-                Synergy.getConfig().getStringList("discord.hightlights.channels").contains(channelId) &&
-                message.getAttachments().size() > 0) {
-                message.addReaction(Emoji.fromUnicode(Synergy.getConfig().getString("discord.hightlights.reaction-emoji"))).complete();
-                message.createThreadChannel(Synergy.translate("<lang>synergy-hightlights-comments</lang>", Translation.getDefaultLanguage()).getStripped()).queue();
-            }
-            return;
+        
+        if (event.getAuthor().isBot()) {
+        	return;	
         }
+
+        Synergy.createSynergyEvent("discord-chat")
+		       .setOption("player", user.getEffectiveName())
+		       .setOption("discord-channel-id", channelId)
+		       .setOption("message", message.getContentDisplay())
+		       .setOption("discord-user-id", user.getId())
+		       .send();
+
+        if (Synergy.getConfig().getBoolean("discord.hightlights.enabled") &&
+            Synergy.getConfig().getStringList("discord.hightlights.channels").contains(channelId) &&
+            message.getAttachments().size() > 0) {
+            message.addReaction(Emoji.fromUnicode(Synergy.getConfig().getString("discord.hightlights.reaction-emoji"))).complete();
+            message.createThreadChannel(Synergy.translate("<lang>synergy-hightlights-comments</lang>", Translation.getDefaultLanguage()).getStripped()).queue();
+        }
+        return;
+        
     }
 }

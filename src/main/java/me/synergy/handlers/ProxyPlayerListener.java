@@ -3,6 +3,7 @@ package me.synergy.handlers;
 import me.synergy.brains.Bungee;
 import me.synergy.brains.Synergy;
 import me.synergy.objects.BreadMaker;
+import me.synergy.utils.Translation;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
@@ -35,7 +36,7 @@ public class ProxyPlayerListener implements Listener {
     	.setPlayerUniqueId(player.getUniqueId())
     	.setOption("chat", "global")
     	.setOption("color", "#81ecec")
-    	.setOption("author", Synergy.translate("<lang>synergy-player-join-message<arg>"+player.getName()+"</arg></lang>", bread.getLanguage())
+    	.setOption("author", Synergy.translate("<lang>synergy-player-join-message<arg>"+player.getName()+"</arg></lang>", Translation.getDefaultLanguage())
     			.setEndings(bread.getPronoun())
     			.getStripped()).fireEvent();
     }
@@ -52,7 +53,7 @@ public class ProxyPlayerListener implements Listener {
     	Synergy.createSynergyEvent("discord-embed").setPlayerUniqueId(player.getUniqueId())
     	.setOption("chat", "global")
     	.setOption("color", "#fab1a0")
-    	.setOption("author", Synergy.translate("<lang>synergy-player-quit-message<arg>"+player.getName()+"</arg></lang>", bread.getLanguage())
+    	.setOption("author", Synergy.translate("<lang>synergy-player-quit-message<arg>"+player.getName()+"</arg></lang>", Translation.getDefaultLanguage())
     			.setEndings(bread.getPronoun())
     			.getStripped()).fireEvent();
     }

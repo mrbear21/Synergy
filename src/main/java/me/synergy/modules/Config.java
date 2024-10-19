@@ -51,8 +51,7 @@ public class Config {
             addDefault("discord.invite-link", "https://discord.gg/example");
             addDefault("discord.activities", new String[] {"Activity Example", "Another Activity Example"});
             addDefault("discord.avatar-link", "http://example.com:8153/head/%UUID%");
-            addDefault("discord.channels.global", "00000000000000000");
-            addDefault("discord.channels.admin", "00000000000000000");
+            addDefault("discord.channels.broadcast", "00000000000000000");
             addDefault("discord.channels.log", "00000000000000000");
             addDefault("discord.channels.merge-similar-embeds", false);
             addDefault("discord.synchronization.sync-roles-from-discord-to-mc", false);
@@ -104,29 +103,50 @@ public class Config {
                 addDefault("synergy-plugin-messaging.token", "Copy plugin-messaging-token from config.yml of Synergy in your Proxy folder");
 
                 addDefault("chat-manager.enabled", true);
-                addDefault("chat-manager.local-chat", true);
                 addDefault("chat-manager.custom-color-tags.&p", "<#BDC581>");
                 addDefault("chat-manager.chat-filter.blocked-words", new String[] {"fuck", "bitch"});
                 addDefault("chat-manager.chat-filter.ignored-words", new String[] {"чіпідрос", "книга"});
                 addDefault("chat-manager.chat-filter.blocked-words-tolerance-percentage", 38.5);
-                addDefault("chat-manager.local-chat-radius", 500);
-                addDefault("chat-manager.integrations.plotsquared-plot-chat", false);
-                addDefault("chat-manager.integrations.factions-chat", false);
-                addDefault("chat-manager.cross-server-global-chat", true);
                 addDefault("chat-manager.play-sound-on-chat", false);
                 
-                addDefault("chat-manager.colors.global", "&e");
-                addDefault("chat-manager.colors.local", "&f");
-                addDefault("chat-manager.colors.discord", "&b");
-                addDefault("chat-manager.colors.admin", "&c");
-                addDefault("chat-manager.colors.discord_admin", "&c");
+                addDefault("chat-manager.use-interactive-tags", false);
+                addDefault("chat-manager.warn-if-nobody-in-chat", true);
                 
-                addDefault("chat-manager.chat-tag.global", "[G]");
-                addDefault("chat-manager.chat-tag.discord", "[Discord]");
-                addDefault("chat-manager.chat-tag.discord_admin", "[Discord]");
-                addDefault("chat-manager.chat-tag.admin", "[A]");
-                addDefault("chat-manager.chat-tag.local", "[L]");
+                addDefault("chat-manager.chats.global.enabled", true);
+                addDefault("chat-manager.chats.global.color", "<#dedee0>");
+                addDefault("chat-manager.chats.global.tag", "[G]");
+                addDefault("chat-manager.chats.global.symbol", "!");
                 
+                addDefault("chat-manager.chats.global.discord.color", "<#dedee0>");
+                addDefault("chat-manager.chats.global.discord.tag", "[Discord]");
+                addDefault("chat-manager.chats.global.discord.channel", "00000000000000000");
+                
+                addDefault("chat-manager.chats.local.enabled", true);
+                addDefault("chat-manager.chats.local.radius", 500);
+                addDefault("chat-manager.chats.local.color", "<#deceb4>");
+                addDefault("chat-manager.chats.local.tag", "[L]");
+                
+                addDefault("chat-manager.chats.admin.enabled", true);
+                addDefault("chat-manager.chats.admin.color", "<#ffb4a1>");
+                addDefault("chat-manager.chats.admin.tag", "[A]");
+                addDefault("chat-manager.chats.admin.symbol", "\\");
+                addDefault("chat-manager.chats.admin.permission", "synergy.chat.admin");
+                
+                addDefault("chat-manager.chats.admin.discord.color", "<#ffb4a1>");
+                addDefault("chat-manager.chats.admin.discord.tag", "[Discord]");
+                addDefault("chat-manager.chats.admin.discord.channel", "00000000000000000");
+                
+                addDefault("chat-manager.chats.plot.enabled", false);
+                addDefault("chat-manager.chats.plot.color", "<#c9ffcd>");
+                addDefault("chat-manager.chats.plot.tag", "[Plot]");
+                addDefault("chat-manager.chats.plot.symbol", "=");
+                
+                addDefault("chat-manager.chats.faction.enabled", false);
+                addDefault("chat-manager.chats.faction.color", "<#c9ffcd>");
+                addDefault("chat-manager.chats.faction.tag", "[Faction]");
+                addDefault("chat-manager.chats.faction.symbol", "=");
+
+
                 addDefault("chat-manager.format", "%COLOR%%CHAT% %DISPLAYNAME%%COLOR%: %MESSAGE%");
                 
                 addDefault("chat-manager.custom-emojis.<3", "❤");
@@ -263,12 +283,20 @@ public class Config {
             set(key, Integer.valueOf(value));
         }
     }
-
-    public boolean getBoolean(String key) {
+    
+    public Boolean getBoolean(String key, boolean defaultIfNull) {
+        return (getBoolean(key) != null) ? getBoolean(key) : defaultIfNull;
+    }
+    
+    public Boolean getBoolean(String key) {
         Object value = get(key);
         return value != null ? (Boolean) value : null;
     }
 
+    public Integer getInt(String key, int defaultIfNull) {
+        return (getInt(key) != null) ? getInt(key) : defaultIfNull;
+    }
+    
     public Integer getInt(String key) {
         Object value = get(key);
         return value != null ? (int) value : null;
@@ -283,9 +311,13 @@ public class Config {
         return (getString(key) != null) ? getString(key) : defaultIfNull;
     }
 
-    public double getDouble(String key) {
+    public Double getDouble(String key, Double defaultIfNull) {
+        return (getDouble(key) != null) ? getDouble(key) : defaultIfNull;
+    }
+    
+    public Double getDouble(String key) {
         Object value = get(key);
-        return value != null ? (double) value : null;
+        return value != null ? (Double) value : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -316,4 +348,5 @@ public class Config {
         }
         return section != null ? section : new HashMap<String, Object>();
     }
+
 }

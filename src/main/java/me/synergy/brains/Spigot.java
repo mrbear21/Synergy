@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -22,6 +21,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import me.synergy.commands.ChatCommand;
 import me.synergy.commands.DiscordCommand;
 import me.synergy.commands.LanguageCommand;
 import me.synergy.commands.PronounCommand;
@@ -30,6 +30,7 @@ import me.synergy.commands.ThemeCommand;
 import me.synergy.commands.VoteCommand;
 import me.synergy.discord.Discord;
 import me.synergy.events.SynergyEvent;
+import me.synergy.handlers.ChatHandler;
 import me.synergy.handlers.LocalesListener;
 import me.synergy.handlers.ResourcePackHandler;
 import me.synergy.handlers.ServerListPingListener;
@@ -39,7 +40,6 @@ import me.synergy.integrations.EssentialsAPI;
 import me.synergy.integrations.PlaceholdersAPI;
 import me.synergy.integrations.PlanAPI;
 import me.synergy.integrations.VaultAPI;
-import me.synergy.modules.ChatManager;
 import me.synergy.modules.Config;
 import me.synergy.modules.DataManager;
 import me.synergy.modules.LocalesManager;
@@ -50,7 +50,7 @@ import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
-public class Spigot extends JavaPlugin implements PluginMessageListener, Listener {
+public class Spigot extends JavaPlugin implements PluginMessageListener {
 
     private static Spigot INSTANCE;
     private ProtocolManager PROTOCOLMANAGER;
@@ -70,11 +70,12 @@ public class Spigot extends JavaPlugin implements PluginMessageListener, Listene
         new DataManager().initialize();
         new LocalesManager().initialize();
         new SynergyCommand().initialize();
+        new ChatCommand().initialize();
         new VoteCommand().initialize();
         new PronounCommand().initialize();
         new LanguageCommand().initialize();
         new DiscordCommand().initialize();
-        new ChatManager().initialize();
+        new ChatHandler().initialize();
         new Discord().initialize();
         new ServerListPingListener().initialize();
         new SpigotPlayerListener().initialize();
@@ -110,8 +111,6 @@ public class Spigot extends JavaPlugin implements PluginMessageListener, Listene
 	        new PlaceholdersAPI().initialize();
 		}
 		
-        getServer().getPluginManager().registerEvents(this, this);
-
         getLogger().info("Synergy is ready to be helpful for the all BreadMakers!");
     }
 

@@ -20,25 +20,33 @@ public class DataManager {
     
     public void initialize() {
         try {
-	    	String dbType = Synergy.getConfig().getString("storage.type");
-	    	String host = Synergy.getConfig().getString("storage.host");
-	    	String database = Synergy.getConfig().getString("storage.database");
-	    	String user = Synergy.getConfig().getString("storage.user");
-	    	String port = Synergy.getConfig().getString("storage.port");
-	    	String password = Synergy.getConfig().getString("storage.password");
-	    	
-	        if (dbType.equalsIgnoreCase("sqlite")) {
-	            connection = DriverManager.getConnection("jdbc:sqlite:" + host);
-	        } else if (dbType.equalsIgnoreCase("mysql")) {
-	            connection = DriverManager.getConnection("jdbc:mysql://" + host+":"+port+"/"+database, user, password);
-	        }
-	        createTable();
+        	establishConnection();
 	        Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
         } catch (Exception c) {
 	        Synergy.getLogger().info(String.valueOf(getClass().getSimpleName()) + " module has been initialized!");
         }
     }
 
+    private void establishConnection() throws SQLException {
+        if (connection == null || connection.isClosed()) {
+        	Config config = Synergy.getConfig();
+            String dbType = config.getString("storage.type");
+            String host = config.getString("storage.host");
+            String database = config.getString("storage.database");
+            String user = config.getString("storage.user");
+            String port = config.getString("storage.port");
+            String password = config.getString("storage.password");
+
+            if (dbType.equalsIgnoreCase("sqlite")) {
+                connection = DriverManager.getConnection("jdbc:sqlite:" + host);
+            } else if (dbType.equalsIgnoreCase("mysql")) {
+                connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database, user, password);
+            }
+
+            createTable();
+        }
+    }
+    
     private void createTable() throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS synergy (" +
                 "uuid VARCHAR(36) NOT NULL," +
@@ -80,6 +88,7 @@ public class DataManager {
 	        	return entry.getOption(option);
 	        }
     	}
+    	establishConnection();
         String sql = "SELECT value FROM synergy WHERE uuid = ? AND option = ?";
         String value = null;
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -96,6 +105,7 @@ public class DataManager {
     }
     
     public void setData(UUID uuid, String option, String value) throws SQLException {
+    	establishConnection();
         String sql = value == null ? "DELETE FROM synergy WHERE uuid = ? AND option = ?"
         						   : "REPLACE INTO synergy (uuid, option, value) VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -111,6 +121,7 @@ public class DataManager {
     }
     
     public UUID findUserUUID(String option, String value) throws SQLException {
+    	establishConnection();
         String sql = "SELECT uuid FROM synergy WHERE option = ? AND value = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, option);
